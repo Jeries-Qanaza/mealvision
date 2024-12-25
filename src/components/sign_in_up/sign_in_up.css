@@ -1,0 +1,56 @@
+.sign_in_container, .sign_up_container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  
+  .auth-form {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Added missing closing parenthesis and alpha value */
+    width: 400px; /* Added a default width for better presentation */
+    max-width: 90%; /* Ensures responsiveness on smaller screens */
+  }
+  
+  /* Optional: Add some basic styling for form elements */
+  .auth-form label {
+    display: block;
+    margin-bottom: 5px;
+  }
+  
+  .auth-form input[type="text"],
+  .auth-form input[type="password"],
+  .auth-form input[type="email"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box; /* Important for consistent width calculation */
+  }
+  
+  .auth-form button {
+      background-color: #007bff; /* Example color */
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      margin: 5px;
+  }
+  
+  .auth-form button:hover {
+      background-color: #0056b3; /* Darker shade on hover */
+  }
+
+  select
+  {
+    background-color: rgb(255, 255, 255);
+    margin: 2px;
+    border-radius: 3px;
+  }
