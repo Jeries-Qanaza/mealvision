@@ -1,0 +1,8 @@
+flask
+flask-cors
+flask-mail
+google-generativeai
+requests
+pillow
+numpy
+ultralytics
