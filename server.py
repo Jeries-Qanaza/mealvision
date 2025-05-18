@@ -13,8 +13,7 @@ import os
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
-CORS(app)
-
+CORS(app, origins=["https://mealvision.vercel.app"])
 
 @app.route('/')
 def index():
