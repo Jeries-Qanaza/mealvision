@@ -15,6 +15,11 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+
+@app.route('/')
+def index():
+    return 'MealVision Backend is Running!'
+
 # ------------------- Gemini AI Setup -------------------
 genai.configure(api_key="AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q") 
 model = genai.GenerativeModel("gemini-1.5-flash")
