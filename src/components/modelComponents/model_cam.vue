@@ -135,7 +135,7 @@ export default {
         this.debugInfo = 'Sending uploaded image to server...';
 
         try {
-          const response = await fetch("http://localhost:5000/detect", {
+          const response = await fetch("https://mealvision.onrender.com/detect", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ image: imageData })
