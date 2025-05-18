@@ -84,7 +84,7 @@ export default {
     async generateMeals() {
       this.isLoading = true;
       try {
-        const response = await axios.post("http://127.0.0.1:5000/generate-meals", {
+        const response = await axios.post("https://mealvision.onrender.com/generate-meals", {
           ingredients: this.addedItems,
         });
 
