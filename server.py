@@ -106,7 +106,7 @@ def send_email():
         return jsonify({"error": str(e)}), 500
 
 # ------------------- YOLO Detection -------------------
-yolo_model = YOLO("./src/assets/best.pt")
+yolo_model = YOLO("./src/assets/best8s.pt")
 
 @app.route("/detect", methods=["POST"])
 def detect():
