@@ -18,7 +18,6 @@
     </div>
   </div>
 </template>
-
 <script>
 export default {
   name: 'ModelCam',
@@ -94,32 +93,34 @@ export default {
         const ctx = canvas.getContext('2d');
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        const imageData = canvas.toDataURL('image/jpeg');
-
         this.debugInfo = 'Sending image to server...';
 
-        const response = await fetch("https://mealvision.onrender.com/detect", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ image: imageData })
-        });
+        canvas.toBlob(async (blob) => {
+          const formData = new FormData();
+          formData.append("image", blob, "snapshot.jpg");
 
-        if (!response.ok) throw new Error('Detection failed');
+          const response = await fetch("https://mealvision.onrender.com/detect", {
+            method: "POST",
+            body: formData
+          });
 
-        const result = await response.json();
-        const uniqueLabels = [...new Set(result.labels)];
+          if (!response.ok) throw new Error('Detection failed');
 
-        this.detectedLabels = uniqueLabels.join(", ");
-        console.log("Detected Labels:", this.detectedLabels);
+          const result = await response.json();
+          const uniqueLabels = [...new Set(result.labels)];
 
-        this.debugInfo = 'Detection complete.';
-        this.$emit('items-updated', this.detectedLabels);
+          this.detectedLabels = uniqueLabels.join(", ");
+          console.log("Detected Labels:", this.detectedLabels);
+
+          this.debugInfo = 'Detection complete.';
+          this.$emit('items-updated', this.detectedLabels);
+          this.isProcessing = false;
+        }, "image/jpeg");
 
       } catch (error) {
         this.debugInfo = `Snapshot error: ${error.message}`;
         console.error('Detection error:', error);
         this.detectedLabels = '';
-      } finally {
         this.isProcessing = false;
       }
     },
@@ -127,36 +128,32 @@ export default {
       const file = event.target.files[0];
       if (!file) return;
 
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const imageData = reader.result;
+      const formData = new FormData();
+      formData.append("image", file);
 
-        this.isProcessing = true;
-        this.debugInfo = 'Sending uploaded image to server...';
+      this.isProcessing = true;
+      this.debugInfo = 'Sending uploaded image to server...';
 
-        try {
-          const response = await fetch("https://mealvision.onrender.com/detect", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ image: imageData })
-          });
+      try {
+        const response = await fetch("https://mealvision.onrender.com/detect", {
+          method: "POST",
+          body: formData
+        });
 
-          if (!response.ok) throw new Error('Detection failed');
+        if (!response.ok) throw new Error('Detection failed');
 
-          const result = await response.json();
-          const uniqueLabels = [...new Set(result.labels)];
-          this.detectedLabels = uniqueLabels.join(", ");
-          this.debugInfo = 'Detection complete.';
-          this.$emit('items-updated', this.detectedLabels);
-        } catch (error) {
-          this.debugInfo = `Upload error: ${error.message}`;
-          console.error('Upload detection error:', error);
-          this.detectedLabels = '';
-        } finally {
-          this.isProcessing = false;
-        }
-      };
-      reader.readAsDataURL(file);
+        const result = await response.json();
+        const uniqueLabels = [...new Set(result.labels)];
+        this.detectedLabels = uniqueLabels.join(", ");
+        this.debugInfo = 'Detection complete.';
+        this.$emit('items-updated', this.detectedLabels);
+      } catch (error) {
+        this.debugInfo = `Upload error: ${error.message}`;
+        console.error('Upload detection error:', error);
+        this.detectedLabels = '';
+      } finally {
+        this.isProcessing = false;
+      }
     },
     stopCamera() {
       if (this.stream) {
@@ -175,6 +172,7 @@ export default {
   }
 };
 </script>
+
 
 <style scoped>
 .camera-container {
