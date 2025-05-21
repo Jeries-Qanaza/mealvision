@@ -10,6 +10,7 @@ import numpy as np
 import io
 from PIL import Image
 import os
+import tempfile # added new 
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
@@ -110,6 +111,30 @@ yolo_model = YOLO("./src/assets/best8s.pt")
 
 @app.route("/detect", methods=["POST"])
 def detect():
+    try:
+        file = request.files["image"]
+        image = Image.open(file.stream).convert("RGB")
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
+            image.save(temp.name)
+            results = yolo_model.predict(source=temp.name, conf=0.25)
+
+        labels = []
+        for box in results[0].boxes:
+            cls_id = int(box.cls[0])
+            label = results[0].names[cls_id]
+            labels.append(label)
+
+        return jsonify({"labels": labels})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+        
+""" Commented block
+@app.route("/detect", methods=["POST"])
+def detect():
     data = request.get_json()
     image_data = data["image"].split(",")[1]
     image_bytes = base64.b64decode(image_data)
@@ -125,7 +150,7 @@ def detect():
             labels.append(label)
 
     return jsonify({"labels": labels})
-
+"""
 # ------------------- Run App -------------------
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
