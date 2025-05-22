@@ -112,8 +112,16 @@ yolo_model = YOLO("./src/assets/best8s.pt")
 @app.route("/detect", methods=["POST"])
 def detect():
     try:
-        file = request.files["image"]
-        image = Image.open(file.stream).convert("RGB")
+        if "image" in request.files:
+            # File upload (FormData)
+            file = request.files["image"]
+            image = Image.open(file.stream).convert("RGB")
+        else:
+            # Base64 upload (Snapshot from camera)
+            data = request.get_json()
+            image_data = data["image"].split(",")[1]
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
             image.save(temp.name)
