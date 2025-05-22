@@ -8,7 +8,10 @@
         <i class="fas fa-camera"></i> Take Snapshot
       </button>
 
+    <label class="upload-label">
+      <i class="fas fa-upload"></i> Upload Image
       <input type="file" accept="image/*" @change="handleFileUpload" class="file-input" />
+    </label>
     </div>
 
     <div id="labels">Detected Labels: <span>{{ detectedLabels }}</span></div>
@@ -222,4 +225,29 @@ video {
   font-weight: bold;
   font-size: 18px;
 }
+  .upload-label {
+  display: inline-block;
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: orange;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.upload-label:hover {
+  background-color: darkorange;
+}
+
+.upload-label i {
+  margin-right: 8px;
+}
+
+.file-input {
+  display: none;
+}
+
 </style>
