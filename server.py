@@ -14,7 +14,7 @@ import tempfile # added new
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://mealvision.vercel.app"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": "https://mealvision.vercel.app"}}, supports_credentials=True, send_wildcard=True)
 
 @app.route('/')
 def index():
