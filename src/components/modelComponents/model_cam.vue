@@ -1,3 +1,4 @@
+
 <template>
   <div class="camera-container">
     <h1>YOLO Detection</h1>
@@ -102,7 +103,7 @@ export default {
           const formData = new FormData();
           formData.append("image", blob, "snapshot.jpg");
 
-          const response = await fetch("https://mealvision.onrender.com/detect", {
+          const response = await fetch("http://localhost:5000/detect", {
             method: "POST",
             body: formData
           });
@@ -138,7 +139,7 @@ export default {
       this.debugInfo = 'Sending uploaded image to server...';
 
       try {
-        const response = await fetch("https://mealvision.onrender.com/detect", {
+        const response = await fetch("http://localhost:5000/detect", {
           method: "POST",
           body: formData
         });

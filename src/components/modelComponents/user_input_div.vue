@@ -3,6 +3,25 @@
     <div class="choice-buttons">
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
+      <div class="filter-button-container">
+        <button class="filter-button" @click="showFilter = true">
+          <h2>🔍</h2>
+        </button>
+      </div>
+      <div v-if="showFilter" class="filter-modal">
+  <div class="filter-content">
+    <h3>Select Dietary Preferences</h3>
+    <div class="checkbox-group">
+      <label v-for="type in dietOptions" :key="type">
+        <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
+      </label>
+    </div>
+    <div class="filter-actions">
+      <button @click="applyFilters">OK</button>
+      <button @click="showFilter = false">Cancel</button>
+    </div>
+  </div>
+</div>
     </div>
     <hr />
     <div class="content">
@@ -53,7 +72,11 @@ export default {
       meals: [],
       isLoading: false,
       cameraReady: false,
-      cameraError: null
+      cameraError: null,
+      showFilter: false,
+dietOptions: ["Vegan 🌱", "Vegetarian 🥦", "Pescetarian 🐟", "Gluten-Free 🚫🌾", "Keto 🥩", "Halal 🕌"],
+selectedDiets: [],
+
     };
   },
   methods: {
@@ -81,10 +104,16 @@ export default {
       this.showScan = false;
       this.$nextTick(() => this.showScan = true);
     },
+    applyFilters() {
+  console.log("Selected dietary preferences:", this.selectedDiets);
+  this.showFilter = false;
+},
+
+
     async generateMeals() {
       this.isLoading = true;
       try {
-        const response = await axios.post("https://mealvision.onrender.com/generate-meals", {
+        const response = await axios.post("http://127.0.0.1:5000/generate-meals", {
           ingredients: this.addedItems,
         });
 
@@ -132,6 +161,8 @@ export default {
   justify-content: center;
   gap: 20px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
+  position: relative;
 }
 
 .choice-buttons button {
@@ -262,4 +293,68 @@ hr {
     padding: 20px;
   }
 }
+
+.filter-button {
+  padding: 15px 30px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(135, 206, 250, 0.8); /* light blue */
+  color: #191b31;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.filter-button:hover {
+  background-color: rgba(135, 206, 250, 1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.filter-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(25, 27, 49, 0.9);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.filter-content {
+  background: white;
+  color: #191b31;
+  padding: 30px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+}
+.filter-button-container {
+  position: absolute;
+  right: 0;
+}
+.checkbox-label {
+  display: flex;
+  gap: 10px;
+  text-align: left;
+}
+
 </style>

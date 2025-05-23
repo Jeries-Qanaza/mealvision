@@ -5,8 +5,6 @@
       <li><router-link class="nav_li" to="/">Home</router-link></li>
       <li><router-link class="nav_li" to="/about">About</router-link></li>
       <li><router-link class="nav_li" to="/contact">Contact</router-link></li>
-      <li><router-link class="nav_li" to="/signIn">Sign-In</router-link></li>
-      <li><router-link class="nav_li" to="/signUp">Sign-Up</router-link></li>
       <li><router-link class="nav_li" to="/model">Model</router-link></li>
     </ul>
     <button class="navbar-toggle" @click="toggleMenu" aria-label="Toggle menu">
@@ -19,8 +17,6 @@
         <li><router-link to="/" @click="toggleMenu">Home</router-link></li>
         <li><router-link to="/about" @click="toggleMenu">About</router-link></li>
         <li><router-link to="/contact" @click="toggleMenu">Contact</router-link></li>
-        <li><router-link to="/signIn" @click="toggleMenu">Sign-In</router-link></li>
-        <li><router-link to="/signUp" @click="toggleMenu">Sign-Up</router-link></li>
         <li><router-link to="/model" @click="toggleMenu">Model</router-link></li>
       </ul>
     </transition>

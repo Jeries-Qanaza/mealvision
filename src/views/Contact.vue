@@ -49,7 +49,7 @@ export default {
   methods: {
     handleSubmit() {
       this.loading = true;
-      fetch('https://mealvision.onrender.com/send-email', {
+      fetch('http://localhost:5000/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
