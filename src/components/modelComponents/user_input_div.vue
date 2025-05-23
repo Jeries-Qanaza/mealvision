@@ -8,20 +8,23 @@
           <h2>🔍</h2>
         </button>
       </div>
-      <div v-if="showFilter" class="filter-modal">
-  <div class="filter-content">
-    <h3>Select Dietary Preferences</h3>
-    <div class="checkbox-group">
-      <label v-for="type in dietOptions" :key="type">
-        <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
-      </label>
+
+          <div v-if="showFilter" class="filter-modal">
+          <div class="filter-content">
+            <button id="closeDietary" @click="showFilter = false">X</button>
+          <h3>Select Dietary Preferences</h3>
+
+          <div class="checkbox-group">
+          <label v-for="type in dietOptions" :key="type">
+          <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
+          </label>
+        </div>
+        <div class="filter-actions">
+          <button id="okDietary" @click="applyFilters">OK</button>
+        </div>
+      </div>
     </div>
-    <div class="filter-actions">
-      <button @click="applyFilters">OK</button>
-      <button @click="showFilter = false">Cancel</button>
-    </div>
-  </div>
-</div>
+
     </div>
     <hr />
     <div class="content">
@@ -357,4 +360,14 @@ hr {
   text-align: left;
 }
 
+
+#okDietary
+{
+  width:100%
+}
+#closeDietary
+{
+  position: fixed;
+  right: 25%;
+}
 </style>
