@@ -122,11 +122,14 @@ export default {
     },
     async generateMeals() {
       this.isLoading = true;
+      const dietaryPreferencesStr = this.selectedDiets.join(", ");
+
       try {
         const response = await axios.post(
           "http://127.0.0.1:5000/generate-meals",
           {
             ingredients: this.addedItems,
+            dietary_preferences: dietaryPreferencesStr,
           }
         );
 
