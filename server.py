@@ -53,6 +53,8 @@ def generate_meals():
 
         response = model.generate_content(prompt)
         json_text = response.text.strip()
+        print("##########################################################")
+        print("Response from Gemini:", json_text)
 
         if json_text.startswith("```json"):
             json_text = json_text[7:]
@@ -62,7 +64,7 @@ def generate_meals():
         meal_data = json.loads(json_text)
 
         for meal in meal_data["meals"]:
-            meal_name = meal["mealName"]
+            meal_name = meal.get("mealName") or meal.get("name")
             steps = "\n".join(meal["steps"])
             image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
             try:
