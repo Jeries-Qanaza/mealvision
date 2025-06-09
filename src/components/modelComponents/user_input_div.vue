@@ -53,11 +53,10 @@
       </div>
     </div>
 
-    <!-- Pass meals data to GeneratedData -->
+    
     <GeneratedData v-else :meals="meals" />
   </div>
 </template>
-
 <script>
 import axios from "axios";
 import ManualBox from "./manualbox.vue";
@@ -77,9 +76,15 @@ export default {
       cameraReady: false,
       cameraError: null,
       showFilter: false,
-dietOptions: ["Vegan 🌱", "Vegetarian 🥦", "Pescetarian 🐟", "Gluten-Free 🚫🌾", "Keto 🥩", "Halal 🕌"],
-selectedDiets: [],
-
+      dietOptions: [
+        "Vegan 🌱",
+        "Vegetarian 🥦",
+        "Pescetarian 🐟",
+        "Gluten-Free 🚫🌾",
+        "Keto 🥩",
+        "Halal 🕌",
+      ],
+      selectedDiets: [],
     };
   },
   methods: {
@@ -97,7 +102,7 @@ selectedDiets: [],
       this.addedItems = items;
     },
     handleCameraError(error) {
-      this.cameraError = error.message || 'Failed to access camera';
+      this.cameraError = error.message || "Failed to access camera";
       this.cameraReady = false;
     },
     retryCamera() {
@@ -105,20 +110,25 @@ selectedDiets: [],
       this.cameraReady = false;
       // force the ModelCam to remount:
       this.showScan = false;
-      this.$nextTick(() => this.showScan = true);
+      this.$nextTick(() => (this.showScan = true));
     },
     applyFilters() {
-  console.log("Selected dietary preferences:", this.selectedDiets);
-  this.showFilter = false;
-},
-
-
+      console.log("Selected dietary preferences:", this.selectedDiets);
+      localStorage.setItem(
+        "selectedDiets",
+        JSON.stringify(this.selectedDiets)
+      );
+      this.showFilter = false;
+    },
     async generateMeals() {
       this.isLoading = true;
       try {
-        const response = await axios.post("http://127.0.0.1:5000/generate-meals", {
-          ingredients: this.addedItems,
-        });
+        const response = await axios.post(
+          "http://127.0.0.1:5000/generate-meals",
+          {
+            ingredients: this.addedItems,
+          }
+        );
 
         if (response.data && Array.isArray(response.data.meals_res)) {
           this.meals = response.data.meals_res;
@@ -134,16 +144,35 @@ selectedDiets: [],
       }
     },
   },
+  mounted() {
+    // Load saved filters from localStorage
+    const savedDiets = localStorage.getItem("selectedDiets");
+    if (savedDiets) {
+      try {
+        this.selectedDiets = JSON.parse(savedDiets);
+      } catch (e) {
+        console.error("Failed to parse saved diets:", e);
+      }
+    }
+  },
   watch: {
+    // Optional: auto-save when user changes selectedDiets
+    selectedDiets: {
+      handler(newVal) {
+        localStorage.setItem("selectedDiets", JSON.stringify(newVal));
+      },
+      deep: true,
+    },
     showScan(newVal) {
       if (newVal) {
         this.cameraReady = false;
         this.cameraError = null;
       }
-    }
-  }
+    },
+  },
 };
 </script>
+
 
 <style scoped>
 .container {
