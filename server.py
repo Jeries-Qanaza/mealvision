@@ -9,16 +9,12 @@ from ultralytics import YOLO
 import numpy as np
 import io
 from PIL import Image
-import os
-import tempfile # added new 
+import tempfile
+
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://mealvision.vercel.app"}}, supports_credentials=True)
-
-@app.route('/')
-def index():
-    return 'MealVision Backend is Running!'
+CORS(app)
 
 # ------------------- Gemini AI Setup -------------------
 genai.configure(api_key="AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q") 
@@ -51,8 +47,10 @@ def generate_meals():
         data = request.json
         ingredients = data.get("ingredients", [])
         ingredients_str = ", ".join(ingredients)
+        dietary_preferences = data.get('dietary_preferences', '')
 
-        prompt = f"What meal can I make with these ingredients: {ingredients_str}? Answer in JSON format with at least 3 options including meal names and steps."
+        prompt =f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+
         response = model.generate_content(prompt)
         json_text = response.text.strip()
 
@@ -108,7 +106,6 @@ def send_email():
 
 # ------------------- YOLO Detection -------------------
 yolo_model = YOLO("./src/assets/best8s.pt")
-
 @app.route("/detect", methods=["POST"])
 def detect():
     try:
@@ -139,27 +136,7 @@ def detect():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-        
-""" Commented block
-@app.route("/detect", methods=["POST"])
-def detect():
-    data = request.get_json()
-    image_data = data["image"].split(",")[1]
-    image_bytes = base64.b64decode(image_data)
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image_np = np.array(image)
 
-    results = yolo_model(image_np)
-    labels = []
-
-    for result in results:
-        for box in result.boxes:
-            label = yolo_model.names[int(box.cls[0])]
-            labels.append(label)
-
-    return jsonify({"labels": labels})
-"""
 # ------------------- Run App -------------------
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
