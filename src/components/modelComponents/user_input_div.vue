@@ -10,7 +10,7 @@
       </div>
 
           <div v-if="showFilter" class="filter-modal">
-          <div class="filter-content">
+          
             <button id="closeDietary" @click="showFilter = false">X</button>
           <h3>Select Dietary Preferences</h3>
 
@@ -22,7 +22,7 @@
         <div class="filter-actions">
           <button id="okDietary" @click="applyFilters">OK</button>
         </div>
-      </div>
+      
     </div>
 
     </div>
@@ -317,16 +317,17 @@ hr {
 }
 
 .filter-modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(25, 27, 49, 0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: absolute;
+  top: 100%; /* just below the button */
+  right: 0;
+  margin-top: 10px;
+  background: white;
+  color: #191b31;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 999;
+  width: 250px; /* adjust if needed */
 }
 
 .filter-content {
@@ -351,8 +352,8 @@ hr {
   justify-content: space-between;
 }
 .filter-button-container {
-  position: absolute;
-  right: 0;
+  position: relative;
+  display: inline-block;
 }
 .checkbox-label {
   display: flex;
@@ -365,9 +366,23 @@ hr {
 {
   width:100%
 }
-#closeDietary
-{
-  position: fixed;
-  right: 25%;
+#closeDietary {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 32px; /* fixed size */
+  height: 32px;
+  border-radius: 10%; /* optional: makes it round */
+  
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  font-size: 18px;
+  font-weight: bold;
 }
+
 </style>
