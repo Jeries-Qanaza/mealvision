@@ -34,16 +34,70 @@ export default {
   data() {
     return {
       searchQuery: '',
-      searchHistory: []
+      searchHistory: [],
+      emojiMap: {
+      banana: '🍌',
+      milk: '🥛',
+      apple: '🍎',
+      pizza: '🍕',
+      coffee: '☕',
+      burger: '🍔',
+      orange: '🍊',
+      grapes: '🍇',
+      strawberry: '🍓',
+      watermelon: '🍉',
+      pineapple: '🍍',
+      lemon: '🍋',
+      cherry: '🍒',
+      peach: '🍑',
+      pear: '🍐',
+      mango: '🥭',
+      avocado: '🥑',
+      tomato: '🍅',
+      carrot: '🥕',
+      broccoli: '🥦',
+      corn: '🌽',
+      potato: '🥔',
+      hotdog: '🌭',
+      taco: '🌮',
+      burrito: '🌯',
+      sushi: '🍣',
+      ramen: '🍜',
+      bread: '🍞',
+      cheese: '🧀',
+      egg: '🥚',
+      bacon: '🥓',
+      chicken: '🍗',
+      steak: '🥩',
+      fish: '🐟',
+      shrimp: '🍤',
+      icecream: '🍨',
+      donut: '🍩',
+      cookie: '🍪',
+      cake: '🍰',
+      pie: '🥧',
+      chocolate: '🍫',
+      candy: '🍬',
+      honey: '🍯',
+      wine: '🍷',
+      beer: '🍺',
+      champagne: '🥂',
+      cocktail: '🍸',
+      tea: '🍵',
+      soda: '🥤'
+      }
     }
   },
   methods: {
     addToHistory() {
-      if (this.searchQuery.trim()) {
-        this.searchHistory.unshift(this.searchQuery.trim());
+      const query = this.searchQuery.trim().toLowerCase();
+      if (query) {
+        const emoji = this.emojiMap[query] || '';
+        const itemWithEmoji = `${query} ${emoji}`;
+        this.searchHistory.unshift(itemWithEmoji);
         this.searchQuery = '';
 
-        console.log("Manula Input: " + this.searchHistory);
+        console.log("Manual Input: " + this.searchHistory);
 
         this.$emit('items-updated', this.searchHistory);
       }
@@ -55,6 +109,8 @@ export default {
   }
 }
 </script>
+
+  
 
 <style scoped>
 .search-wrapper {
