@@ -29,47 +29,23 @@
 </template>
 
 <script>
+import getEmoji from './get_emoji.js';
+
 export default {
   name: "ManualBox",
   data() {
     return {
       searchQuery: '',
-      searchHistory: [],
-      emojiMap: {
-  banana: '🍌', milk: '🥛', apple: '🍎', greenapple: '🍏', orange: '🍊',
-      grapes: '🍇', strawberry: '🍓', watermelon: '🍉', pineapple: '🍍',
-      lemon: '🍋', cherry: '🍒', peach: '🍑', pear: '🍐', mango: '🥭',
-      avocado: '🥑', tomato: '🍅', carrot: '🥕', broccoli: '🥦', corn: '🌽',
-      potato: '🥔', eggplant: '🍆', mushroom: '🍄', cucumber: '🥒',
-      pepper: '🌶', leafygreen: '🥬', garlic: '🧄', onion: '🧅',
-      beans: '🫘', peanuts: '🥜', chestnut: '🌰',
-      bread: '🍞', croissant: '🥐', baguette: '🥖', pretzel: '🥨',
-      bagel: '🥯', pancakes: '🥞', waffle: '🧇',
-      cheese: '🧀', egg: '🥚', bacon: '🥓', meat: '🍖', poultry: '🍗',
-      steak: '🥩', fish: '🐟', shrimp: '🍤', crab: '🦀',
-      hotdog: '🌭', burger: '🍔', fries: '🍟', pizza: '🍕',
-      taco: '🌮', burrito: '🌯', sandwich: '🥪', popcorn: '🍿',
-      sushi: '🍣', ramen: '🍜', bento: '🍱', riceball: '🍙',
-      ricecooked: '🍚', ricecracker: '🍘', curry: '🍛',
-      oden: '🍢', dango: '🍡', dumpling: '🥟', mooncake: '🥮',
-      fondue: '🫕', stuffedflatbread: '🥙', falafel: '🧆',
-      tamale: '🌯', spaghetti: '🍝', stew: '🍲', canned: '🥫',
-      icecream: '🍨', softice: '🍦', shavedice: '🍧', donut: '🍩',
-      cookie: '🍪', cake: '🍰', cupcake: '🧁', pie: '🥧',
-      chocolate: '🍫', candy: '🍬', lollipop: '🍭', honey: '🍯',
-      rice: '🍚', ice: '🧊', water: '💧',
-      beer: '🍺', wine: '🍷', champagne: '🥂', cocktail: '🍸',
-      tropical: '🍹', tumbler: '🥃', foamglass: '🍻', sake: '🍶',
-      teacup: '🍵', coffee: '☕', teapot: '🫖', juicebox: '🧃',
-      bubbletea: '🧋', soda: '🥤', cupwithstraw: '🥤'
-      }
+      searchHistory: []
     }
   },
+
   methods: {
     addToHistory() {
       const query = this.searchQuery.trim().toLowerCase();
+
       if (query) {
-        const emoji = this.emojiMap[query] || '';
+        const emoji = getEmoji(query);
         const itemWithEmoji = `${query} ${emoji}`;
         this.searchHistory.unshift(itemWithEmoji);
         this.searchQuery = '';
@@ -87,7 +63,7 @@ export default {
 }
 </script>
 
-  
+
 
 <style scoped>
 .search-wrapper {
