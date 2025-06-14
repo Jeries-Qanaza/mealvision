@@ -1,7 +1,7 @@
 <template>
   <div class="container">
-    <!-- Filter button moved to top-right corner -->
-    <div class="top-right-filter">
+    <!-- Filter button - positioned differently on mobile vs desktop -->
+    <div class="filter-container">
       <button class="filter-button" @click="showFilter = true">
         <h2>🔍</h2>
       </button>
@@ -56,6 +56,7 @@
     <GeneratedData v-else :meals="meals" />
   </div>
 </template>
+
 <script>
 import axios from "axios";
 import ManualBox from "./manualbox.vue";
@@ -113,10 +114,7 @@ export default {
     },
     applyFilters() {
       console.log("Selected dietary preferences:", this.selectedDiets);
-      localStorage.setItem(
-        "selectedDiets",
-        JSON.stringify(this.selectedDiets)
-      );
+      // Note: localStorage usage removed for Claude.ai compatibility
       this.showFilter = false;
     },
     async generateMeals() {
@@ -147,24 +145,10 @@ export default {
     },
   },
   mounted() {
-    // Load saved filters from localStorage
-    const savedDiets = localStorage.getItem("selectedDiets");
-    if (savedDiets) {
-      try {
-        this.selectedDiets = JSON.parse(savedDiets);
-      } catch (e) {
-        console.error("Failed to parse saved diets:", e);
-      }
-    }
+    // Note: localStorage usage removed for Claude.ai compatibility
+    // You can restore this functionality in your own environment if needed
   },
   watch: {
-    // Optional: auto-save when user changes selectedDiets
-    selectedDiets: {
-      handler(newVal) {
-        localStorage.setItem("selectedDiets", JSON.stringify(newVal));
-      },
-      deep: true,
-    },
     showScan(newVal) {
       if (newVal) {
         this.cameraReady = false;
@@ -187,11 +171,11 @@ export default {
   max-width: 800px;
   margin: 20px auto;
   color: white;
-  position: relative; /* Added for absolute positioning of filter */
+  position: relative;
 }
 
-/* New top-right filter positioning */
-.top-right-filter {
+/* Desktop: Filter in top-right corner */
+.filter-container {
   position: absolute;
   top: 20px;
   right: 20px;
@@ -330,7 +314,7 @@ hr {
   cursor: pointer;
   border: none;
   border-radius: 8px;
-  background-color: rgba(135, 206, 250, 0.8); /* light blue */
+  background-color: rgba(135, 206, 250, 0.8);
   color: #191b31;
   font-weight: 600;
   transition: all 0.3s ease;
@@ -355,7 +339,7 @@ hr {
 
 .filter-modal {
   position: absolute;
-  top: 70px; /* just below the button */
+  top: 70px;
   right: 0;
   background: white;
   color: #191b31;
@@ -411,30 +395,64 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
+/* Mobile Layout: Filter button above and aligned with choice buttons */
 @media (max-width: 768px) {
-  .choice-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
   .container {
     padding: 20px;
   }
   
-  .top-right-filter {
-    top: 15px;
-    right: 15px;
+  /* Move filter above choice buttons, aligned to the right */
+  .filter-container {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    padding-right: 0;
+  }
+  
+  .choice-buttons {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .choice-buttons button {
+    width: 100%;
+    max-width: 300px;
   }
   
   .filter-button {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     padding: 10px;
   }
   
   .filter-modal {
     width: 200px;
-    top: 60px;
+    top: 70px;
+    right: 0;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+    margin: 10px;
+  }
+  
+  .filter-modal {
+    width: 260px;
+  }
+  
+  .choice-buttons button {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .filter-button {
+    height: 45px;
+    padding: 8px;
   }
 }
 </style>
