@@ -133,7 +133,7 @@ export default {
           const formData = new FormData();
           formData.append("image", blob, "snapshot.jpg");
 
-          const response = await fetch("https://mealvision.onrender.com/detect", {
+          const response = await fetch("/api/detect", {
             method: "POST",
             body: formData,
           });

@@ -22,7 +22,7 @@ def _generate_image(prompt: str) -> str | None:
     return base64.b64encode(res.content).decode() if res.status_code == 200 else None
 
 def handler(request: "Request"):
-    """POST /api/generate-meals  →  JSON with generated meals."""
+    """POST /api/generate_meals  →  JSON with generated meals."""
     if request.method != "POST":
         return {"statusCode": 405, "body": "Method Not Allowed"}
 
