@@ -9,6 +9,7 @@ from ultralytics import YOLO
 import io
 from PIL import Image
 import tempfile
+import os
 
 
 # ------------------- Flask Setup -------------------
@@ -16,11 +17,11 @@ app = Flask(__name__)
 CORS(app)
 
 # ------------------- Gemini AI Setup -------------------
-genai.configure(api_key="AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q") 
+genai.configure(api_key=os.getenv("GEMINI_API_KEY", "AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q")) 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ------------------- Stability AI -------------------
-STABILITY_API_KEY = "YOUR_STABILITY_API_KEY"  # <- Replace with env var
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY", "YOUR_STABILITY_API_KEY")
 
 def generate_image(prompt):
     response = requests.post(
@@ -81,9 +82,9 @@ def generate_meals():
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'jeries.testing@gmail.com'
-app.config['MAIL_PASSWORD'] = 'usvc fiza bxyk dcwf'
-app.config['MAIL_DEFAULT_SENDER'] = 'je.yo.yvc@gmail.com'
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'jeries.testing@gmail.com')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'usvc fiza bxyk dcwf')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'je.yo.yvc@gmail.com')
 
 mail = Mail(app)
 
@@ -138,6 +139,12 @@ def detect():
         traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
+# ------------------- Health Check -------------------
+@app.route("/", methods=["GET"])
+def health_check():
+    return jsonify({"status": "Server is running!", "message": "API is healthy"})
+
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    app.run(debug=True, port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
