@@ -5,4 +5,4 @@ google-generativeai
 requests
 pillow
 ultralytics
-gunicorn==21.2.0
+gunicorn>=20.1.0
