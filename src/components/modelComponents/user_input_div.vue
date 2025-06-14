@@ -1,31 +1,31 @@
 <template>
   <div class="container">
-    <div class="choice-buttons">
-      <button @click="showCamera"><h2>Scan</h2></button>
-      <button @click="showManualBox"><h2>Add Manually</h2></button>
-      <div class="filter-button-container">
-        <button class="filter-button" @click="showFilter = true">
-          <h2>🔍</h2>
-        </button>
-      </div>
+    <!-- Filter button moved to top-right corner -->
+    <div class="top-right-filter">
+      <button class="filter-button" @click="showFilter = true">
+        <h2>🔍</h2>
+      </button>
+      
+      <div v-if="showFilter" class="filter-modal">
+        <button id="closeDietary" @click="showFilter = false">X</button>
+        <h3>Select Dietary Preferences</h3>
 
-          <div v-if="showFilter" class="filter-modal">
-          
-            <button id="closeDietary" @click="showFilter = false">X</button>
-          <h3>Select Dietary Preferences</h3>
-
-          <div class="checkbox-group">
+        <div class="checkbox-group">
           <label v-for="type in dietOptions" :key="type">
-          <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
+            <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
           </label>
         </div>
         <div class="filter-actions">
           <button id="okDietary" @click="applyFilters">OK</button>
         </div>
-      
+      </div>
     </div>
 
+    <div class="choice-buttons">
+      <button @click="showCamera"><h2>Scan</h2></button>
+      <button @click="showManualBox"><h2>Add Manually</h2></button>
     </div>
+    
     <hr />
     <div class="content">
       <div v-if="showScan" class="camera-placeholder">
@@ -53,7 +53,6 @@
       </div>
     </div>
 
-    
     <GeneratedData v-else :meals="meals" />
   </div>
 </template>
@@ -176,7 +175,6 @@ export default {
 };
 </script>
 
-
 <style scoped>
 .container {
   background-color: rgba(25, 27, 49, 0.8);
@@ -189,6 +187,15 @@ export default {
   max-width: 800px;
   margin: 20px auto;
   color: white;
+  position: relative; /* Added for absolute positioning of filter */
+}
+
+/* New top-right filter positioning */
+.top-right-filter {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 
 .choice-buttons {
@@ -197,7 +204,6 @@ export default {
   gap: 20px;
   margin-bottom: 20px;
   flex-wrap: wrap;
-  position: relative;
 }
 
 .choice-buttons button {
@@ -318,19 +324,8 @@ hr {
   }
 }
 
-@media (max-width: 768px) {
-  .choice-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .container {
-    padding: 20px;
-  }
-}
-
 .filter-button {
-  padding: 15px 30px;
+  padding: 15px;
   font-size: 16px;
   cursor: pointer;
   border: none;
@@ -340,6 +335,11 @@ hr {
   font-weight: 600;
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-button:hover {
@@ -348,28 +348,22 @@ hr {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
+.filter-button h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
 .filter-modal {
   position: absolute;
-  top: 100%; /* just below the button */
+  top: 70px; /* just below the button */
   right: 0;
-  margin-top: 10px;
   background: white;
   color: #191b31;
   padding: 20px;
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 999;
-  width: 250px; /* adjust if needed */
-}
-
-.filter-content {
-  background: white;
-  color: #191b31;
-  padding: 30px;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 400px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 250px;
 }
 
 .checkbox-group {
@@ -377,27 +371,24 @@ hr {
   flex-direction: column;
   gap: 10px;
   margin: 20px 0;
+  text-align: left;
 }
 
 .filter-actions {
   display: flex;
   justify-content: space-between;
 }
-.filter-button-container {
-  position: relative;
-  display: inline-block;
-}
-.checkbox-label {
-  display: flex;
-  gap: 10px;
-  text-align: left;
+
+#okDietary {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-
-#okDietary
-{
-  width:100%
-}
 #closeDietary {
   position: absolute;
   top: 8px;
@@ -405,16 +396,45 @@ hr {
   background: transparent;
   border: none;
   cursor: pointer;
-  width: 32px; /* fixed size */
+  width: 32px;
   height: 32px;
-  border-radius: 10%; /* optional: makes it round */
-  
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  
   font-size: 18px;
   font-weight: bold;
+  color: #191b31;
 }
 
+#closeDietary:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 768px) {
+  .choice-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .container {
+    padding: 20px;
+  }
+  
+  .top-right-filter {
+    top: 15px;
+    right: 15px;
+  }
+  
+  .filter-button {
+    width: 50px;
+    height: 50px;
+    padding: 10px;
+  }
+  
+  .filter-modal {
+    width: 200px;
+    top: 60px;
+  }
+}
 </style>
