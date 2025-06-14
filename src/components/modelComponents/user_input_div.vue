@@ -125,7 +125,7 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const response = await axios.post("/generate-meals", {
+        const response = await axios.post("/api/generate-meals", {
           ingredients: this.addedItems,
           dietary_preferences: dietaryPreferencesStr,
         });
