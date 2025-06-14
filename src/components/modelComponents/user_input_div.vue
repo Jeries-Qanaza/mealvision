@@ -5,14 +5,15 @@
       <button class="filter-button" @click="showFilter = true">
         <h2>🔍</h2>
       </button>
-      
+
       <div v-if="showFilter" class="filter-modal">
         <button id="closeDietary" @click="showFilter = false">X</button>
         <h3>Select Dietary Preferences</h3>
 
         <div class="checkbox-group">
           <label v-for="type in dietOptions" :key="type">
-            <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
+            <input type="checkbox" :value="type" v-model="selectedDiets" />
+            {{ type }}
           </label>
         </div>
         <div class="filter-actions">
@@ -25,15 +26,15 @@
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
     </div>
-    
+
     <hr />
     <div class="content">
       <div v-if="showScan" class="camera-placeholder">
-        <ModelCam 
-          @camera-ready="cameraReady = true" 
-          @camera-error="handleCameraError" 
+        <ModelCam
+          @camera-ready="cameraReady = true"
+          @camera-error="handleCameraError"
           @items-updated="handleItemsUpdated"
-          />
+        />
         <div v-if="cameraError" class="camera-error">
           <p>Camera Error: {{ cameraError }}</p>
           <button @click="retryCamera">Retry Camera</button>
@@ -44,7 +45,9 @@
       </div>
       <ManualBox v-if="showManual" @items-updated="handleItemsUpdated" />
     </div>
-    <button class="generate-meals-button" @click="generateMeals">Generate Meals</button>
+    <button class="generate-meals-button" @click="generateMeals">
+      Generate Meals
+    </button>
 
     <!-- Show skeleton loading while waiting for meals -->
     <div v-if="isLoading" class="skeleton-meal-list">
@@ -122,13 +125,10 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const response = await axios.post(
-          "http://127.0.0.1:5000/generate-meals",
-          {
-            ingredients: this.addedItems,
-            dietary_preferences: dietaryPreferencesStr,
-          }
-        );
+        const response = await axios.post("/generate-meals", {
+          ingredients: this.addedItems,
+          dietary_preferences: dietaryPreferencesStr,
+        });
 
         if (response.data && Array.isArray(response.data.meals_res)) {
           this.meals = response.data.meals_res;
@@ -235,7 +235,8 @@ hr {
   justify-content: center;
 }
 
-.camera-error, .camera-loading {
+.camera-error,
+.camera-loading {
   text-align: center;
   padding: 20px;
 }
@@ -255,7 +256,7 @@ hr {
   font-size: 16px;
   font-weight: 600;
   color: #191b31;
-  background-color: #FFA500;
+  background-color: #ffa500;
   border: none;
   border-radius: 8px;
   cursor: pointer;
@@ -265,7 +266,7 @@ hr {
 }
 
 .generate-meals-button:hover {
-  background-color: #FF8C00;
+  background-color: #ff8c00;
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
@@ -366,7 +367,7 @@ hr {
 #okDietary {
   width: 100%;
   padding: 10px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 4px;
@@ -400,7 +401,7 @@ hr {
   .container {
     padding: 20px;
   }
-  
+
   /* Move filter above choice buttons, aligned to the right */
   .filter-container {
     position: static;
@@ -409,24 +410,24 @@ hr {
     margin-bottom: 15px;
     padding-right: 0;
   }
-  
+
   .choice-buttons {
     flex-direction: column;
     gap: 15px;
     align-items: center;
   }
-  
+
   .choice-buttons button {
     width: 100%;
     max-width: 300px;
   }
-  
+
   .filter-button {
     width: 60px;
     height: 60px;
     padding: 10px;
   }
-  
+
   .filter-modal {
     width: 200px;
     top: 70px;
@@ -440,16 +441,16 @@ hr {
     padding: 15px;
     margin: 10px;
   }
-  
+
   .filter-modal {
     width: 260px;
   }
-  
+
   .choice-buttons button {
     padding: 12px 20px;
     font-size: 14px;
   }
-  
+
   .filter-button {
     height: 45px;
     padding: 8px;
