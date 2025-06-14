@@ -17,7 +17,7 @@ export default function getEmoji(text) {
     shavedice: '🍧', donut: '🍩', cookie: '🍪', cake: '🍰', cupcake: '🧁', pie: '🥧',
     chocolate: '🍫', candy: '🍬', lollipop: '🍭', honey: '🍯', rice: '🍚', ice: '🧊',
     water: '💧', beer: '🍺', wine: '🍷', champagne: '🥂', cocktail: '🍸',
-    tropical: '🍹', tumbler: '🥃', foamglass: '🍻', sake: '🍶', teacup: '🍵',
+    tropical: '🍹', tumbler: '🥃', foamglass: '🍻', sake: '🍶', tea: '🍵',
     coffee: '☕', teapot: '🫖', juicebox: '🧃', bubbletea: '🧋', soda: '🥤',
     cupwithstraw: '🥤', coconut: '🥥', kiwifruit: '🥝', blueberries: '🫐', melon: '🍈',
     olive: '🫒', roastedpotato: '🍠', bellpepper: '🫑', butter: '🧈', salt: '🧂',
