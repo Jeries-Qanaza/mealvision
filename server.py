@@ -187,16 +187,8 @@ def health_check():
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    # Get port from environment variable (Render sets this)
-    port = int(os.environ.get("PORT", 10000))
-    
-    # CRITICAL: Bind to 0.0.0.0 and the correct port
-    print(f"Starting server on 0.0.0.0:{port}")
-    
-    # Use Gunicorn in production, Flask dev server for local development
-    if os.environ.get("RENDER"):
-        # Running on Render - let Gunicorn handle this via Procfile
-        pass
-    else:
-        # Local development
-        app.run(host="0.0.0.0", port=port, debug=True)
+    # Render supplies the port number in the PORT env-var
+    port = int(os.environ.get("PORT", 5000))
+
+    # Listen on all interfaces so Render can reach the service
+    app.run(host="0.0.0.0", port=port)
