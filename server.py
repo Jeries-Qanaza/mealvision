@@ -6,7 +6,6 @@ import requests
 import base64
 from flask_mail import Mail, Message
 from ultralytics import YOLO
-import numpy as np
 import io
 from PIL import Image
 import tempfile
