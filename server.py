@@ -10,6 +10,7 @@ import io
 from PIL import Image
 import tempfile
 import os
+import gc  # For garbage collection
 
 
 # ------------------- Flask Setup -------------------
@@ -67,7 +68,7 @@ def generate_meals():
         ingredients_str = ", ".join(ingredients)
         dietary_preferences = data.get('dietary_preferences', '')
 
-        prompt =f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+        prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
 
         response = model.generate_content(prompt)
         json_text = response.text.strip()
@@ -127,8 +128,17 @@ def send_email():
         print("Error sending email:", e)
         return jsonify({"error": str(e)}), 500
 
-# ------------------- YOLO Detection -------------------
-yolo_model = YOLO("./src/assets/best8s.pt")
+# ------------------- YOLO Detection (Lazy Loading) -------------------
+yolo_model = None
+
+def get_yolo_model():
+    global yolo_model
+    if yolo_model is None:
+        print("Loading YOLO model...")
+        yolo_model = YOLO("./src/assets/best8s.pt")
+        print("YOLO model loaded successfully")
+    return yolo_model
+
 @app.route("/detect", methods=["POST"])
 def detect():
     try:
@@ -143,15 +153,25 @@ def detect():
             image_bytes = base64.b64decode(image_data)
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
+        # Load YOLO model only when needed
+        model = get_yolo_model()
+
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
             image.save(temp.name)
-            results = yolo_model.predict(source=temp.name, conf=0.25)
+            results = model.predict(source=temp.name, conf=0.25)
+            
+            # Clean up temp file immediately
+            os.unlink(temp.name)
 
         labels = []
         for box in results[0].boxes:
             cls_id = int(box.cls[0])
             label = results[0].names[cls_id]
             labels.append(label)
+
+        # Force garbage collection to free memory
+        del results
+        gc.collect()
 
         return jsonify({"labels": labels})
 
@@ -167,5 +187,16 @@ def health_check():
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+    # Get port from environment variable (Render sets this)
+    port = int(os.environ.get("PORT", 10000))
+    
+    # CRITICAL: Bind to 0.0.0.0 and the correct port
+    print(f"Starting server on 0.0.0.0:{port}")
+    
+    # Use Gunicorn in production, Flask dev server for local development
+    if os.environ.get("RENDER"):
+        # Running on Render - let Gunicorn handle this via Procfile
+        pass
+    else:
+        # Local development
+        app.run(host="0.0.0.0", port=port, debug=True)
