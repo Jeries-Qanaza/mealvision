@@ -14,7 +14,7 @@ import os
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
-CORS(app)
+CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
 
 # ------------------- Gemini AI Setup -------------------
 genai.configure(api_key=os.getenv("GEMINI_API_KEY", "AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q")) 
@@ -41,10 +41,28 @@ def generate_image(prompt):
     else:
         raise Exception(str(response.json()))
 
-@app.route("/generate-meals", methods=["POST"])
+@app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
+    # Handle CORS preflight requests
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        return response
+    
     try:
+        print("Received request to /generate-meals")
+        print("Request method:", request.method)
+        print("Request headers:", dict(request.headers))
+        print("Request data:", request.get_data())
+        
         data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data received"}), 400
+            
+        print("Parsed JSON data:", data)
+        
         ingredients = data.get("ingredients", [])
         ingredients_str = ", ".join(ingredients)
         dietary_preferences = data.get('dietary_preferences', '')
@@ -76,6 +94,9 @@ def generate_meals():
         return jsonify({"meals_res": meal_data["meals"]})
 
     except Exception as e:
+        print("Error in generate_meals:", str(e))
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ------------------- Email Setup -------------------
