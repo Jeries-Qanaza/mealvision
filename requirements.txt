@@ -6,3 +6,4 @@ requests
 Pillow
 ultralytics
 torch
+gunicorn==21.2.0

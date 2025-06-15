@@ -18,11 +18,11 @@ app = Flask(__name__)
 CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
 
 # ------------------- Gemini AI Setup -------------------
-genai.configure(api_key=os.getenv("GEMINI_API_KEY", "AIzaSyA8euO3ZFVejMJ_e2_I3YqwYlzQsh6Un6Q")) 
+genai.configure(api_key=os.getenv("GEMINI_API_KEY")) 
 model = genai.GenerativeModel("gemini-1.5-flash")
 
 # ------------------- Stability AI -------------------
-STABILITY_API_KEY = os.getenv("STABILITY_API_KEY", "YOUR_STABILITY_API_KEY")
+STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 def generate_image(prompt):
     response = requests.post(
@@ -104,9 +104,9 @@ def generate_meals():
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', 'jeries.testing@gmail.com')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', 'usvc fiza bxyk dcwf')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER', 'je.yo.yvc@gmail.com')
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
 
 mail = Mail(app)
 
@@ -187,8 +187,12 @@ def health_check():
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    # Render supplies the port number in the PORT env-var
+    # This section only runs when directly executing the script (for local development)
+    # In production, Gunicorn will import the 'app' object directly
     port = int(os.environ.get("PORT", 5000))
+    print(f"Starting Flask development server on 0.0.0.0:{port}")
+    app.run(host="0.0.0.0", port=port, debug=True)
 
-    # Listen on all interfaces so Render can reach the service
-    app.run(host="0.0.0.0", port=port)
+# This makes the Flask app available to Gunicorn
+# Gunicorn will look for 'app' when you use 'server:app' in Procfile
+application = app
