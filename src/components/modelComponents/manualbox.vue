@@ -29,6 +29,8 @@
 </template>
 
 <script>
+import getEmoji from './get_emoji.js';
+
 export default {
   name: "ManualBox",
   data() {
@@ -37,13 +39,18 @@ export default {
       searchHistory: []
     }
   },
+
   methods: {
     addToHistory() {
-      if (this.searchQuery.trim()) {
-        this.searchHistory.unshift(this.searchQuery.trim());
+      const query = this.searchQuery.trim().toLowerCase();
+
+      if (query) {
+        const emoji = getEmoji(query);
+        const itemWithEmoji = `${query} ${emoji}`;
+        this.searchHistory.unshift(itemWithEmoji);
         this.searchQuery = '';
 
-        console.log("Manula Input: " + this.searchHistory);
+        console.log("Manual Input: " + this.searchHistory);
 
         this.$emit('items-updated', this.searchHistory);
       }
@@ -55,6 +62,8 @@ export default {
   }
 }
 </script>
+
+
 
 <style scoped>
 .search-wrapper {

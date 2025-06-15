@@ -1,9 +1,31 @@
 <template>
   <div class="container">
+    <!-- Filter button - positioned differently on mobile vs desktop -->
+    <div class="filter-container">
+      <button class="filter-button" @click="showFilter = true">
+        <h2>🔍</h2>
+      </button>
+      
+      <div v-if="showFilter" class="filter-modal">
+        <button id="closeDietary" @click="showFilter = false">X</button>
+        <h3>Select Dietary Preferences</h3>
+
+        <div class="checkbox-group">
+          <label v-for="type in dietOptions" :key="type">
+            <input type="checkbox" :value="type" v-model="selectedDiets" /> {{ type }}
+          </label>
+        </div>
+        <div class="filter-actions">
+          <button id="okDietary" @click="applyFilters">OK</button>
+        </div>
+      </div>
+    </div>
+
     <div class="choice-buttons">
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
     </div>
+    
     <hr />
     <div class="content">
       <div v-if="showScan" class="camera-placeholder">
@@ -31,7 +53,6 @@
       </div>
     </div>
 
-    <!-- Pass meals data to GeneratedData -->
     <GeneratedData v-else :meals="meals" />
   </div>
 </template>
@@ -53,7 +74,17 @@ export default {
       meals: [],
       isLoading: false,
       cameraReady: false,
-      cameraError: null
+      cameraError: null,
+      showFilter: false,
+      dietOptions: [
+        "Vegan 🌱",
+        "Vegetarian 🥦",
+        "Pescetarian 🐟",
+        "Gluten-Free 🚫🌾",
+        "Keto 🥩",
+        "Halal 🕌",
+      ],
+      selectedDiets: [],
     };
   },
   methods: {
@@ -71,7 +102,7 @@ export default {
       this.addedItems = items;
     },
     handleCameraError(error) {
-      this.cameraError = error.message || 'Failed to access camera';
+      this.cameraError = error.message || "Failed to access camera";
       this.cameraReady = false;
     },
     retryCamera() {
@@ -79,14 +110,25 @@ export default {
       this.cameraReady = false;
       // force the ModelCam to remount:
       this.showScan = false;
-      this.$nextTick(() => this.showScan = true);
+      this.$nextTick(() => (this.showScan = true));
+    },
+    applyFilters() {
+      console.log("Selected dietary preferences:", this.selectedDiets);
+      // Note: localStorage usage removed for Claude.ai compatibility
+      this.showFilter = false;
     },
     async generateMeals() {
       this.isLoading = true;
+      const dietaryPreferencesStr = this.selectedDiets.join(", ");
+
       try {
-        const response = await axios.post("http://127.0.0.1:5000/generate-meals", {
-          ingredients: this.addedItems,
-        });
+        const response = await axios.post(
+          "http://127.0.0.1:5000/generate-meals",
+          {
+            ingredients: this.addedItems,
+            dietary_preferences: dietaryPreferencesStr,
+          }
+        );
 
         if (response.data && Array.isArray(response.data.meals_res)) {
           this.meals = response.data.meals_res;
@@ -102,14 +144,18 @@ export default {
       }
     },
   },
+  mounted() {
+    // Note: localStorage usage removed for Claude.ai compatibility
+    // You can restore this functionality in your own environment if needed
+  },
   watch: {
     showScan(newVal) {
       if (newVal) {
         this.cameraReady = false;
         this.cameraError = null;
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -125,6 +171,15 @@ export default {
   max-width: 800px;
   margin: 20px auto;
   color: white;
+  position: relative;
+}
+
+/* Desktop: Filter in top-right corner */
+.filter-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
 }
 
 .choice-buttons {
@@ -132,6 +187,7 @@ export default {
   justify-content: center;
   gap: 20px;
   margin-bottom: 20px;
+  flex-wrap: wrap;
 }
 
 .choice-buttons button {
@@ -252,14 +308,151 @@ hr {
   }
 }
 
+.filter-button {
+  padding: 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(135, 206, 250, 0.8);
+  color: #191b31;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-button:hover {
+  background-color: rgba(135, 206, 250, 1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+
+.filter-button h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.filter-modal {
+  position: absolute;
+  top: 70px;
+  right: 0;
+  background: white;
+  color: #191b31;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  width: 250px;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  text-align: left;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+}
+
+#okDietary {
+  width: 100%;
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#closeDietary {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  color: #191b31;
+}
+
+#closeDietary:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile Layout: Filter button above and aligned with choice buttons */
 @media (max-width: 768px) {
-  .choice-buttons {
-    flex-direction: column;
-    gap: 10px;
-  }
-  
   .container {
     padding: 20px;
+  }
+  
+  /* Move filter above choice buttons, aligned to the right */
+  .filter-container {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 15px;
+    padding-right: 0;
+  }
+  
+  .choice-buttons {
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .choice-buttons button {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .filter-button {
+    width: 60px;
+    height: 60px;
+    padding: 10px;
+  }
+  
+  .filter-modal {
+    width: 200px;
+    top: 70px;
+    right: 0;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+    margin: 10px;
+  }
+  
+  .filter-modal {
+    width: 260px;
+  }
+  
+  .choice-buttons button {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  
+  .filter-button {
+    height: 45px;
+    padding: 8px;
   }
 }
 </style>

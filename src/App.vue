@@ -13,9 +13,8 @@
 import NavBar from "./components/navbar/navbar.vue";
 import AppFooter from "./components/AppFooter.vue";
 
-import { getFirestore, doc, setDoc } from "firebase/firestore";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { auth } from "./firebase/firebase.js";
+
+
 
 export default {
   name: "App",
@@ -35,30 +34,7 @@ export default {
     };
   },
   methods: {
-    async handleSubmit() {
-      if (!this.email || !this.password) {
-        alert("Please fill in all fields!");
-        return;
-      }
-
-      try {
-        // Create a new user
-        const userCredential = await createUserWithEmailAndPassword(auth, this.email, this.password);
-        const user = userCredential.user;
-
-        // Save additional user info to Firestore
-        const db = getFirestore();
-        await setDoc(doc(db, "users", user.uid), {
-          email: this.email,
-          birthday: this.birthday,
-        });
-
-        alert("Signup successful and user data stored!");
-      } catch (error) {
-        console.error("Error:", error.message);
-        alert(error.message);
-      }
-    },
+   
   },
 };
 </script>

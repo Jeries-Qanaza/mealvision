@@ -22,7 +22,7 @@
     <!-- YOLOv11 Section -->
     <div class="yolo-section">
       <div class="yolo-container">
-        <h2>Powered by YOLOv11</h2>
+        <h2>Powered by YOLOv8</h2>
         <div class="yolo-features">
           <div class="feature">
             <span class="icon">⚡</span>

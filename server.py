@@ -6,9 +6,10 @@ import requests
 import base64
 from flask_mail import Mail, Message
 from ultralytics import YOLO
-import numpy as np
 import io
 from PIL import Image
+import tempfile
+
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
@@ -45,10 +46,14 @@ def generate_meals():
         data = request.json
         ingredients = data.get("ingredients", [])
         ingredients_str = ", ".join(ingredients)
+        dietary_preferences = data.get('dietary_preferences', '')
 
-        prompt = f"What meal can I make with these ingredients: {ingredients_str}? Answer in JSON format with at least 3 options including meal names and steps."
+        prompt =f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+
         response = model.generate_content(prompt)
         json_text = response.text.strip()
+        print("##########################################################")
+        print("Response from Gemini:", json_text)
 
         if json_text.startswith("```json"):
             json_text = json_text[7:]
@@ -58,7 +63,7 @@ def generate_meals():
         meal_data = json.loads(json_text)
 
         for meal in meal_data["meals"]:
-            meal_name = meal["mealName"]
+            meal_name = meal.get("mealName") or meal.get("name")
             steps = "\n".join(meal["steps"])
             image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
             try:
@@ -101,25 +106,37 @@ def send_email():
         return jsonify({"error": str(e)}), 500
 
 # ------------------- YOLO Detection -------------------
-yolo_model = YOLO("./src/assets/best.pt")
-
+yolo_model = YOLO("./src/assets/best8s.pt")
 @app.route("/detect", methods=["POST"])
 def detect():
-    data = request.get_json()
-    image_data = data["image"].split(",")[1]
-    image_bytes = base64.b64decode(image_data)
-    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
-    image_np = np.array(image)
+    try:
+        if "image" in request.files:
+            # File upload (FormData)
+            file = request.files["image"]
+            image = Image.open(file.stream).convert("RGB")
+        else:
+            # Base64 upload (Snapshot from camera)
+            data = request.get_json()
+            image_data = data["image"].split(",")[1]
+            image_bytes = base64.b64decode(image_data)
+            image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
-    results = yolo_model(image_np)
-    labels = []
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
+            image.save(temp.name)
+            results = yolo_model.predict(source=temp.name, conf=0.25)
 
-    for result in results:
-        for box in result.boxes:
-            label = yolo_model.names[int(box.cls[0])]
+        labels = []
+        for box in results[0].boxes:
+            cls_id = int(box.cls[0])
+            label = results[0].names[cls_id]
             labels.append(label)
 
-    return jsonify({"labels": labels})
+        return jsonify({"labels": labels})
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
