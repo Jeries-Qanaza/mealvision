@@ -10,8 +10,13 @@ import io
 from PIL import Image
 import tempfile
 import os
+import torch
 import gc  # For garbage collection
 
+# ------------------- Limit model threads -------------------
+torch.set_num_threads(1)
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
