@@ -125,10 +125,13 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const response = await axios.post("/api/generate_meals", {
-          ingredients: this.addedItems,
-          dietary_preferences: dietaryPreferencesStr,
-        });
+        const response = await axios.post(
+          "https://mealvision.onrender.com/generate-meals",
+          {
+            ingredients: this.addedItems,
+            dietary_preferences: dietaryPreferencesStr,
+          }
+        );
 
         if (response.data && Array.isArray(response.data.meals_res)) {
           this.meals = response.data.meals_res;

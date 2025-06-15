@@ -4,6 +4,5 @@ flask-mail
 google-generativeai
 requests
 Pillow
-ultralytics>=8.2
-torch>=2.0
-gunicorn>=20.1
+ultralytics
+torch
