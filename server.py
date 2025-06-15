@@ -192,12 +192,4 @@ def health_check():
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    # This section only runs when directly executing the script (for local development)
-    # In production, Gunicorn will import the 'app' object directly
-    port = int(os.environ.get("PORT", 5000))
-    print(f"Starting Flask development server on 0.0.0.0:{port}")
-    app.run(host="0.0.0.0", port=port, debug=True)
-
-# This makes the Flask app available to Gunicorn
-# Gunicorn will look for 'app' when you use 'server:app' in Procfile
-application = app
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))

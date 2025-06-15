@@ -9,4 +9,3 @@ flask-mail
 Pillow
 requests
 google-generativeai
-gunicorn==21.2.0
