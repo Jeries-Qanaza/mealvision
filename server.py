@@ -24,7 +24,7 @@ os.environ["MKL_NUM_THREADS"] = "1"
 
 # ------------------- Flask Setup -------------------
 app = Flask(__name__)
-CORS(app, origins="*", methods=["GET", "POST", "OPTIONS"], allow_headers=["Content-Type", "Authorization"])
+CORS(app, resources={r"/*": {"origins": ["*", "https://mealvision.vercel.app"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization"]}})
 
 # ------------------- Gemini AI Setup -------------------
 genai.configure(api_key=os.getenv("GEMINI_API_KEY")) 
