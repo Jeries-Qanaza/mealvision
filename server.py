@@ -12,6 +12,10 @@ import tempfile
 import os
 import torch
 import gc  # For garbage collection
+from dotenv import load_dotenv  # ✅ Load .env variables
+
+# ------------------- Load environment variables -------------------
+load_dotenv()
 
 # ------------------- Limit model threads -------------------
 torch.set_num_threads(1)
@@ -166,6 +170,7 @@ def detect():
             results = model.predict(source=temp.name, conf=0.25)
             
             # Clean up temp file immediately
+            image.close()
             os.unlink(temp.name)
 
         labels = []
