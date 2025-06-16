@@ -28,7 +28,7 @@ CORS(app, resources={r"/*": {"origins": ["*", "https://mealvision.vercel.app"], 
 
 # ------------------- Gemini AI Setup -------------------
 genai.configure(api_key=os.getenv("GEMINI_API_KEY")) 
-model = genai.GenerativeModel("gemini-1.5-flash")
+Gmodel = genai.GenerativeModel("gemini-1.5-flash")
 
 # ------------------- Stability AI -------------------
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
