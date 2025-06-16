@@ -52,17 +52,36 @@ def generate_image(prompt):
         raise Exception(str(response.json()))
 
 
-@app.route("/generate-meals", methods=["POST"])
+
+@app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
+    # Handle CORS preflight requests
+    if request.method == "OPTIONS":
+        response = jsonify({})
+        response.headers.add("Access-Control-Allow-Origin", "*")
+        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        return response
+    
     try:
+        print("Received request to /generate-meals")
+        print("Request method:", request.method)
+        print("Request headers:", dict(request.headers))
+        print("Request data:", request.get_data())
+        
         data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data received"}), 400
+            
+        print("Parsed JSON data:", data)
+        
         ingredients = data.get("ingredients", [])
         ingredients_str = ", ".join(ingredients)
         dietary_preferences = data.get('dietary_preferences', '')
 
-        prompt =f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+        prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
 
-        response = model.generate_content(prompt)
+        response = Gmodel.generate_content(prompt)
         json_text = response.text.strip()
         print("##########################################################")
         print("Response from Gemini:", json_text)
@@ -87,7 +106,11 @@ def generate_meals():
         return jsonify({"meals_res": meal_data["meals"]})
 
     except Exception as e:
+        print("Error in generate_meals:", str(e))
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
+
 
 # ------------------- Email Setup -------------------
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
