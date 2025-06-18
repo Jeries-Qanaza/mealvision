@@ -22,7 +22,7 @@
       </div>
     </div>
 
-    <!-- scan / manual -->
+    <!-- Scan / Manual -->
     <div class="choice-buttons">
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
@@ -56,7 +56,7 @@
     <!-- user message -->
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <!-- skeleton loader -->
+    <!-- loading skeleton -->
     <div v-if="isLoading" class="skeleton-meal-list">
       <div v-for="i in 3" :key="i" class="skeleton-meal">
         <div class="skeleton-shimmer"></div>
@@ -109,15 +109,20 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
-    // normalize incoming list: strip emoji, lowercase, unique
+    // normalize list and clear meals when list becomes empty
     handleItemsUpdated(items) {
       const unique = new Set();
       items.forEach((raw) => {
-        const word = raw.split(" ")[0].toLowerCase(); // remove any emoji
+        const word = raw.split(" ")[0].toLowerCase();
         if (word) unique.add(word);
       });
       this.addedItems = [...unique];
-      if (this.addedItems.length) this.errorMessage = "";
+
+      if (this.addedItems.length) {
+        this.errorMessage = "";
+      } else {
+        this.meals = []; // clear previous results when nothing is selected
+      }
       console.info("Current ingredients list:", this.addedItems);
     },
     handleCameraError(error) {
@@ -139,6 +144,7 @@ export default {
       if (!this.addedItems.length) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
+        this.meals = []; // ensure old meals are cleared visually
         console.warn("GenerateMeals aborted – addedItems empty", {
           selectedDiets: this.selectedDiets,
         });
@@ -202,7 +208,7 @@ export default {
 </script>
 
 <style scoped>
-/* ------- container & layout ------- */
+/* container */
 .container {
   background-color: rgba(25, 27, 49, 0.8);
   border-radius: 15px;
@@ -217,6 +223,7 @@ export default {
   position: relative;
 }
 
+/* floating filter */
 .filter-container {
   position: absolute;
   top: 20px;
@@ -224,6 +231,7 @@ export default {
   z-index: 1000;
 }
 
+/* scan / manual buttons */
 .choice-buttons {
   display: flex;
   justify-content: center;
@@ -244,7 +252,6 @@ export default {
   transition: all 0.3s ease;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
-
 .choice-buttons button:hover {
   background-color: rgba(255, 165, 0, 1);
   transform: translateY(-3px);
@@ -258,10 +265,7 @@ hr {
   margin: 20px 0;
 }
 
-.content {
-  margin: 20px 0;
-}
-
+/* camera area */
 .camera-placeholder {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
@@ -278,7 +282,6 @@ hr {
   text-align: center;
   padding: 20px;
 }
-
 .camera-error button {
   margin-top: 10px;
   padding: 8px 16px;
@@ -289,6 +292,7 @@ hr {
   cursor: pointer;
 }
 
+/* generate button */
 .generate-meals-button {
   padding: 15px 30px;
   font-size: 16px;
@@ -302,28 +306,26 @@ hr {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   margin-top: 20px;
 }
-
 .generate-meals-button:hover {
   background-color: #ff8c00;
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* ------- user error ------- */
+/* user-facing error */
 .error-msg {
   color: #ff6b6b;
   margin-top: 12px;
   font-weight: 600;
 }
 
-/* ------- skeleton loader ------- */
+/* skeleton loader */
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
   margin-top: 30px;
 }
-
 .skeleton-meal {
   width: 100%;
   height: 120px;
@@ -332,7 +334,6 @@ hr {
   overflow: hidden;
   border-radius: 8px;
 }
-
 .skeleton-shimmer {
   position: absolute;
   top: 0;
@@ -347,14 +348,13 @@ hr {
   );
   animation: shimmer 1.5s infinite;
 }
-
 @keyframes shimmer {
   100% {
     left: 100%;
   }
 }
 
-/* ------- filter button ------- */
+/* filter button */
 .filter-button {
   padding: 15px;
   font-size: 16px;
@@ -372,13 +372,11 @@ hr {
   align-items: center;
   justify-content: center;
 }
-
 .filter-button:hover {
   background-color: rgba(135, 206, 250, 1);
   transform: translateY(-3px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
-
 .filter-button h2 {
   margin: 0;
   font-size: 20px;
@@ -437,41 +435,35 @@ hr {
   font-weight: bold;
   color: #191b31;
 }
-
 #closeDietary:hover {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* ------- responsive tweaks ------- */
+/* responsive tweaks */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
   }
-
   .filter-container {
     position: static;
     display: flex;
     justify-content: flex-end;
     margin-bottom: 15px;
   }
-
   .choice-buttons {
     flex-direction: column;
     gap: 15px;
     align-items: center;
   }
-
   .choice-buttons button {
     width: 100%;
     max-width: 300px;
   }
-
   .filter-button {
     width: 60px;
     height: 60px;
     padding: 10px;
   }
-
   .filter-modal {
     width: 200px;
   }
@@ -482,16 +474,13 @@ hr {
     padding: 15px;
     margin: 10px;
   }
-
   .filter-modal {
     width: 260px;
   }
-
   .choice-buttons button {
     padding: 12px 20px;
     font-size: 14px;
   }
-
   .filter-button {
     height: 45px;
     padding: 8px;
