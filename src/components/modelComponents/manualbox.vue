@@ -10,17 +10,15 @@
       />
       <button class="add-button" @click="addToHistory">Add</button>
     </div>
+
     <div class="search-history" v-if="searchHistory.length > 0">
-      <div 
-        v-for="(term, index) in searchHistory" 
+      <div
+        v-for="(term, index) in searchHistory"
         :key="index"
         class="history-item"
       >
         {{ term }}
-        <button
-          @click="removeFromHistory(index)"
-          class="remove-button"
-        >
+        <button @click="removeFromHistory(index)" class="remove-button">
           ×
         </button>
       </div>
@@ -29,48 +27,55 @@
 </template>
 
 <script>
-import getEmoji from './get_emoji.js';
+import getEmoji from "./get_emoji.js";
 
 export default {
   name: "ManualBox",
   data() {
     return {
-      searchQuery: '',
-      searchHistory: []
-    }
+      searchQuery: "",
+      searchHistory: [],
+    };
   },
 
   methods: {
+    /* add new item, ignore case duplicates */
     addToHistory() {
-      const query = this.searchQuery.trim().toLowerCase();
+      const raw = this.searchQuery.trim();
+      if (!raw) return;
 
-      if (query) {
-        const emoji = getEmoji(query);
-        const itemWithEmoji = `${query} ${emoji}`;
-        this.searchHistory.unshift(itemWithEmoji);
-        this.searchQuery = '';
-
-        console.log("Manual Input: " + this.searchHistory);
-
-        this.$emit('items-updated', this.searchHistory);
+      const query = raw.toLowerCase();
+      const duplicate = this.searchHistory.some(
+        (item) => item.split(" ")[0].toLowerCase() === query
+      );
+      if (duplicate) {
+        this.searchQuery = "";
+        return; // ignore repeated entry
       }
+
+      const emoji = getEmoji(query);
+      const itemWithEmoji = `${query} ${emoji}`;
+      this.searchHistory.unshift(itemWithEmoji);
+      this.searchQuery = "";
+
+      this.$emit("items-updated", this.searchHistory);
     },
+
     removeFromHistory(index) {
       this.searchHistory.splice(index, 1);
-      this.$emit('items-updated', this.searchHistory);
-    }
-  }
-}
+      this.$emit("items-updated", this.searchHistory);
+    },
+  },
+};
 </script>
 
-
-
 <style scoped>
+/* styles unchanged */
 .search-wrapper {
   width: 100%;
   max-width: 600px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 .search-input-container {
@@ -97,13 +102,13 @@ export default {
 }
 
 .search-input:focus {
-  border-color: #FFA500;
+  border-color: #ffa500;
   box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
 }
 
 .add-button {
   padding: 12px 24px;
-  background: #FFA500;
+  background: #ffa500;
   color: #191b31;
   border: none;
   border-radius: 8px;
@@ -114,7 +119,7 @@ export default {
 }
 
 .add-button:hover {
-  background: #FF8C00;
+  background: #ff8c00;
   transform: translateY(-2px);
 }
 
