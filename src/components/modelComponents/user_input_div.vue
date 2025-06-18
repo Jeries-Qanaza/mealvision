@@ -22,6 +22,7 @@
       </div>
     </div>
 
+    <!-- scan / manual -->
     <div class="choice-buttons">
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
@@ -52,7 +53,7 @@
       Generate Meals
     </button>
 
-    <!-- user-facing message when no ingredients / error -->
+    <!-- user message -->
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
     <!-- skeleton loader -->
@@ -94,7 +95,7 @@ export default {
         "Halal 🕌",
       ],
       selectedDiets: [],
-      errorMessage: "", // shown to user when validation or axios error
+      errorMessage: "",
     };
   },
   methods: {
@@ -108,15 +109,15 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
-    /* merge new items with existing list, ignore case duplicates */
+    // normalize incoming list: strip emoji, lowercase, unique
     handleItemsUpdated(items) {
-      const set = new Set(this.addedItems.map((i) => i.toLowerCase()));
+      const unique = new Set();
       items.forEach((raw) => {
-        const cleaned = raw.trim().toLowerCase();
-        if (cleaned) set.add(cleaned);
+        const word = raw.split(" ")[0].toLowerCase(); // remove any emoji
+        if (word) unique.add(word);
       });
-      this.addedItems = [...set];
-      if (this.addedItems.length > 0) this.errorMessage = "";
+      this.addedItems = [...unique];
+      if (this.addedItems.length) this.errorMessage = "";
       console.info("Current ingredients list:", this.addedItems);
     },
     handleCameraError(error) {
@@ -135,7 +136,7 @@ export default {
       this.showFilter = false;
     },
     async generateMeals() {
-      if (this.addedItems.length === 0) {
+      if (!this.addedItems.length) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
         console.warn("GenerateMeals aborted – addedItems empty", {
@@ -184,8 +185,8 @@ export default {
     }
   },
   watch: {
-    showScan(newVal) {
-      if (newVal) {
+    showScan(val) {
+      if (val) {
         this.cameraReady = false;
         this.cameraError = null;
       }
@@ -201,7 +202,7 @@ export default {
 </script>
 
 <style scoped>
-/* layout basics */
+/* ------- container & layout ------- */
 .container {
   background-color: rgba(25, 27, 49, 0.8);
   border-radius: 15px;
@@ -216,7 +217,6 @@ export default {
   position: relative;
 }
 
-/* top-right floating filter button */
 .filter-container {
   position: absolute;
   top: 20px;
@@ -224,7 +224,6 @@ export default {
   z-index: 1000;
 }
 
-/* buttons, placeholders, loaders, etc. – unchanged */
 .choice-buttons {
   display: flex;
   justify-content: center;
@@ -310,14 +309,14 @@ hr {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* user-facing error text */
+/* ------- user error ------- */
 .error-msg {
   color: #ff6b6b;
   margin-top: 12px;
   font-weight: 600;
 }
 
-/* skeleton loading animation */
+/* ------- skeleton loader ------- */
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
@@ -355,7 +354,7 @@ hr {
   }
 }
 
-/* filter button esthetics */
+/* ------- filter button ------- */
 .filter-button {
   padding: 15px;
   font-size: 16px;
@@ -443,7 +442,7 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* responsive tweaks */
+/* ------- responsive tweaks ------- */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
@@ -475,8 +474,6 @@ hr {
 
   .filter-modal {
     width: 200px;
-    top: 70px;
-    right: 0;
   }
 }
 

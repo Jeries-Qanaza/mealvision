@@ -11,7 +11,7 @@
       <button class="add-button" @click="addToHistory">Add</button>
     </div>
 
-    <div class="search-history" v-if="searchHistory.length > 0">
+    <div class="search-history" v-if="searchHistory.length">
       <div
         v-for="(term, index) in searchHistory"
         :key="index"
@@ -37,40 +37,37 @@ export default {
       searchHistory: [],
     };
   },
-
   methods: {
-    /* add new item, ignore case duplicates */
+    // add item, lowercase, skip duplicates (case-insensitive)
     addToHistory() {
-      const raw = this.searchQuery.trim();
-      if (!raw) return;
+      const normalized = this.searchQuery.trim().toLowerCase();
+      if (!normalized) return;
 
-      const query = raw.toLowerCase();
-      const duplicate = this.searchHistory.some(
-        (item) => item.split(" ")[0].toLowerCase() === query
+      const exists = this.searchHistory.some(
+        (it) => it.split(" ")[0].toLowerCase() === normalized
       );
-      if (duplicate) {
+      if (exists) {
         this.searchQuery = "";
-        return; // ignore repeated entry
+        return;
       }
 
-      const emoji = getEmoji(query);
-      const itemWithEmoji = `${query} ${emoji}`;
+      const itemWithEmoji = `${normalized} ${getEmoji(normalized)}`;
       this.searchHistory.unshift(itemWithEmoji);
       this.searchQuery = "";
 
-      this.$emit("items-updated", this.searchHistory);
+      this.$emit("items-updated", [...this.searchHistory]); // emit fresh copy
     },
 
     removeFromHistory(index) {
       this.searchHistory.splice(index, 1);
-      this.$emit("items-updated", this.searchHistory);
+      this.$emit("items-updated", [...this.searchHistory]);
     },
   },
 };
 </script>
 
 <style scoped>
-/* styles unchanged */
+/* ------- layout ------- */
 .search-wrapper {
   width: 100%;
   max-width: 600px;
@@ -84,6 +81,7 @@ export default {
   margin-bottom: 8px;
 }
 
+/* ------- input ------- */
 .search-input {
   flex: 1;
   padding: 12px 16px;
@@ -92,8 +90,8 @@ export default {
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 8px;
   outline: none;
-  transition: all 0.3s ease;
   color: white;
+  transition: all 0.3s ease;
   backdrop-filter: blur(5px);
 }
 
@@ -106,6 +104,7 @@ export default {
   box-shadow: 0 0 0 2px rgba(255, 165, 0, 0.2);
 }
 
+/* ------- add button ------- */
 .add-button {
   padding: 12px 24px;
   background: #ffa500;
@@ -123,6 +122,7 @@ export default {
   transform: translateY(-2px);
 }
 
+/* ------- history list ------- */
 .search-history {
   display: flex;
   flex-wrap: wrap;
@@ -131,7 +131,6 @@ export default {
 
 .history-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 8px 16px;
   background: rgba(255, 165, 0, 0.2);
@@ -148,6 +147,7 @@ export default {
   transform: translateY(-2px);
 }
 
+/* ------- remove button ------- */
 .remove-button {
   background: none;
   border: none;
