@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <!-- Floating filter button -->
+    <!-- Filter button -->
     <div class="filter-container">
       <button class="filter-button" @click="showFilter = true">
         <h2>🔍</h2>
@@ -16,7 +16,6 @@
             {{ type }}
           </label>
         </div>
-
         <div class="filter-actions">
           <button id="okDietary" @click="applyFilters">OK</button>
         </div>
@@ -53,10 +52,10 @@
       Generate Meals
     </button>
 
-    <!-- user-facing message when no ingredients / other error -->
+    <!-- user-facing message when no ingredients / error -->
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <!-- skeleton loader while waiting for meals -->
+    <!-- skeleton loader -->
     <div v-if="isLoading" class="skeleton-meal-list">
       <div v-for="i in 3" :key="i" class="skeleton-meal">
         <div class="skeleton-shimmer"></div>
@@ -109,9 +108,16 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
+    /* merge new items with existing list, ignore case duplicates */
     handleItemsUpdated(items) {
-      this.addedItems = items;
-      if (items.length > 0) this.errorMessage = ""; // clear saved error
+      const set = new Set(this.addedItems.map((i) => i.toLowerCase()));
+      items.forEach((raw) => {
+        const cleaned = raw.trim().toLowerCase();
+        if (cleaned) set.add(cleaned);
+      });
+      this.addedItems = [...set];
+      if (this.addedItems.length > 0) this.errorMessage = "";
+      console.info("Current ingredients list:", this.addedItems);
     },
     handleCameraError(error) {
       this.cameraError = error.message || "Failed to access camera";
@@ -120,18 +126,15 @@ export default {
     retryCamera() {
       this.cameraError = null;
       this.cameraReady = false;
-      // force ModelCam remount
       this.showScan = false;
       this.$nextTick(() => (this.showScan = true));
     },
     applyFilters() {
       console.log("Selected dietary preferences:", this.selectedDiets);
-      // persist filter selection
       localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
     async generateMeals() {
-      // Guard: do not hit backend when no ingredients provided
       if (this.addedItems.length === 0) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
@@ -171,7 +174,6 @@ export default {
     },
   },
   mounted() {
-    // restore saved filter selection
     const saved = localStorage.getItem("selectedDiets");
     if (saved) {
       try {
@@ -188,7 +190,6 @@ export default {
         this.cameraError = null;
       }
     },
-    // continuously persist diet selection
     selectedDiets: {
       handler(val) {
         localStorage.setItem("selectedDiets", JSON.stringify(val));
@@ -200,7 +201,7 @@ export default {
 </script>
 
 <style scoped>
-/* ==== layout basics ==== */
+/* layout basics */
 .container {
   background-color: rgba(25, 27, 49, 0.8);
   border-radius: 15px;
@@ -223,6 +224,7 @@ export default {
   z-index: 1000;
 }
 
+/* buttons, placeholders, loaders, etc. – unchanged */
 .choice-buttons {
   display: flex;
   justify-content: center;
@@ -315,7 +317,7 @@ hr {
   font-weight: 600;
 }
 
-/* ==== skeleton loading animation ==== */
+/* skeleton loading animation */
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
@@ -441,7 +443,7 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* ==== responsive tweaks ==== */
+/* responsive tweaks */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
