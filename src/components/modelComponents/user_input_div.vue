@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <!-- Filter button - positioned differently on mobile vs desktop -->
+    <!-- Floating filter button -->
     <div class="filter-container">
       <button class="filter-button" @click="showFilter = true">
         <h2>🔍</h2>
@@ -16,6 +16,7 @@
             {{ type }}
           </label>
         </div>
+
         <div class="filter-actions">
           <button id="okDietary" @click="applyFilters">OK</button>
         </div>
@@ -28,6 +29,7 @@
     </div>
 
     <hr />
+
     <div class="content">
       <div v-if="showScan" class="camera-placeholder">
         <ModelCam
@@ -43,13 +45,18 @@
           <p>Initializing camera...</p>
         </div>
       </div>
+
       <ManualBox v-if="showManual" @items-updated="handleItemsUpdated" />
     </div>
+
     <button class="generate-meals-button" @click="generateMeals">
       Generate Meals
     </button>
 
-    <!-- Show skeleton loading while waiting for meals -->
+    <!-- user-facing message when no ingredients / other error -->
+    <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
+
+    <!-- skeleton loader while waiting for meals -->
     <div v-if="isLoading" class="skeleton-meal-list">
       <div v-for="i in 3" :key="i" class="skeleton-meal">
         <div class="skeleton-shimmer"></div>
@@ -88,6 +95,7 @@ export default {
         "Halal 🕌",
       ],
       selectedDiets: [],
+      errorMessage: "", // shown to user when validation or axios error
     };
   },
   methods: {
@@ -103,6 +111,7 @@ export default {
     },
     handleItemsUpdated(items) {
       this.addedItems = items;
+      if (items.length > 0) this.errorMessage = ""; // clear saved error
     },
     handleCameraError(error) {
       this.cameraError = error.message || "Failed to access camera";
@@ -111,21 +120,33 @@ export default {
     retryCamera() {
       this.cameraError = null;
       this.cameraReady = false;
-      // force the ModelCam to remount:
+      // force ModelCam remount
       this.showScan = false;
       this.$nextTick(() => (this.showScan = true));
     },
     applyFilters() {
       console.log("Selected dietary preferences:", this.selectedDiets);
-      // Note: localStorage usage removed for Claude.ai compatibility
+      // persist filter selection
+      localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
     async generateMeals() {
+      // Guard: do not hit backend when no ingredients provided
+      if (this.addedItems.length === 0) {
+        this.errorMessage =
+          "You must scan or add at least one ingredient first.";
+        console.warn("GenerateMeals aborted – addedItems empty", {
+          selectedDiets: this.selectedDiets,
+        });
+        return;
+      }
+
+      this.errorMessage = "";
       this.isLoading = true;
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const response = await axios.post(
+        const { data } = await axios.post(
           "https://mealvision.onrender.com/generate-meals",
           {
             ingredients: this.addedItems,
@@ -133,14 +154,16 @@ export default {
           }
         );
 
-        if (response.data && Array.isArray(response.data.meals_res)) {
-          this.meals = response.data.meals_res;
+        if (Array.isArray(data?.meals_res)) {
+          this.meals = data.meals_res;
         } else {
-          console.error("Invalid response format:", response.data);
+          console.error("Unexpected response format", data);
+          this.errorMessage = "Server returned an unexpected response.";
           this.meals = [];
         }
-      } catch (error) {
-        console.error("Error generating meals:", error);
+      } catch (err) {
+        console.error("Axios error:", err);
+        this.errorMessage = "Error generating meals. Please try again.";
         this.meals = [];
       } finally {
         this.isLoading = false;
@@ -148,8 +171,15 @@ export default {
     },
   },
   mounted() {
-    // Note: localStorage usage removed for Claude.ai compatibility
-    // You can restore this functionality in your own environment if needed
+    // restore saved filter selection
+    const saved = localStorage.getItem("selectedDiets");
+    if (saved) {
+      try {
+        this.selectedDiets = JSON.parse(saved);
+      } catch (_) {
+        localStorage.removeItem("selectedDiets");
+      }
+    }
   },
   watch: {
     showScan(newVal) {
@@ -158,11 +188,19 @@ export default {
         this.cameraError = null;
       }
     },
+    // continuously persist diet selection
+    selectedDiets: {
+      handler(val) {
+        localStorage.setItem("selectedDiets", JSON.stringify(val));
+      },
+      deep: true,
+    },
   },
 };
 </script>
 
 <style scoped>
+/* ==== layout basics ==== */
 .container {
   background-color: rgba(25, 27, 49, 0.8);
   border-radius: 15px;
@@ -177,7 +215,7 @@ export default {
   position: relative;
 }
 
-/* Desktop: Filter in top-right corner */
+/* top-right floating filter button */
 .filter-container {
   position: absolute;
   top: 20px;
@@ -210,10 +248,6 @@ export default {
   background-color: rgba(255, 165, 0, 1);
   transform: translateY(-3px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-}
-
-.choice-buttons button h2 {
-  margin: 0;
 }
 
 hr {
@@ -274,7 +308,14 @@ hr {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* Skeleton Loading Animation for Meal List */
+/* user-facing error text */
+.error-msg {
+  color: #ff6b6b;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+/* ==== skeleton loading animation ==== */
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
@@ -312,6 +353,7 @@ hr {
   }
 }
 
+/* filter button esthetics */
 .filter-button {
   padding: 15px;
   font-size: 16px;
@@ -399,19 +441,17 @@ hr {
   background-color: rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile Layout: Filter button above and aligned with choice buttons */
+/* ==== responsive tweaks ==== */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
   }
 
-  /* Move filter above choice buttons, aligned to the right */
   .filter-container {
     position: static;
     display: flex;
     justify-content: flex-end;
     margin-bottom: 15px;
-    padding-right: 0;
   }
 
   .choice-buttons {
@@ -438,7 +478,6 @@ hr {
   }
 }
 
-/* Extra small devices */
 @media (max-width: 480px) {
   .container {
     padding: 15px;
