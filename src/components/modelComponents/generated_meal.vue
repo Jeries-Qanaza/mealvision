@@ -6,7 +6,7 @@
     </div>
 
     <!-- Show actual image when loaded -->
-    <img v-else class="meal-image" :src="imageSrc" alt="meal_demo">
+    <img v-else class="meal-image" :src="imageSrc" alt="meal_demo" />
 
     <div class="meal-content">
       <!-- Show skeleton loading for the meal name -->
@@ -15,7 +15,8 @@
 
       <!-- Show skeleton loading for the steps -->
       <ul>
-        <li v-for="(step, index) in steps" :key="index">
+        <!-- use mealName in key to minimise re-render when list changes -->
+        <li v-for="(step, index) in steps" :key="mealName + '-' + index">
           <div v-if="!step" class="skeleton-text skeleton-step"></div>
           <span v-else>{{ step }}</span>
         </li>
@@ -28,18 +29,19 @@
 export default {
   name: "GeneratedMeal",
   props: {
+    /* allow empty values while skeleton is shown */
     mealName: {
       type: String,
-      required: true
+      default: "",
     },
     steps: {
       type: Array,
-      required: true
+      default: () => [],
     },
     image: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
   },
   computed: {
     imageSrc() {
@@ -48,8 +50,8 @@ export default {
       } else {
         return "https://via.placeholder.com/100"; // Fallback image
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -58,17 +60,17 @@ export default {
 .skeleton-image {
   width: 100px;
   height: 100px;
-  background: #e0e0e0; /* Gray background */
+  background: #e0e0e0;
   position: relative;
   overflow: hidden;
-  border-radius: 4px; /* Optional: Rounded corners */
+  border-radius: 4px;
 }
 
 .skeleton-text {
-  background: #e0e0e0; /* Gray background */
+  background: #e0e0e0;
   position: relative;
   overflow: hidden;
-  border-radius: 4px; /* Optional: Rounded corners */
+  border-radius: 4px;
 }
 
 .skeleton-name {

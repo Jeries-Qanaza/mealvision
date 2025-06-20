@@ -1,38 +1,36 @@
 <template>
   <div id="generatedDataDiv">
     <h1>Generated Data</h1>
-    <!-- Loop through meals and pass each meal as a prop to GeneratedMeal -->
+
+    <!-- loop through meals -->
     <GeneratedMeal
-      v-for="(meal, index) in meals"
-      :key="index"
+      v-for="meal in meals"
+      :key="meal.mealName"
       :mealName="meal.mealName"
       :steps="meal.steps"
       :image="meal.image"
-       />
+    />
   </div>
 </template>
 
 <script>
-import GeneratedMeal from './generated_meal.vue';
+import GeneratedMeal from "./generated_meal.vue";
 
 export default {
   name: "GeneratedData",
-  components: {
-    GeneratedMeal
-  },
+  components: { GeneratedMeal },
   props: {
     meals: {
       type: Array,
       required: true,
-      default: () => [] // Default to an empty array
-    }
-  }
+    },
+  },
 };
 </script>
 
 <style>
 #generatedDataDiv {
-  background-color: rgba(45, 90, 62, 0.39);
+  background-color: rgba(45, 90, 62, 0.388);
   border-radius: 5px;
   padding: 20px;
   margin-top: 20px;

@@ -14,7 +14,7 @@
     <div class="search-history" v-if="searchHistory.length">
       <div
         v-for="(term, index) in searchHistory"
-        :key="index"
+        :key="term"
         class="history-item"
       >
         {{ term }}

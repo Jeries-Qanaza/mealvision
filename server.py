@@ -71,8 +71,7 @@ def generate_meals():
         resp.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
         return resp
 
-    # --- random salt so Gemini returns different meals each call ---
-    salt = os.urandom(4).hex()   # 8-character hex string
+    salt = os.urandom(4).hex()   # random hex, forces new ideas
 
     try:
         data = request.json
@@ -98,18 +97,21 @@ def generate_meals():
         if json_text.endswith("```"):
             json_text = json_text[:-3]
 
-        meal_data = json.loads(json_text)
+        # ---- safe JSON parse ----
+        try:
+            meal_data = json.loads(json_text)
+        except json.JSONDecodeError as err:
+            print("Gemini returned invalid JSON:", err)
+            return jsonify({"error": "AI response format error"}), 400
+        # -------------------------
 
-        # ---------- ensure key "meals" exists and is a list ----------
         meals_list = meal_data.get("meals")
         if not isinstance(meals_list, list):
-            # unexpected format – return 400
             return jsonify({"error": "AI response format error"}), 400
-        # --------------------------------------------------------------------
 
         for meal in meals_list:
             meal_name = meal.get("mealName") or meal.get("name")
-            meal["mealName"] = meal_name  # ensure title always
+            meal["mealName"] = meal_name  # make sure key exists
 
             steps = "\n".join(meal["steps"])
             img_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"

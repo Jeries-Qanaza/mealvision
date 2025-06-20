@@ -6,17 +6,10 @@
         <p>Welcome to the future of food recognition.</p>
       </div>
     </div>
-      
-   
+
     <div class="video-wrapper" ref="videoBox">
       <h1>Your Meal Is One Snap Away</h1>
-      <video
-        src="@/assets/demo.mp4" 
-        autoplay
-        muted
-        loop
-        playsinline
-      ></video>
+      <video src="@/assets/demo.mp4" autoplay muted loop playsinline></video>
     </div>
 
     <!-- YOLOv11 Section -->
@@ -66,7 +59,6 @@ export default {
     },
   },
 };
-
 </script>
 
 <style scoped>
@@ -80,7 +72,7 @@ export default {
 
 /* Header Section */
 #homeHeader {
-  background-image: url('@/assets/example2.jpg');
+  background-image: url("@/assets/example2.jpg");
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -93,7 +85,7 @@ export default {
 }
 
 #homeHeader::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -110,7 +102,7 @@ export default {
   padding: 40px 60px;
   text-align: center;
   color: #fff;
-  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) ;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
   animation: fadeIn 1s ease-in-out;
   z-index: 1;
   max-width: 800px;
@@ -122,13 +114,13 @@ export default {
   font-weight: bold;
   margin-bottom: 20px;
   color: #ffffff;
-  text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+  text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .header-content p {
   font-size: 1.6em;
   color: #e0e0e0;
-  text-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+  text-shadow: 1px 1px 5px rgba(0, 0, 0, 0.3);
 }
 
 /* YOLO Section */
@@ -147,7 +139,7 @@ export default {
 .yolo-container h2 {
   font-size: 2.5em;
   margin-bottom: 50px;
-  color: #FFC107;
+  color: #ffc107;
   text-align: center;
   font-weight: 600;
   letter-spacing: 1px;
@@ -168,7 +160,7 @@ export default {
   border-radius: 15px;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
   text-align: center;
 }
 
@@ -182,14 +174,14 @@ export default {
 .feature .icon {
   font-size: 3em;
   margin-bottom: 20px;
-  color: #FFC107;
+  color: #ffc107;
   display: inline-block;
 }
 
 .feature h4 {
   font-size: 1.5em;
   margin-bottom: 15px;
-  color: #FFC107;
+  color: #ffc107;
   font-weight: 500;
 }
 
@@ -215,7 +207,7 @@ export default {
   .yolo-features {
     gap: 20px;
   }
-  
+
   .feature {
     min-width: 240px;
   }
@@ -225,25 +217,25 @@ export default {
   #homeHeader {
     height: 50vh;
   }
-  
+
   .header-content {
     padding: 30px;
     width: 90%;
   }
-  
+
   .header-content h1 {
     font-size: 2.8em;
   }
-  
+
   .header-content p {
     font-size: 1.3em;
   }
-  
+
   .yolo-container h2 {
     font-size: 2.2em;
     margin-bottom: 40px;
   }
-  
+
   .feature {
     min-width: 100%;
     max-width: 400px;
@@ -254,32 +246,30 @@ export default {
   .header-content {
     padding: 25px;
   }
-  
+
   .header-content h1 {
     font-size: 2.2em;
   }
-  
+
   .header-content p {
     font-size: 1.1em;
   }
 }
 
 .video-wrapper {
-
   margin: 40px auto;
   width: 80%;
   max-width: 1000px;
-  background: linear-gradient(to right ,#191b3100 , rgba(255, 166, 0, 0.345));
+  background: linear-gradient(to right, #191b3100, rgba(255, 166, 0, 0.345));
   border-radius: 20px;
   display: flex;
   font-family: "Mogra", system-ui;
   font-weight: 400;
   font-style: normal;
-
 }
 
 .video-wrapper video {
-  margin:4%;
+  margin: 4%;
   width: 70%;
   height: 100%;
   object-fit: cover;
