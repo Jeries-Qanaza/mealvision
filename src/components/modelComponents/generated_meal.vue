@@ -13,6 +13,10 @@
       <div v-if="!mealName" class="skeleton-text skeleton-name"></div>
       <h3 v-else class="meal-name">{{ mealName }}</h3>
 
+      <!-- Show skeleton for description -->
+    <div v-if="!description" class="skeleton-text skeleton-description"></div>
+    <p v-else class="meal-description">{{ description }}</p>
+      
       <!-- Show skeleton loading for the steps -->
       <ul>
         <li v-for="(step, index) in steps" :key="index">
@@ -32,6 +36,10 @@ export default {
       type: String,
       required: true
     },
+    description: {
+      type: String,
+      required: true
+   },
     steps: {
       type: Array,
       required: true
@@ -138,5 +146,16 @@ export default {
   object-fit: cover;
   border-radius: 5px;
   margin: 15px;
+}
+  .skeleton-description {
+  width: 90%;
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.meal-description {
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #f0f0f0;
 }
 </style>
