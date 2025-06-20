@@ -79,8 +79,9 @@ def generate_meals():
         ingredients_str = ", ".join(ingredients)
         dietary_preferences = data.get('dietary_preferences', '')
 
-        prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
-
+        #prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+        prompt = f'What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format like this meals [{"mealName":"" , "description":"" , "steps":[]}] with at least 3 options including meal names and steps.'
+        
         response = Gmodel.generate_content(prompt)
         json_text = response.text.strip()
         print("##########################################################")
