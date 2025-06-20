@@ -171,7 +171,7 @@ export default {
 
       try {
         const { data } = await axios.post(
-          "https://localhost:5000/generate-meals",
+          "http://localhost:5000/generate-meals",
           {
             ingredients: this.addedItems,
             dietary_preferences: dietaryPreferencesStr,
