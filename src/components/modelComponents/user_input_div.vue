@@ -211,12 +211,6 @@ export default {
         this.cameraError = null;
       }
     },
-    selectedDiets: {
-      handler(val) {
-        localStorage.setItem("selectedDiets", JSON.stringify(val));
-      },
-      deep: true,
-    },
   },
 };
 </script>
@@ -237,7 +231,7 @@ export default {
   position: relative;
 }
 
-/* floating filter button (smaller) */
+/* floating filter button */
 .filter-container {
   position: absolute;
   top: 20px;
@@ -246,9 +240,9 @@ export default {
 }
 .filter-button {
   padding: 0;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 20%;
   background-color: rgba(135, 206, 250, 0.8);
   border: none;
   cursor: pointer;
@@ -273,9 +267,9 @@ export default {
   inset: 0;
   background: rgba(0, 0, 0, 0.4);
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: flex-start;
-  padding: 80px 24px 0 0;
+  padding-top: 80px;
   box-sizing: border-box;
   z-index: 999;
 }
@@ -362,7 +356,6 @@ export default {
   background-color: #43a047;
 }
 
-/* ------- rest of pre-existing styles (camera, loaders, etc.) נשארו זהים ------- */
 .camera-placeholder {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
@@ -468,7 +461,7 @@ export default {
   }
 }
 
-/* responsive tweaks (unchanged from previous) */
+/* responsive tweaks */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
