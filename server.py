@@ -11,7 +11,7 @@ from PIL import Image
 import tempfile
 import os
 import torch
-import gc                # garbage collection
+import gc                       # garbage collection
 from dotenv import load_dotenv  # load .env variables
 
 # ------------------- Load environment variables -------------------
@@ -101,7 +101,9 @@ def generate_meals():
         meal_data = json.loads(json_text)
 
         for meal in meal_data["meals"]:
+            # ensure the frontend always receives a title in the same key
             meal_name = meal.get("mealName") or meal.get("name")
+            meal["mealName"] = meal_name
             steps = "\n".join(meal["steps"])
             image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
             try:
