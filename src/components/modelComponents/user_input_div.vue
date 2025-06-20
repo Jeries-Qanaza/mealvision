@@ -6,13 +6,15 @@
         <h2>🔍</h2>
       </button>
 
-      <!-- Backdrop + modal -->
+      <!-- Backdrop -->
       <div
         v-if="showFilter"
         class="filter-backdrop"
         @click.self="showFilter = false"
       >
+        <!-- Modal -->
         <div class="filter-modal">
+          <button class="modal-close" @click="showFilter = false">×</button>
           <h3>Select Dietary Preferences</h3>
 
           <div class="checkbox-group">
@@ -22,7 +24,10 @@
             </label>
           </div>
 
-          <button id="okDietary" @click="applyFilters">OK</button>
+          <div class="filter-actions">
+            <button id="resetDietary" @click="resetFilters">Reset</button>
+            <button id="saveDietary" @click="applyFilters">Save</button>
+          </div>
         </div>
       </div>
     </div>
@@ -105,6 +110,9 @@ export default {
     toggleFilter() {
       this.showFilter = !this.showFilter;
     },
+    resetFilters() {
+      this.selectedDiets = [];
+    },
     showCamera() {
       this.showScan = true;
       this.showManual = false;
@@ -115,7 +123,6 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
-
     // normalize list and clear meals when list becomes empty
     handleItemsUpdated(items) {
       const unique = new Set();
@@ -230,39 +237,34 @@ export default {
   position: relative;
 }
 
-/* floating filter button */
+/* floating filter button (smaller) */
 .filter-container {
   position: absolute;
   top: 20px;
   right: 20px;
   z-index: 1000;
 }
-
 .filter-button {
-  padding: 15px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 8px;
+  padding: 0;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   background-color: rgba(135, 206, 250, 0.8);
-  color: #191b31;
-  font-weight: 600;
+  border: none;
+  cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  width: 60px;
-  height: 60px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .filter-button:hover {
   background-color: rgba(135, 206, 250, 1);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
 }
 .filter-button h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: 18px;
 }
 
 /* backdrop */
@@ -292,11 +294,31 @@ export default {
   padding: 18px 20px 24px;
   border-radius: 12px;
   box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+  position: relative;
 }
 .filter-modal h3 {
   margin: 0 0 12px;
   font-size: 18px;
   text-align: center;
+}
+
+/* small X */
+.modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: #191b31;
+  opacity: 0.6;
+}
+.modal-close:hover {
+  opacity: 1;
 }
 
 /* checkboxes */
@@ -311,21 +333,36 @@ export default {
   font-size: 14px;
 }
 
-/* OK button */
-#okDietary {
-  width: 100%;
+/* buttons */
+.filter-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+#resetDietary,
+#saveDietary {
+  flex: 1;
   padding: 10px;
-  background-color: #4caf50;
-  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-weight: 600;
+  color: white;
 }
-#okDietary:hover {
+#resetDietary {
+  background-color: #2196f3;
+}
+#resetDietary:hover {
+  background-color: #1976d2;
+}
+#saveDietary {
+  background-color: #4caf50;
+}
+#saveDietary:hover {
   background-color: #43a047;
 }
 
+/* ------- rest of pre-existing styles (camera, loaders, etc.) נשארו זהים ------- */
 .camera-placeholder {
   background-color: rgba(0, 0, 0, 0.2);
   border-radius: 10px;
@@ -350,7 +387,6 @@ export default {
   border-radius: 4px;
   cursor: pointer;
 }
-
 .choice-buttons {
   display: flex;
   justify-content: center;
@@ -375,7 +411,6 @@ export default {
   transform: translateY(-3px);
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
-
 .generate-meals-button {
   padding: 15px 30px;
   font-size: 16px;
@@ -394,13 +429,11 @@ export default {
   transform: translateY(-3px);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
-
 .error-msg {
   color: #ff6b6b;
   margin-top: 12px;
   font-weight: 600;
 }
-
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
@@ -435,7 +468,7 @@ export default {
   }
 }
 
-/* responsive tweaks */
+/* responsive tweaks (unchanged from previous) */
 @media (max-width: 768px) {
   .container {
     padding: 20px;
@@ -456,9 +489,8 @@ export default {
     max-width: 300px;
   }
   .filter-button {
-    width: 60px;
-    height: 60px;
-    padding: 10px;
+    width: 44px;
+    height: 44px;
   }
 }
 
@@ -472,8 +504,9 @@ export default {
     font-size: 14px;
   }
   .filter-button {
-    height: 45px;
-    padding: 8px;
+    height: 40px;
+    width: 40px;
+    padding: 0;
   }
 }
 </style>
