@@ -2,21 +2,26 @@
   <div class="container">
     <!-- Filter button -->
     <div class="filter-container">
-      <button class="filter-button" @click="showFilter = true">
+      <button class="filter-button" @click="toggleFilter">
         <h2>🔍</h2>
       </button>
 
-      <div v-if="showFilter" class="filter-modal">
-        <button id="closeDietary" @click="showFilter = false">X</button>
-        <h3>Select Dietary Preferences</h3>
+      <!-- Backdrop + modal -->
+      <div
+        v-if="showFilter"
+        class="filter-backdrop"
+        @click.self="showFilter = false"
+      >
+        <div class="filter-modal">
+          <h3>Select Dietary Preferences</h3>
 
-        <div class="checkbox-group">
-          <label v-for="type in dietOptions" :key="type">
-            <input type="checkbox" :value="type" v-model="selectedDiets" />
-            {{ type }}
-          </label>
-        </div>
-        <div class="filter-actions">
+          <div class="checkbox-group">
+            <label v-for="type in dietOptions" :key="type">
+              <input type="checkbox" :value="type" v-model="selectedDiets" />
+              {{ type }}
+            </label>
+          </div>
+
           <button id="okDietary" @click="applyFilters">OK</button>
         </div>
       </div>
@@ -53,10 +58,8 @@
       Generate Meals
     </button>
 
-    <!-- user message -->
     <p v-if="errorMessage" class="error-msg">{{ errorMessage }}</p>
 
-    <!-- loading skeleton -->
     <div v-if="isLoading" class="skeleton-meal-list">
       <div v-for="i in 3" :key="i" class="skeleton-meal">
         <div class="skeleton-shimmer"></div>
@@ -99,6 +102,9 @@ export default {
     };
   },
   methods: {
+    toggleFilter() {
+      this.showFilter = !this.showFilter;
+    },
     showCamera() {
       this.showScan = true;
       this.showManual = false;
@@ -109,6 +115,7 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
+
     // normalize list and clear meals when list becomes empty
     handleItemsUpdated(items) {
       const unique = new Set();
@@ -121,7 +128,7 @@ export default {
       if (this.addedItems.length) {
         this.errorMessage = "";
       } else {
-        this.meals = []; // clear previous results when nothing is selected
+        this.meals = [];
       }
       console.info("Current ingredients list:", this.addedItems);
     },
@@ -144,7 +151,7 @@ export default {
       if (!this.addedItems.length) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
-        this.meals = []; // ensure old meals are cleared visually
+        this.meals = [];
         console.warn("GenerateMeals aborted – addedItems empty", {
           selectedDiets: this.selectedDiets,
         });
@@ -223,7 +230,7 @@ export default {
   position: relative;
 }
 
-/* floating filter */
+/* floating filter button */
 .filter-container {
   position: absolute;
   top: 20px;
@@ -231,7 +238,119 @@ export default {
   z-index: 1000;
 }
 
-/* scan / manual buttons */
+.filter-button {
+  padding: 15px;
+  font-size: 16px;
+  cursor: pointer;
+  border: none;
+  border-radius: 8px;
+  background-color: rgba(135, 206, 250, 0.8);
+  color: #191b31;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.filter-button:hover {
+  background-color: rgba(135, 206, 250, 1);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+}
+.filter-button h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+/* backdrop */
+.filter-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  padding: 80px 24px 0 0;
+  box-sizing: border-box;
+  z-index: 999;
+}
+@media (max-width: 768px) {
+  .filter-backdrop {
+    justify-content: center;
+    padding: 80px 0 0;
+  }
+}
+
+/* modal box */
+.filter-modal {
+  background: white;
+  color: #191b31;
+  width: 220px;
+  padding: 18px 20px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.25);
+}
+.filter-modal h3 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* checkboxes */
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0 18px;
+  text-align: left;
+}
+.checkbox-group label {
+  font-size: 14px;
+}
+
+/* OK button */
+#okDietary {
+  width: 100%;
+  padding: 10px;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+#okDietary:hover {
+  background-color: #43a047;
+}
+
+.camera-placeholder {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  padding: 40px;
+  color: rgba(255, 255, 255, 0.7);
+  min-height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.camera-error,
+.camera-loading {
+  text-align: center;
+  padding: 20px;
+}
+.camera-error button {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background-color: #ff6b6b;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 .choice-buttons {
   display: flex;
   justify-content: center;
@@ -239,7 +358,6 @@ export default {
   margin-bottom: 20px;
   flex-wrap: wrap;
 }
-
 .choice-buttons button {
   padding: 15px 30px;
   font-size: 16px;
@@ -258,41 +376,6 @@ export default {
   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
 }
 
-hr {
-  border: none;
-  height: 1px;
-  background-color: rgba(255, 255, 255, 0.1);
-  margin: 20px 0;
-}
-
-/* camera area */
-.camera-placeholder {
-  background-color: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  padding: 40px;
-  color: rgba(255, 255, 255, 0.7);
-  min-height: 300px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.camera-error,
-.camera-loading {
-  text-align: center;
-  padding: 20px;
-}
-.camera-error button {
-  margin-top: 10px;
-  padding: 8px 16px;
-  background-color: #ff6b6b;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-/* generate button */
 .generate-meals-button {
   padding: 15px 30px;
   font-size: 16px;
@@ -312,14 +395,12 @@ hr {
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
 }
 
-/* user-facing error */
 .error-msg {
   color: #ff6b6b;
   margin-top: 12px;
   font-weight: 600;
 }
 
-/* skeleton loader */
 .skeleton-meal-list {
   display: flex;
   flex-direction: column;
@@ -354,91 +435,6 @@ hr {
   }
 }
 
-/* filter button */
-.filter-button {
-  padding: 15px;
-  font-size: 16px;
-  cursor: pointer;
-  border: none;
-  border-radius: 8px;
-  background-color: rgba(135, 206, 250, 0.8);
-  color: #191b31;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-  width: 60px;
-  height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.filter-button:hover {
-  background-color: rgba(135, 206, 250, 1);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
-}
-.filter-button h2 {
-  margin: 0;
-  font-size: 20px;
-}
-
-.filter-modal {
-  position: absolute;
-  top: 70px;
-  right: 0;
-  background: white;
-  color: #191b31;
-  padding: 20px;
-  border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  z-index: 999;
-  width: 250px;
-}
-
-.checkbox-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin: 20px 0;
-  text-align: left;
-}
-
-.filter-actions {
-  display: flex;
-  justify-content: space-between;
-}
-
-#okDietary {
-  width: 100%;
-  padding: 10px;
-  background-color: #4caf50;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-#closeDietary {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-weight: bold;
-  color: #191b31;
-}
-#closeDietary:hover {
-  background-color: rgba(0, 0, 0, 0.1);
-}
-
 /* responsive tweaks */
 @media (max-width: 768px) {
   .container {
@@ -464,18 +460,12 @@ hr {
     height: 60px;
     padding: 10px;
   }
-  .filter-modal {
-    width: 200px;
-  }
 }
 
 @media (max-width: 480px) {
   .container {
     padding: 15px;
     margin: 10px;
-  }
-  .filter-modal {
-    width: 260px;
   }
   .choice-buttons button {
     padding: 12px 20px;
