@@ -35,14 +35,12 @@ CORS(
     },
 )
 
-# ------------------- Gemini AI Setup ------------------------------
+# ------------------- AI Setup ------------------------------
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 Gmodel = genai.GenerativeModel("gemini-1.5-flash")
-
-# ------------------- Stability AI ---------------------------------
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
-
+# ------------------- generate_image  ---------------------------------
 def generate_image(prompt: str) -> str | None:
     """Call Stability API and return base-64 image string (or raise error)."""
     response = requests.post(
@@ -67,26 +65,28 @@ def generate_image(prompt: str) -> str | None:
 def generate_meals():
     # CORS pre-flight
     if request.method == "OPTIONS":
-        response = jsonify({})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-        return response
+        resp = jsonify({})
+        resp.headers.add("Access-Control-Allow-Origin", "*")
+        resp.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
+        resp.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
+        return resp
+
+    # --- random salt so Gemini returns different meals each call ---
+    salt = os.urandom(4).hex()   # 8-character hex string
 
     try:
         data = request.json
         if not data:
             return jsonify({"error": "No JSON data received"}), 400
 
-        ingredients = data.get("ingredients", [])
-        ingredients_str = ", ".join(ingredients)
+        ingredients_str = ", ".join(data.get("ingredients", []))
         dietary_preferences = data.get("dietary_preferences", "")
 
         prompt = (
-            "What meal can I make with these ingredients: "
-            f"{ingredients_str}, considering the following dietary preferences: "
-            f"{dietary_preferences}. Answer in JSON format with at least 3 options "
-            "including meal names and steps."
+            f"What meal can I make with these ingredients: {ingredients_str}, "
+            f"considering the following dietary preferences: {dietary_preferences}. "
+            f"Give completely different options than any previous answer. id={salt}. "
+            "Answer in JSON format with at least 3 options including meal names and steps."
         )
 
         gemini_resp = Gmodel.generate_content(prompt)
@@ -100,27 +100,30 @@ def generate_meals():
 
         meal_data = json.loads(json_text)
 
-        for meal in meal_data["meals"]:
-            # ensure the frontend always receives a title in the same key
-            meal_name = meal.get("mealName") or meal.get("name")
-            meal["mealName"] = meal_name
-            steps = "\n".join(meal["steps"])
-            image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
-            try:
-                meal["image"] = generate_image(image_prompt)
-            except Exception as e:
-                meal["image"] = None
-                print(f"Failed to generate image for {meal_name}: {e}")
+        # ---------- ensure key "meals" exists and is a list ----------
+        meals_list = meal_data.get("meals")
+        if not isinstance(meals_list, list):
+            # unexpected format – return 400
+            return jsonify({"error": "AI response format error"}), 400
+        # --------------------------------------------------------------------
 
-        return jsonify({"meals_res": meal_data["meals"]})
+        for meal in meals_list:
+            meal_name = meal.get("mealName") or meal.get("name")
+            meal["mealName"] = meal_name  # ensure title always
+
+            steps = "\n".join(meal["steps"])
+            img_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
+            try:
+                meal["image"] = generate_image(img_prompt)
+            except Exception:
+                meal["image"] = None
+
+        return jsonify({"meals_res": meals_list})
 
     except Exception as e:
         print("Error in generate_meals:", e)
-        import traceback
-
-        traceback.print_exc()
+        import traceback; traceback.print_exc()
         return jsonify({"error": str(e)}), 500
-
 
 # ------------------- Email Setup ----------------------------------
 app.config["MAIL_SERVER"] = "smtp.gmail.com"
@@ -131,7 +134,6 @@ app.config["MAIL_PASSWORD"] = os.getenv("MAIL_PASSWORD")
 app.config["MAIL_DEFAULT_SENDER"] = os.getenv("MAIL_DEFAULT_SENDER")
 
 mail = Mail(app)
-
 
 @app.route("/send-email", methods=["POST"])
 def send_email():
@@ -219,5 +221,4 @@ def health_check():
 
 # ------------------- Run App --------------------------------------
 if __name__ == "__main__":
-    # debug=True only for local development
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=True)
