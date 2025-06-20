@@ -171,7 +171,7 @@ export default {
 
       try {
         const { data } = await axios.post(
-          "https://mealvision.onrender.com/generate-meals",
+          "https://localhost:5000/generate-meals",
           {
             ingredients: this.addedItems,
             dietary_preferences: dietaryPreferencesStr,

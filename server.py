@@ -12,10 +12,6 @@ import tempfile
 import os
 import torch
 import gc  # For garbage collection
-from dotenv import load_dotenv  # ✅ Load .env variables
-
-# ------------------- Load environment variables -------------------
-load_dotenv()
 
 # ------------------- Limit model threads -------------------
 torch.set_num_threads(1)
@@ -200,4 +196,4 @@ def health_check():
 
 # ------------------- Run App -------------------
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    app.run(host="0.0.0.0", port=5000, debug=True)

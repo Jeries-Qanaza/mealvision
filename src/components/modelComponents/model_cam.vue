@@ -146,10 +146,10 @@ export default {
           const formData = new FormData();
           formData.append("image", blob, "snapshot.jpg");
 
-          const response = await fetch(
-            "https://mealvision.onrender.com/detect",
-            { method: "POST", body: formData }
-          );
+          const response = await fetch("https://localhost:5000/detect", {
+            method: "POST",
+            body: formData,
+          });
 
           if (!response.ok) throw new Error("Detection failed");
 
@@ -211,7 +211,7 @@ export default {
       this.debugInfo = "Sending uploaded image to server...";
 
       try {
-        const response = await fetch("https://mealvision.onrender.com/detect", {
+        const response = await fetch("https://localhost:5000/detect", {
           method: "POST",
           body: formData,
         });
