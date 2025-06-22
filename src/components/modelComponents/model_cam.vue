@@ -48,6 +48,12 @@
       </div>
     </div>
 
+    <div v-if="isProcessing" class="loading-dots">
+      <span class="dot"></span>
+      <span class="dot"></span>
+      <span class="dot"></span>
+    </div>
+
     <div id="labels">
       Detected Labels: <span>{{ detectedLabels }}</span>
     </div>
@@ -68,9 +74,9 @@ export default {
       debugInfo: null,
       detectedLabels: "",
       isCameraReady: false,
-      isProcessing: false,
       isDragOver: false,
       isFrontCamera: false,
+      isProcessing: false,
     };
   },
   mounted() {
@@ -127,29 +133,36 @@ export default {
       }
     },
 
-    async takeSnapshot() {
-      if (!this.isCameraReady || this.isProcessing) return;
+ async takeSnapshot() {
+  if (!this.isCameraReady || this.isProcessing) return;
 
-      this.isProcessing = true;
+  this.isProcessing = true;
 
-      try {
-        const video = this.$refs.videoElement;
-        const canvas = document.createElement("canvas");
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  try {
+    const video = this.$refs.videoElement;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        this.debugInfo = "Sending image to server...";
+    this.debugInfo = "Sending image to server...";
 
-        canvas.toBlob(async (blob) => {
+    await new Promise((resolve, reject) => {
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          reject(new Error("Failed to create image blob."));
+          return;
+        }
+
+        try {
           const formData = new FormData();
           formData.append("image", blob, "snapshot.jpg");
 
-          const response = await fetch(
-            "https://mealvision.onrender.com/detect",
-            { method: "POST", body: formData }
-          );
+          const response = await fetch("https://mealvision.onrender.com/detect", {
+            method: "POST",
+            body: formData,
+          });
 
           if (!response.ok) throw new Error("Detection failed");
 
@@ -159,17 +172,22 @@ export default {
           this.detectedLabels = uniqueLabels.join(", ");
           this.debugInfo = "Detection complete.";
 
-          // emit ARRAY so parent can iterate safely
           this.$emit("items-updated", uniqueLabels);
-        }, "image/jpeg");
-      } catch (error) {
-        this.debugInfo = `Snapshot error: ${error.message}`;
-        console.error("Detection error:", error);
-        this.detectedLabels = "";
-      } finally {
-        this.isProcessing = false;
-      }
-    },
+          resolve(); // <- move resolve here after all done
+        } catch (err) {
+          reject(err);
+        }
+      }, "image/jpeg");
+    });
+
+  } catch (error) {
+    this.debugInfo = `Snapshot error: ${error.message}`;
+    console.error("Detection error:", error);
+    this.detectedLabels = "";
+  } finally {
+    this.isProcessing = false;
+  }
+},
 
     handleDragOver(event) {
       event.preventDefault();
@@ -476,6 +494,42 @@ video.mirrored {
   .snapshot-btn:active,
   .upload-zone:active {
     transform: scale(0.98);
+  }
+}
+
+
+.loading-dots {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 10px auto 0;
+  gap: 6px;
+  height: 24px;
+}
+
+.loading-dots .dot {
+  width: 8px;
+  height: 8px;
+  background: orange;
+  border-radius: 50%;
+  animation: dot-flash 1.2s infinite ease-in-out;
+}
+
+.loading-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.loading-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes dot-flash {
+  0%, 80%, 100% {
+    opacity: 0.2;
+    transform: scale(1);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.4);
   }
 }
 </style>
