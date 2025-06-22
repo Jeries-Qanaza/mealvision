@@ -75,6 +75,7 @@
   </div>
 </template>
 
+
 <script>
 import axios from "axios";
 import ManualBox from "./manualbox.vue";
@@ -104,6 +105,7 @@ export default {
       ],
       selectedDiets: [],
       errorMessage: "",
+      user_local_time_input: 0,
     };
   },
   methods: {
@@ -123,7 +125,6 @@ export default {
       this.showManual = true;
       this.showScan = false;
     },
-    // normalize list and clear meals when list becomes empty
     handleItemsUpdated(items) {
       const unique = new Set();
       items.forEach((raw) => {
@@ -154,10 +155,22 @@ export default {
       localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
+    getPartOfDay() {
+      const hours = new Date().getHours();
+      if (hours >= 5 && hours < 12) {
+        console.log(hours+": It is morning");
+        return "morning";
+      } else if (hours >= 12 && hours < 18) {
+        console.log(hours+": It is afternoon");
+        return "afternoon";
+      } else {
+        console.log(hours+": It is evening");
+        return "evening";
+      }
+    },
     async generateMeals() {
       if (!this.addedItems.length) {
-        this.errorMessage =
-          "You must scan or add at least one ingredient first.";
+        this.errorMessage = "You must scan or add at least one ingredient first.";
         this.meals = [];
         console.warn("GenerateMeals aborted – addedItems empty", {
           selectedDiets: this.selectedDiets,
@@ -175,6 +188,7 @@ export default {
           {
             ingredients: this.addedItems,
             dietary_preferences: dietaryPreferencesStr,
+            user_local_time: this.getPartOfDay(),
           }
         );
 
@@ -214,6 +228,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 /* container */
