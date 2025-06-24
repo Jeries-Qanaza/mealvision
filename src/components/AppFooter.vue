@@ -2,7 +2,7 @@
   <footer class="footer">
     <div class="footer-content">
       <div>
-        <img id="yvc_logo" src="@/assets/yvc.png" alt="yvc-logo" width="10%">
+        <img id="yvc_logo" src="@/assets/yvc.png" alt="yvc-logo" width="10%" />
         <h3>YVC</h3>
         <h4>Data Science Final Project</h4>
         <h4>Information Systems Department</h4>
@@ -32,7 +32,8 @@ export default {
 
 <style scoped>
 /* Prevent horizontal scrolling on the body */
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;

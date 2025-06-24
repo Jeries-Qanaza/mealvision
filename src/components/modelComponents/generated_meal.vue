@@ -6,7 +6,7 @@
     </div>
 
     <!-- Show actual image when loaded -->
-    <img v-else class="meal-image" :src="imageSrc" alt="meal_demo">
+    <img v-else class="meal-image" :src="imageSrc" alt="meal_demo" />
 
     <div class="meal-content">
       <!-- Show skeleton loading for the meal name -->
@@ -14,9 +14,9 @@
       <h3 v-else class="meal-name">{{ mealName }}</h3>
 
       <!-- Show skeleton for description -->
-    <div v-if="!description" class="skeleton-text skeleton-description"></div>
-    <p v-else class="meal-description">{{ description }}</p>
-      
+      <div v-if="!description" class="skeleton-text skeleton-description"></div>
+      <p v-else class="meal-description">{{ description }}</p>
+
       <!-- Show skeleton loading for the steps -->
       <ul>
         <li v-for="(step, index) in steps" :key="index">
@@ -34,20 +34,20 @@ export default {
   props: {
     mealName: {
       type: String,
-      required: true
+      required: true,
     },
     description: {
       type: String,
-      required: true
-   },
+      required: true,
+    },
     steps: {
       type: Array,
-      required: true
+      required: true,
     },
     image: {
       type: String,
-      default: ""
-    }
+      default: "",
+    },
   },
   computed: {
     imageSrc() {
@@ -56,8 +56,8 @@ export default {
       } else {
         return "https://via.placeholder.com/100"; // Fallback image
       }
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -147,7 +147,7 @@ export default {
   border-radius: 5px;
   margin: 15px;
 }
-  .skeleton-description {
+.skeleton-description {
   width: 90%;
   height: 16px;
   margin-bottom: 10px;
