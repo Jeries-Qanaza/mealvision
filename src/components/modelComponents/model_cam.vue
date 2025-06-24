@@ -65,7 +65,7 @@
 </template>
 
 <script>
-const API_BASE = process.env.API_BASE; // Save the Backend url in a variable
+const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 export default {
   name: "ModelCam",
   emits: ["camera-error", "camera-ready", "items-updated"], // <- added items-updated

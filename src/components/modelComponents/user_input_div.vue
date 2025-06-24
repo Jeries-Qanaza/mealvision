@@ -81,7 +81,7 @@ import ManualBox from "./manualbox.vue";
 import GeneratedData from "./generated_data.vue";
 import ModelCam from "../modelComponents/model_cam.vue";
 
-const API_BASE = process.env.API_BASE; // Save the Backend url in a variable
+const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 export default {
   name: "UserInputDiv",
   components: { ManualBox, GeneratedData, ModelCam },
