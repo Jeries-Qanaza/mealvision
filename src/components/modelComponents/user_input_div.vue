@@ -75,13 +75,13 @@
   </div>
 </template>
 
-
 <script>
 import axios from "axios";
 import ManualBox from "./manualbox.vue";
 import GeneratedData from "./generated_data.vue";
 import ModelCam from "../modelComponents/model_cam.vue";
 
+const API_BASE = process.env.API_BASE; // Save the Backend url in a variable
 export default {
   name: "UserInputDiv",
   components: { ManualBox, GeneratedData, ModelCam },
@@ -158,19 +158,20 @@ export default {
     getPartOfDay() {
       const hours = new Date().getHours();
       if (hours >= 5 && hours < 12) {
-        console.log(hours+": It is morning");
+        console.log(hours + ": It is morning");
         return "morning";
       } else if (hours >= 12 && hours < 18) {
-        console.log(hours+": It is afternoon");
+        console.log(hours + ": It is afternoon");
         return "afternoon";
       } else {
-        console.log(hours+": It is evening");
+        console.log(hours + ": It is evening");
         return "evening";
       }
     },
     async generateMeals() {
       if (!this.addedItems.length) {
-        this.errorMessage = "You must scan or add at least one ingredient first.";
+        this.errorMessage =
+          "You must scan or add at least one ingredient first.";
         this.meals = [];
         console.warn("GenerateMeals aborted – addedItems empty", {
           selectedDiets: this.selectedDiets,
@@ -183,14 +184,11 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const { data } = await axios.post(
-          "https://mealvision.onrender.com/generate-meals",
-          {
-            ingredients: this.addedItems,
-            dietary_preferences: dietaryPreferencesStr,
-            user_local_time: this.getPartOfDay(),
-          }
-        );
+        const { data } = await axios.post(`${API_BASE}/generate-meals`, {
+          ingredients: this.addedItems,
+          dietary_preferences: dietaryPreferencesStr,
+          user_local_time: this.getPartOfDay(),
+        });
 
         if (Array.isArray(data?.meals_res)) {
           this.meals = data.meals_res;
@@ -228,7 +226,6 @@ export default {
   },
 };
 </script>
-
 
 <style scoped>
 /* container */

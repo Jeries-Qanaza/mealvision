@@ -65,6 +65,7 @@
 </template>
 
 <script>
+const API_BASE = process.env.API_BASE; // Save the Backend url in a variable
 export default {
   name: "ModelCam",
   emits: ["camera-error", "camera-ready", "items-updated"], // <- added items-updated
@@ -133,61 +134,60 @@ export default {
       }
     },
 
- async takeSnapshot() {
-  if (!this.isCameraReady || this.isProcessing) return;
+    async takeSnapshot() {
+      if (!this.isCameraReady || this.isProcessing) return;
 
-  this.isProcessing = true;
+      this.isProcessing = true;
 
-  try {
-    const video = this.$refs.videoElement;
-    const canvas = document.createElement("canvas");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      try {
+        const video = this.$refs.videoElement;
+        const canvas = document.createElement("canvas");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-    this.debugInfo = "Sending image to server...";
+        this.debugInfo = "Sending image to server...";
 
-    await new Promise((resolve, reject) => {
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          reject(new Error("Failed to create image blob."));
-          return;
-        }
+        await new Promise((resolve, reject) => {
+          canvas.toBlob(async (blob) => {
+            if (!blob) {
+              reject(new Error("Failed to create image blob."));
+              return;
+            }
 
-        try {
-          const formData = new FormData();
-          formData.append("image", blob, "snapshot.jpg");
+            try {
+              const formData = new FormData();
+              formData.append("image", blob, "snapshot.jpg");
 
-          const response = await fetch("https://mealvision.onrender.com/detect", {
-            method: "POST",
-            body: formData,
-          });
+              const response = await fetch(`${API_BASE}/detect`, {
+                method: "POST",
+                body: formData,
+              });
 
-          if (!response.ok) throw new Error("Detection failed");
+              if (!response.ok) throw new Error("Detection failed");
 
-          const result = await response.json();
-          const uniqueLabels = [...new Set(result.labels)];
+              const result = await response.json();
+              const uniqueLabels = [...new Set(result.labels)];
 
-          this.detectedLabels = uniqueLabels.join(", ");
-          this.debugInfo = "Detection complete.";
+              this.detectedLabels = uniqueLabels.join(", ");
+              this.debugInfo = "Detection complete.";
 
-          this.$emit("items-updated", uniqueLabels);
-          resolve(); // <- move resolve here after all done
-        } catch (err) {
-          reject(err);
-        }
-      }, "image/jpeg");
-    });
-
-  } catch (error) {
-    this.debugInfo = `Snapshot error: ${error.message}`;
-    console.error("Detection error:", error);
-    this.detectedLabels = "";
-  } finally {
-    this.isProcessing = false;
-  }
-},
+              this.$emit("items-updated", uniqueLabels);
+              resolve(); // <- move resolve here after all done
+            } catch (err) {
+              reject(err);
+            }
+          }, "image/jpeg");
+        });
+      } catch (error) {
+        this.debugInfo = `Snapshot error: ${error.message}`;
+        console.error("Detection error:", error);
+        this.detectedLabels = "";
+      } finally {
+        this.isProcessing = false;
+      }
+    },
 
     handleDragOver(event) {
       event.preventDefault();
@@ -229,7 +229,7 @@ export default {
       this.debugInfo = "Sending uploaded image to server...";
 
       try {
-        const response = await fetch("https://mealvision.onrender.com/detect", {
+        const response = await fetch(`${API_BASE}/detect`, {
           method: "POST",
           body: formData,
         });
@@ -497,7 +497,6 @@ video.mirrored {
   }
 }
 
-
 .loading-dots {
   display: flex;
   justify-content: center;
@@ -523,7 +522,9 @@ video.mirrored {
 }
 
 @keyframes dot-flash {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     opacity: 0.2;
     transform: scale(1);
   }
