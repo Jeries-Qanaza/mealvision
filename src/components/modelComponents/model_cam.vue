@@ -160,7 +160,7 @@ export default {
               const formData = new FormData();
               formData.append("image", blob, "snapshot.jpg");
 
-              const response = await fetch(`${API_BASE}/detect`, {
+              const response = await fetch(`${API_BASE}detect`, {
                 method: "POST",
                 body: formData,
               });
@@ -229,7 +229,7 @@ export default {
       this.debugInfo = "Sending uploaded image to server...";
 
       try {
-        const response = await fetch(`${API_BASE}/detect`, {
+        const response = await fetch(`${API_BASE}detect`, {
           method: "POST",
           body: formData,
         });
