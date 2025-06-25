@@ -27,7 +27,11 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["*", "https://mealvision.vercel.app"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization"]}})
 
 # ------------------- Gemini AI Setup -------------------
-genai.configure(api_key=os.getenv("GEMINI_API_KEY")) 
+GEMINI_API_KEY = os.getenv("VUE_APP_GEMINI_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("Missing VUE_APP_GEMINI_KEY environment variable")
+
+genai.configure(api_key=GEMINI_API_KEY)
 Gmodel = genai.GenerativeModel("gemini-1.5-flash")
 
 # ------------------- Stability AI -------------------
