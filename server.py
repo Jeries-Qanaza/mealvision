@@ -11,8 +11,9 @@ from PIL import Image
 import tempfile
 import os
 import torch
-import gc  # For garbage collection
-from dotenv import load_dotenv  # ✅ Load .env variables
+import gc                       # For garbage collection
+from dotenv import load_dotenv  # Load .env variables
+import time                     # Added for measuring Gemini latency (for DEBUGGING)
 
 # ------------------- Load environment variables -------------------
 load_dotenv()
@@ -56,7 +57,6 @@ def generate_image(prompt):
         raise Exception(str(response.json()))
 
 
-
 @app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
     # Handle CORS preflight requests
@@ -85,7 +85,8 @@ def generate_meals():
         user_local_time = data.get("user_local_time", "any time of day")
 
 
-        #prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+        # Construct prompt for Gemini
+        # Previous prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
         prompt = (
             f'What meal can I make with these ingredients: {ingredients_str}, '
             f'considering the following dietary preferences: {dietary_preferences} '
@@ -95,8 +96,12 @@ def generate_meals():
             f'with at least 3 meal options suitable for {user_local_time}.'
         )
 
-        
+        # Measure Gemini response time
+        t0 = time.time()  # for DEBUGGING
         response = Gmodel.generate_content(prompt)
+        t1 = time.time()  # for DEBUGGING
+        print(f"Gemini generation took {t1-t0:.2f} seconds")  # for DEBUGGING
+        
         json_text = response.text.strip()
         print("##########################################################")
         print("Response from Gemini:", json_text)
@@ -108,15 +113,20 @@ def generate_meals():
 
         meal_data = json.loads(json_text)
 
-        for meal in meal_data["meals"]:
-            meal_name = meal.get("mealName") or meal.get("name")
-            steps = "\n".join(meal["steps"])
-            image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
-            try:
-                meal["image"] = generate_image(image_prompt)
-            except Exception as e:
-                meal["image"] = None
-                print(f"Failed to generate image for {meal_name}: {str(e)}")
+        # Conditionally generate or skip images based on API key
+        if STABILITY_API_KEY:
+            for meal in meal_data["meals"]:
+                meal_name = meal.get("mealName") or meal.get("name")
+                steps = "\n".join(meal["steps"])
+                image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
+                try:
+                    meal["image"] = generate_image(image_prompt)
+                except Exception as e:
+                    meal["image"] = None
+                    print(f"Failed to generate image for {meal_name}: {str(e)}")
+        else:
+            for meal in meal_data["meals"]:
+                meal["image"] = None  # for DEBUGGING
 
         return jsonify({"meals_res": meal_data["meals"]})
 
