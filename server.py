@@ -1,7 +1,10 @@
+# ==============================================================================
+# Imports
+# ==============================================================================
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
-import json
 import requests
 import base64
 from flask_mail import Mail, Message
@@ -11,34 +14,71 @@ from PIL import Image
 import tempfile
 import os
 import torch
-import gc                       # For garbage collection
-from dotenv import load_dotenv  # Load .env variables
-import time                     # Added for measuring Gemini latency (for DEBUGGING)
+import gc
+from dotenv import load_dotenv
+import time
+import traceback
+import concurrent.futures # Keep this for future use with Stability AI
 
-# ------------------- Load environment variables -------------------
+# ==============================================================================
+# Initial Setup
+# ==============================================================================
+
+# Load environment variables from .env file
 load_dotenv()
 
-# ------------------- Limit model threads -------------------
+# --- Limit model threads for server stability ---
+# This is crucial to prevent PyTorch from hogging all CPU cores on the server
 torch.set_num_threads(1)
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 
-# ------------------- Flask Setup -------------------
+# --- Flask App and CORS Setup ---
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["*", "https://mealvision.vercel.app"], "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization"]}})
+CORS(app) # Simplified CORS setup, it will handle OPTIONS requests automatically
 
-# ------------------- Gemini AI Setup -------------------
+# ==============================================================================
+# API Client Configurations
+# ==============================================================================
+
+# --- Gemini AI Setup ---
 GEMINI_API_KEY = os.getenv("VUE_APP_GEMINI_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("Missing VUE_APP_GEMINI_KEY environment variable")
-
 genai.configure(api_key=GEMINI_API_KEY)
 Gmodel = genai.GenerativeModel("gemini-1.5-flash")
 
-# ------------------- Stability AI -------------------
+# --- Stability AI Setup ---
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
+# --- Email Setup ---
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
+mail = Mail(app)
+
+# ==============================================================================
+# YOLO Model (Lazy Loading)
+# ==============================================================================
+yolo_model = None
+
+def get_yolo_model():
+    """Lazily loads the YOLO model on the first request."""
+    global yolo_model
+    if yolo_model is None:
+        print("Loading YOLO model for the first time...")
+        yolo_model = YOLO("./src/assets/best8s.pt")
+        print("YOLO model loaded successfully.")
+    return yolo_model
+
+# ==============================================================================
+# Helper Functions
+# ==============================================================================
 def generate_image(prompt):
+    """Generates an image using the Stability AI API."""
     response = requests.post(
         "https://api.stability.ai/v2beta/stable-image/generate/core",
         headers={
@@ -46,147 +86,33 @@ def generate_image(prompt):
             "accept": "image/*"
         },
         files={"none": ''},
-        data={
-            "prompt": prompt,
-            "output_format": "jpeg",
-        },
+        data={ "prompt": prompt, "output_format": "jpeg" },
     )
     if response.status_code == 200:
         return base64.b64encode(response.content).decode("utf-8")
     else:
         raise Exception(str(response.json()))
 
+# ==============================================================================
+# Flask Routes (API Endpoints)
+# ==============================================================================
 
-@app.route("/generate-meals", methods=["POST", "OPTIONS"])
-def generate_meals():
-    # Handle CORS preflight requests
-    if request.method == "OPTIONS":
-        response = jsonify({})
-        response.headers.add("Access-Control-Allow-Origin", "*")
-        response.headers.add("Access-Control-Allow-Headers", "Content-Type,Authorization")
-        response.headers.add("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-        return response
-    
-    try:
-        print("Received request to /generate-meals")
-        print("Request method:", request.method)
-        print("Request headers:", dict(request.headers))
-        print("Request data:", request.get_data())
-        
-        data = request.json
-        if not data:
-            return jsonify({"error": "No JSON data received"}), 400
-            
-        print("Parsed JSON data:", data)
-        
-        ingredients = data.get("ingredients", [])
-        ingredients_str = ", ".join(ingredients)
-        dietary_preferences = data.get('dietary_preferences', '')
-        user_local_time = data.get("user_local_time", "any time of day")
-
-
-        # Construct prompt for Gemini
-        # Previous prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
-        prompt = (
-            f'What meal can I make with these ingredients: {ingredients_str}, '
-            f'considering the following dietary preferences: {dietary_preferences} '
-            f'and that it is currently the {user_local_time} for the user. '
-            f'Answer in JSON format exactly like this: '
-            f'{{"meals": [{{"mealName": "", "description": "", "steps": []}}]}} '
-            f'with at least 3 meal options suitable for {user_local_time}.'
-        )
-
-        # Measure Gemini response time
-        t0 = time.time()  # for DEBUGGING
-        response = Gmodel.generate_content(prompt)
-        t1 = time.time()  # for DEBUGGING
-        print(f"Gemini generation took {t1-t0:.2f} seconds")  # for DEBUGGING
-        
-        json_text = response.text.strip()
-        print("##########################################################")
-        print("Response from Gemini:", json_text)
-
-        if json_text.startswith("```json"):
-            json_text = json_text[7:]
-        if json_text.endswith("```"):
-            json_text = json_text[:-3]
-
-        meal_data = json.loads(json_text)
-
-        # Conditionally generate or skip images based on API key
-        if STABILITY_API_KEY:
-            for meal in meal_data["meals"]:
-                meal_name = meal.get("mealName") or meal.get("name")
-                steps = "\n".join(meal["steps"])
-                image_prompt = f"A delicious meal of {meal_name}. Steps: {steps}"
-                try:
-                    meal["image"] = generate_image(image_prompt)
-                except Exception as e:
-                    meal["image"] = None
-                    print(f"Failed to generate image for {meal_name}: {str(e)}")
-        else:
-            for meal in meal_data["meals"]:
-                meal["image"] = None  # for DEBUGGING
-
-        return jsonify({"meals_res": meal_data["meals"]})
-
-    except Exception as e:
-        print("Error in generate_meals:", str(e))
-        import traceback
-        traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
-
-
-# ------------------- Email Setup -------------------
-app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')
-
-mail = Mail(app)
-
-@app.route('/send-email', methods=['POST'])
-def send_email():
-    data = request.get_json()
-    name = data.get('name')
-    email = data.get('email')
-    message = data.get('message')
-
-    msg = Message(subject=f"New Contact Message from {name}",
-                  recipients=['je.yo.yvc@gmail.com'],
-                  body=f"From: {name}\nEmail: {email}\n\nMessage:\n{message}")
-
-    try:
-        mail.send(msg)
-        return jsonify({"message": "Email sent successfully"}), 200
-    except Exception as e:
-        print("Error sending email:", e)
-        return jsonify({"error": str(e)}), 500
-
-# ------------------- YOLO Detection (Lazy Loading) -------------------
-yolo_model = None
-
-def get_yolo_model():
-    global yolo_model
-    if yolo_model is None:
-        print("Loading YOLO model...")
-        yolo_model = YOLO("./src/assets/best8s.pt")
-        print("YOLO model loaded successfully")
-    return yolo_model
+@app.route("/", methods=["GET"])
+def health_check():
+    """Health check endpoint to confirm the server is running."""
+    return jsonify({"status": "Server is running!", "message": "API is healthy"})
 
 @app.route("/detect", methods=["POST"])
 def detect():
+    """Receives an image, detects food items using YOLO, and returns labels."""
     try:
-        t_start = time.time() # Start timer
+        t_start = time.time()
+        print("\n--- Received new request for /detect ---")
 
         if "image" in request.files:
-            # File upload (FormData)
             file = request.files["image"]
             image = Image.open(file.stream).convert("RGB")
         else:
-            # Base64 upload (Snapshot from camera)
             data = request.get_json()
             image_data = data["image"].split(",")[1]
             image_bytes = base64.b64decode(image_data)
@@ -203,49 +129,113 @@ def detect():
             print(f"DEBUG: Image resized to {image.size}")
         #----------- End of resizing block -----------
 
-        # Load YOLO model only when needed
         model = get_yolo_model()
         t_model_got = time.time()
         print(f"DEBUG: Getting YOLO model took {t_model_got - t_image_loaded:.2f} seconds")
 
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
             image.save(temp.name)
-            
             #----------- Running model with a fixed image size for consistent performance -----------
             results = model.predict(source=temp.name, imgsz=[640, 640])
-            
-            # Clean up temp file immediately
             image.close()
             os.unlink(temp.name)
 
         t_prediction_done = time.time()
         print(f"DEBUG: YOLO Prediction took {t_prediction_done - t_model_got:.2f} seconds <<<<<<<<<<<<<<<<<<")
 
-        labels = []
-        for box in results[0].boxes:
-            cls_id = int(box.cls[0])
-            label = results[0].names[cls_id]
-            labels.append(label)
+        labels = [results[0].names[int(box.cls[0])] for box in results[0].boxes]
 
-        # Force garbage collection to free memory
         del results
         gc.collect()
 
         t_end = time.time()
         print(f"--- TOTAL DETECT TIME: {t_end - t_start:.2f} seconds ---")
 
-        return jsonify({"labels": labels})
+        return jsonify({"labels": list(set(labels))}) # Using set to return unique labels
 
     except Exception as e:
-        import traceback
+        print(f"!!! ERROR in /detect: {e} !!!")
         traceback.print_exc()
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "An error occurred during image detection."}), 500
 
-# ------------------- Health Check -------------------
-@app.route("/", methods=["GET"])
-def health_check():
-    return jsonify({"status": "Server is running!", "message": "API is healthy"})
+@app.route("/generate-meals", methods=["POST", "OPTIONS"])
+def generate_meals():
+    # NOTE: The Flask-CORS extension automatically handles OPTIONS preflight requests.
+    # No need for manual 'if request.method == "OPTIONS":'.
+    try:
+        t_total_start = time.time()
+        print("\n--- Received new request for /generate-meals ---")
 
-# ------------------- Run App -------------------
+        data = request.json
+        if not data:
+            return jsonify({"error": "No JSON data received"}), 400
+            
+        ingredients_str = ", ".join(data.get("ingredients", []))
+        dietary_preferences = data.get('dietary_preferences', '')
+        user_local_time = data.get("user_local_time", "any time of day")
+
+        # Previous prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
+        prompt = (
+            f'What meal can I make with these ingredients: {ingredients_str}, '
+            f'considering the following dietary preferences: {dietary_preferences} '
+            f'and that it is currently the {user_local_time} for the user. '
+            f'Answer in JSON format exactly like this: '
+            f'{{"meals": [{{"mealName": "", "description": "", "steps": []}}]}} '
+            f'with at least 3 meal options suitable for {user_local_time}.'
+        )
+
+        t0 = time.time()
+        response = Gmodel.generate_content(prompt)
+        t1 = time.time()
+        print(f"DEBUG: Gemini generation took {t1-t0:.2f} seconds")
+        
+        json_text = response.text.strip().removeprefix("```json").removesuffix("```")
+        meal_data = json.loads(json_text)
+
+        # NOTE: Image generation is currently disabled if STABILITY_API_KEY is not set.
+        # If we enable it, remember to use parallel processing.
+        if STABILITY_API_KEY:
+             # Left here for future implementation with parallel processing
+            pass
+        else:
+             for meal in meal_data["meals"]:
+                meal["image"] = None
+
+        t_total_end = time.time()
+        print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
+
+        return jsonify({"meals_res": meal_data["meals"]})
+
+    except Exception as e:
+        print(f"!!! ERROR in /generate-meals: {e} !!!")
+        traceback.print_exc()
+        return jsonify({"error": "An error occurred while generating meals."}), 500
+
+@app.route('/send-email', methods=['POST'])
+def send_email():
+    """Handles sending a contact form email."""
+    try:
+        data = request.get_json()
+        name = data.get('name')
+        email = data.get('email')
+        message = data.get('message')
+
+        if not all([name, email, message]):
+            return jsonify({"error": "Missing form data"}), 400
+
+        msg = Message(subject=f"New Contact Message from {name}",
+                      recipients=['je.yo.yvc@gmail.com'],
+                      body=f"From: {name}\nEmail: {email}\n\nMessage:\n{message}")
+        
+        mail.send(msg)
+        return jsonify({"message": "Email sent successfully"}), 200
+    except Exception as e:
+        print(f"!!! ERROR sending email: {e} !!!")
+        traceback.print_exc()
+        return jsonify({"error": "An error occurred while sending the email."}), 500
+
+# ==============================================================================
+# Main Execution
+# ==============================================================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000)
+    app.run(host="0.0.0.0", port=8000, debug=True)    
