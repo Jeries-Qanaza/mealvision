@@ -195,6 +195,14 @@ def detect():
         t_image_loaded = time.time()
         print(f"DEBUG: Image loading took {t_image_loaded - t_start:.2f} seconds")
 
+        #----------- Resizing large images to improve performance and prevent crashes -----------
+        MAX_RESOLUTION = (1280, 1280)
+        if image.width > MAX_RESOLUTION[0] or image.height > MAX_RESOLUTION[1]:
+            print(f"DEBUG: Image is large ({image.size}), resizing it down...")
+            image.thumbnail(MAX_RESOLUTION, Image.Resampling.LANCZOS)
+            print(f"DEBUG: Image resized to {image.size}")
+        #----------- End of resizing block -----------
+
         # Load YOLO model only when needed
         model = get_yolo_model()
         t_model_got = time.time()
@@ -202,7 +210,9 @@ def detect():
 
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
             image.save(temp.name)
-            results = model.predict(source=temp.name, conf=0.25)
+            
+            #----------- Running model with a fixed image size for consistent performance -----------
+            results = model.predict(source=temp.name, imgsz=[640, 640])
             
             # Clean up temp file immediately
             image.close()
