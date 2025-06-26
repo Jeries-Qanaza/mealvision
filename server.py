@@ -179,6 +179,8 @@ def get_yolo_model():
 @app.route("/detect", methods=["POST"])
 def detect():
     try:
+        t_start = time.time() # Start timer
+
         if "image" in request.files:
             # File upload (FormData)
             file = request.files["image"]
@@ -190,8 +192,13 @@ def detect():
             image_bytes = base64.b64decode(image_data)
             image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
+        t_image_loaded = time.time()
+        print(f"DEBUG: Image loading took {t_image_loaded - t_start:.2f} seconds")
+
         # Load YOLO model only when needed
         model = get_yolo_model()
+        t_model_got = time.time()
+        print(f"DEBUG: Getting YOLO model took {t_model_got - t_image_loaded:.2f} seconds")
 
         with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
             image.save(temp.name)
@@ -200,6 +207,9 @@ def detect():
             # Clean up temp file immediately
             image.close()
             os.unlink(temp.name)
+
+        t_prediction_done = time.time()
+        print(f"DEBUG: YOLO Prediction took {t_prediction_done - t_model_got:.2f} seconds <<<<<<<<<<<<<<<<<<")
 
         labels = []
         for box in results[0].boxes:
@@ -210,6 +220,9 @@ def detect():
         # Force garbage collection to free memory
         del results
         gc.collect()
+
+        t_end = time.time()
+        print(f"--- TOTAL DETECT TIME: {t_end - t_start:.2f} seconds ---")
 
         return jsonify({"labels": labels})
 
