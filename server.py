@@ -160,8 +160,13 @@ def detect():
 
 @app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
-    # NOTE: The Flask-CORS extension automatically handles OPTIONS preflight requests.
-    # No need for manual 'if request.method == "OPTIONS":'.
+    # Handle CORS preflight requests
+    if request.method == "OPTIONS":
+        return jsonify({}), 200, {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        }
     try:
         t_total_start = time.time()
         print("\n--- Received new request for /generate-meals ---")
