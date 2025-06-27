@@ -1,38 +1,58 @@
 <template>
   <div class="container">
-    <!-- Filter button -->
-    <div class="filter-container">
-      <button class="filter-button" @click="toggleFilter">
-        <h2>🔍</h2>
-      </button>
+    <div class="header-actions-container">
+      <div class="filter-wrapper">
+        <select
+          v-model="selectedMealTime"
+          class="meal-type-select base-filter-style"
+        >
+          <option value="">Meal Type 🕘</option>
+          <option
+            v-for="meal in mealTimeOptions"
+            :key="meal.value"
+            :value="meal.value"
+          >
+            {{ meal.text }}
+          </option>
+        </select>
+        <button
+          v-if="selectedMealTime"
+          @click="clearMealTypeFilter"
+          class="clear-filter-btn"
+        >
+          ×
+        </button>
+      </div>
 
-      <!-- Backdrop -->
-      <div
-        v-if="showFilter"
-        class="filter-backdrop"
-        @click.self="showFilter = false"
-      >
-        <!-- Modal -->
-        <div class="filter-modal">
-          <button class="modal-close" @click="showFilter = false">×</button>
-          <h3>Select Dietary Preferences</h3>
+      <div class="filter-modal-container">
+        <button class="filter-button base-filter-style" @click="toggleFilter">
+          <h2>Diet Type 🍽️</h2>
+        </button>
 
-          <div class="checkbox-group">
-            <label v-for="type in dietOptions" :key="type">
-              <input type="checkbox" :value="type" v-model="selectedDiets" />
-              {{ type }}
-            </label>
-          </div>
+        <div
+          v-if="showFilter"
+          class="filter-backdrop"
+          @click.self="showFilter = false"
+        >
+          <div class="filter-modal">
+            <button class="modal-close" @click="showFilter = false">×</button>
+            <h3>Select Dietary Preferences</h3>
 
-          <div class="filter-actions">
-            <button id="resetDietary" @click="resetFilters">Reset</button>
-            <button id="saveDietary" @click="applyFilters">Save</button>
+            <div class="checkbox-group">
+              <label v-for="type in dietOptions" :key="type">
+                <input type="checkbox" :value="type" v-model="selectedDiets" />
+                {{ type }}
+              </label>
+            </div>
+            <div class="filter-actions">
+              <button id="resetDietary" @click="resetFilters">Reset</button>
+              <button id="saveDietary" @click="applyFilters">Save</button>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Scan / Manual -->
     <div class="choice-buttons">
       <button @click="showCamera"><h2>Scan</h2></button>
       <button @click="showManualBox"><h2>Add Manually</h2></button>
@@ -104,8 +124,14 @@ export default {
         "Halal 🕌",
       ],
       selectedDiets: [],
+      // Meal time options and selected value
+      mealTimeOptions: [
+        { text: "Breakfast ☀️", value: "Breakfast" },
+        { text: "Lunch 🍝", value: "Lunch" },
+        { text: "Dinner 🌙", value: "Dinner" },
+      ],
+      selectedMealTime: "", // Empty string means no preference
       errorMessage: "",
-      user_local_time_input: 0,
     };
   },
   methods: {
@@ -155,18 +181,9 @@ export default {
       localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
-    getPartOfDay() {
-      const hours = new Date().getHours();
-      if (hours >= 5 && hours < 12) {
-        console.log(hours + ": It is morning");
-        return "morning";
-      } else if (hours >= 12 && hours < 18) {
-        console.log(hours + ": It is afternoon");
-        return "afternoon";
-      } else {
-        console.log(hours + ": It is evening");
-        return "evening";
-      }
+    // Method to clear the meal type selection
+    clearMealTypeFilter() {
+      this.selectedMealTime = "";
     },
     async generateMeals() {
       if (!this.addedItems.length) {
@@ -184,11 +201,21 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        const { data } = await axios.post(`${API_BASE}/generate-meals`, {
+        // Added payload: removed user_local_time and added optional meal_type
+        const payload = {
           ingredients: this.addedItems,
           dietary_preferences: dietaryPreferencesStr,
-          user_local_time: this.getPartOfDay(),
-        });
+        };
+        if (this.selectedMealTime) {
+          payload.meal_type = this.selectedMealTime;
+        }
+
+        // DEBUGGING payload to console
+        console.log("Sending payload to server:", payload);
+        const { data } = await axios.post(
+          `${API_BASE}/generate-meals`,
+          payload
+        );
 
         if (Array.isArray(data?.meals_res)) {
           this.meals = data.meals_res;
@@ -207,6 +234,8 @@ export default {
     },
   },
   mounted() {
+    // Set default disabled option for meal type select
+    this.selectedMealTime = "";
     const saved = localStorage.getItem("selectedDiets");
     if (saved) {
       try {
@@ -243,34 +272,92 @@ export default {
   position: relative;
 }
 
-/* floating filter button */
-.filter-container {
+/* container for all header action buttons/filters */
+.header-actions-container {
   position: absolute;
   top: 20px;
   right: 20px;
   z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* space between filters */
 }
-.filter-button {
-  padding: 0;
-  width: 30px;
-  height: 30px;
-  border-radius: 20%;
+
+/* Wrapper for positioning the select and clear button together */
+.filter-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* New: Shared base style for filter buttons to ensure uniformity */
+.base-filter-style {
   background-color: rgba(135, 206, 250, 0.8);
+  color: #191b31;
   border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 15px;
   cursor: pointer;
+  height: 40px;
   transition: all 0.3s ease;
   box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 15px;
 }
-.filter-button:hover {
+
+.base-filter-style:hover {
   background-color: rgba(135, 206, 250, 1);
   transform: translateY(-2px);
 }
+
+/* Styling for the meal type dropdown */
+.meal-type-select {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20width%3D%27292.4%27%20height%3D%27292.4%27%3E%3Cpath%20fill%3D%27%23191B31%27%20d%3D%27M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%27%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px top 50%;
+  background-size: 0.7em auto;
+  padding-right: 50px; /* make space for arrow and clear button */
+  justify-content: flex-start; /* Align text to the left */
+}
+
+/* Styling for the clear button */
+.clear-filter-btn {
+  position: absolute;
+  right: 35px; /* Position inside the select, near the dropdown arrow */
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #191b31;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  padding: 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.clear-filter-btn:hover {
+  opacity: 1;
+}
+
+.filter-modal-container {
+  position: relative;
+}
+
+.filter-button {
+  width: auto; /* Allow button to size based on content */
+}
+
 .filter-button h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: 15px; /* Match font size for consistency */
 }
 
 /* backdrop */
@@ -344,6 +431,7 @@ export default {
   display: flex;
   justify-content: space-between;
   gap: 8px;
+  margin-top: 18px;
 }
 #resetDietary,
 #saveDietary {
@@ -478,7 +566,7 @@ export default {
   .container {
     padding: 20px;
   }
-  .filter-container {
+  .header-actions-container {
     position: static;
     display: flex;
     justify-content: flex-end;
@@ -508,10 +596,10 @@ export default {
     padding: 12px 20px;
     font-size: 14px;
   }
-  .filter-button {
+  .base-filter-style {
     height: 40px;
-    width: 40px;
-    padding: 0;
+    padding-top: 0;
+    padding-bottom: 0;
   }
 }
 </style>
