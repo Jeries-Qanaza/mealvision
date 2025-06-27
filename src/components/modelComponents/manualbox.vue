@@ -76,18 +76,7 @@ export default {
         this.activeIndex = -1; // Reset selection on new input
       }, 250); // 250ms delay
     },
-    watch: {
-      // Watch for changes on showSuggestions to add/remove the event listener
-      showSuggestions(isShown) {
-        if (isShown) {
-          // When the dropdown opens, start listening for clicks anywhere on the page
-          document.addEventListener("mousedown", this.handleClickOutside);
-        } else {
-          // When it closes, stop listening to prevent unnecessary checks
-          document.removeEventListener("mousedown", this.handleClickOutside);
-        }
-      },
-    },
+
     onArrowDown() {
       if (!this.showSuggestions) return;
       if (this.activeIndex < this.suggestions.length - 1) {
@@ -163,16 +152,35 @@ export default {
 
       return `${before}<strong>${match}</strong>${after}`;
     },
+
+    // --- Event Handling ---
+    handleClickOutside(event) {
+      // Check if the click was outside the component's main wrapper
+      if (
+        this.$refs.searchWrapper &&
+        !this.$refs.searchWrapper.contains(event.target)
+      ) {
+        this.showSuggestions = false;
+      }
+    },
   },
-  // --- Event Handling ---
-  handleClickOutside(event) {
-    // Check if the click was outside the component's main wrapper
-    if (
-      this.$refs.searchWrapper &&
-      !this.$refs.searchWrapper.contains(event.target)
-    ) {
-      this.showSuggestions = false;
-    }
+
+  watch: {
+    // Watch for changes on showSuggestions to add/remove the event listener
+    showSuggestions(isShown) {
+      if (isShown) {
+        // When the dropdown opens, start listening for clicks anywhere on the page
+        document.addEventListener("mousedown", this.handleClickOutside);
+      } else {
+        // When it closes, stop listening to prevent unnecessary checks
+        document.removeEventListener("mousedown", this.handleClickOutside);
+      }
+    },
+  },
+
+  beforeUnmount() {
+    // Clean up the listener when the component is destroyed to prevent memory leaks
+    document.removeEventListener("mousedown", this.handleClickOutside);
   },
 };
 </script>
