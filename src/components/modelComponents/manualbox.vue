@@ -4,11 +4,30 @@
       <input
         v-model="searchQuery"
         type="text"
-        placeholder="Add Item"
+        placeholder="Add Item (e.g., 'apple')"
         class="search-input"
-        @keyup.enter="addToHistory"
+        @input="handleInput"
+        @keydown.down.prevent="onArrowDown"
+        @keydown.up.prevent="onArrowUp"
+        @keydown.enter.prevent="onEnter"
+        @keydown.esc="showSuggestions = false"
       />
-      <button class="add-button" @click="addToHistory">Add</button>
+      <button class="add-button" @click="addItemFromQuery">Add</button>
+    </div>
+
+    <div
+      v-if="showSuggestions && suggestions.length"
+      class="suggestions-dropdown"
+    >
+      <ul>
+        <li
+          v-for="(suggestion, index) in suggestions"
+          :key="suggestion"
+          :class="{ active: index === activeIndex }"
+          @click="selectSuggestion(suggestion)"
+          v-html="highlightMatch(suggestion)"
+        ></li>
+      </ul>
     </div>
 
     <div class="search-history" v-if="searchHistory.length">
@@ -27,7 +46,7 @@
 </template>
 
 <script>
-import getEmoji from "./get_emoji.js";
+import { getSuggestions, findEmoji } from "./get_emoji.js";
 
 export default {
   name: "ManualBox",
@@ -35,32 +54,103 @@ export default {
     return {
       searchQuery: "",
       searchHistory: [],
+      // --- Autocomplete State ---
+      suggestions: [],
+      showSuggestions: false,
+      activeIndex: -1,
+      debounceTimer: null,
     };
   },
   methods: {
-    // add item, lowercase, skip duplicates (case-insensitive)
-    addToHistory() {
-      const normalized = this.searchQuery.trim().toLowerCase();
+    // --- Autocomplete Methods ---
+    handleInput() {
+      // Debounce the search function
+      clearTimeout(this.debounceTimer);
+      this.debounceTimer = setTimeout(() => {
+        if (this.searchQuery.trim() === "") {
+          this.showSuggestions = false;
+          return;
+        }
+        this.suggestions = getSuggestions(this.searchQuery);
+        this.showSuggestions = this.suggestions.length > 0;
+        this.activeIndex = -1; // Reset selection on new input
+      }, 250); // 250ms delay
+    },
+
+    onArrowDown() {
+      if (!this.showSuggestions) return;
+      if (this.activeIndex < this.suggestions.length - 1) {
+        this.activeIndex++;
+      }
+    },
+
+    onArrowUp() {
+      if (!this.showSuggestions) return;
+      if (this.activeIndex > 0) {
+        this.activeIndex--;
+      }
+    },
+
+    onEnter() {
+      if (this.activeIndex !== -1) {
+        // If a suggestion is highlighted, add it
+        this.selectSuggestion(this.suggestions[this.activeIndex]);
+      } else {
+        // Otherwise, add the raw query
+        this.addItemFromQuery();
+      }
+    },
+
+    selectSuggestion(suggestion) {
+      this.searchQuery = suggestion;
+      this.showSuggestions = false;
+      this.addItemFromQuery();
+    },
+
+    // --- History Management ---
+    addItemFromQuery() {
+      this.addTermToHistory(this.searchQuery);
+      this.searchQuery = "";
+      this.showSuggestions = false;
+    },
+
+    addTermToHistory(term) {
+      const normalized = term.trim().toLowerCase();
       if (!normalized) return;
 
       const exists = this.searchHistory.some(
         (it) => it.split(" ")[0].toLowerCase() === normalized
       );
       if (exists) {
-        this.searchQuery = "";
         return;
       }
 
-      const itemWithEmoji = `${normalized} ${getEmoji(normalized)}`;
-      this.searchHistory.unshift(itemWithEmoji);
-      this.searchQuery = "";
+      const emoji = findEmoji(normalized);
+      // Smartly add with or without emoji
+      const itemToAdd = emoji ? `${normalized} ${emoji}` : normalized;
 
-      this.$emit("items-updated", [...this.searchHistory]); // emit fresh copy
+      this.searchHistory.unshift(itemToAdd);
+      this.$emit("items-updated", [...this.searchHistory]);
     },
 
     removeFromHistory(index) {
       this.searchHistory.splice(index, 1);
       this.$emit("items-updated", [...this.searchHistory]);
+    },
+
+    // --- UI Helper ---
+    highlightMatch(suggestion) {
+      const query = this.searchQuery.toLowerCase();
+      const suggestionLower = suggestion.toLowerCase();
+      const index = suggestionLower.indexOf(query);
+
+      if (index === -1) return suggestion;
+
+      const before = suggestion.slice(0, index);
+      const match = suggestion.slice(index, index + query.length);
+      const after = suggestion.slice(index + query.length);
+
+      return `${before}<strong>${match}</strong>${after}`;
     },
   },
 };
@@ -73,6 +163,7 @@ export default {
   max-width: 600px;
   margin: 0 auto;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  position: relative; /* Crucial for positioning the dropdown */
 }
 
 .search-input-container {
@@ -122,11 +213,54 @@ export default {
   transform: translateY(-2px);
 }
 
+/* Suggestions Dropdown ------- */
+.suggestions-dropdown {
+  position: absolute;
+  width: 100%;
+  background: #2c2f48;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  margin-top: -4px;
+  z-index: 10;
+  max-height: 220px; /* Limit height and make it scrollable */
+  overflow-y: auto;
+  backdrop-filter: blur(10px);
+}
+
+.suggestions-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+}
+
+.suggestions-dropdown li {
+  padding: 10px 16px;
+  color: white;
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.suggestions-dropdown li:hover {
+  background-color: rgba(255, 165, 0, 0.2);
+}
+
+.suggestions-dropdown li.active {
+  background-color: rgba(255, 165, 0, 0.4);
+}
+
+/* Use deep selector for highlighting inside v-html */
+.suggestions-dropdown li :deep(strong) {
+  color: #ffa500;
+  font-weight: 600;
+}
+
 /* ------- history list ------- */
 .search-history {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  margin-top: 16px; /* Added margin to separate from input */
 }
 
 .history-item {
