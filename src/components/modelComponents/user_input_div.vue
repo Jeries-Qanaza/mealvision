@@ -24,7 +24,7 @@
         </button>
       </div>
 
-      <div class="filter-modal-container">
+      <div class="filter-modal-container" ref="dietFilterContainer">
         <button class="filter-button base-filter-style" @click="toggleFilter">
           <h2>Diet Type 🍽️</h2>
         </button>
@@ -181,9 +181,13 @@ export default {
       localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
-    // Method to clear the meal type selection
-    clearMealTypeFilter() {
-      this.selectedMealTime = "";
+    handleClickOutside_Diet(event) {
+      if (
+        this.$refs.dietFilterContainer &&
+        !this.$refs.dietFilterContainer.contains(event.target)
+      ) {
+        this.showFilter = false;
+      }
     },
     async generateMeals() {
       if (!this.addedItems.length) {
@@ -252,6 +256,17 @@ export default {
         this.cameraError = null;
       }
     },
+    showFilter(isShown) {
+      if (isShown) {
+        // When the filter is open
+        document.addEventListener("mousedown", this.handleClickOutside_Diet);
+      } else {
+        document.removeEventListener("mousedown", this.handleClickOutside_Diet);
+      }
+    },
+  },
+  beforeUnmount() {
+    document.removeEventListener("mousedown", this.handleClickOutside_Diet);
   },
 };
 </script>
