@@ -177,17 +177,42 @@ def generate_meals():
             
         ingredients_str = ", ".join(data.get("ingredients", []))
         dietary_preferences = data.get('dietary_preferences', '')
-        user_local_time = data.get("user_local_time", "any time of day")
+        # Get the meal type from the request, will be None if not provided
+        meal_type = data.get("meal_type")
 
+        # --- Prompt Engineering ---
         # Previous prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
-        prompt = (
-            f'What meal can I make with these ingredients: {ingredients_str}, '
-            f'considering the following dietary preferences: {dietary_preferences} '
-            f'and that it is currently the {user_local_time} for the user. '
-            f'Answer in JSON format exactly like this: '
-            f'{{"meals": [{{"mealName": "", "description": "", "steps": []}}]}} '
-            f'with at least 3 meal options suitable for {user_local_time}.'
+
+        # Start with the base prompt
+        prompt_parts = [
+            f'What meal can I make with these ingredients: {ingredients_str}.'
+        ]
+
+        # Add dietary preferences if they exist
+        if dietary_preferences:
+            prompt_parts.append(f'Considering the following dietary preferences: {dietary_preferences}.')
+
+        # Add meal type context ONLY if it was selected by the user
+        if meal_type:
+            prompt_parts.append(f'The meal should be suitable for {meal_type}.')
+
+        # Add formatting instructions and specify the number of options
+        prompt_parts.append(
+            'Answer in JSON format exactly like this: '
+            '{"meals": [{"mealName": "", "description": "", "steps": []}]} '
+            'with at least 3 meal options'
         )
+        
+        # Add meal type suitability to the final instruction part, if applicable
+        if meal_type:
+            prompt_parts[-1] += f' suitable for {meal_type}.'
+        else:
+            prompt_parts[-1] += '.'
+
+        # Join all parts to form the final prompt
+        prompt = " ".join(prompt_parts)
+        
+        print(f"DEBUG: Final prompt sent to Gemini: {prompt}")
 
         t0 = time.time()
         response = Gmodel.generate_content(prompt)
@@ -203,7 +228,7 @@ def generate_meals():
              # Left here for future implementation with parallel processing
             pass
         else:
-             for meal in meal_data["meals"]:
+            for meal in meal_data["meals"]:
                 meal["image"] = None
 
         t_total_end = time.time()
