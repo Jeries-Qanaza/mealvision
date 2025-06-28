@@ -278,6 +278,7 @@ export default {
         this.meals = [];
       } finally {
         this.isLoading = false;
+        this.isAppBusy = false;
       }
     },
   },
