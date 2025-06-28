@@ -1,10 +1,15 @@
 <template>
-  <div class="container">
+  <div class="container" :class="{ 'is-loading': isAppBusy }">
+    <div v-if="isAppBusy" class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+
     <div class="header-actions-container">
       <div class="filter-wrapper">
         <select
           v-model="selectedMealTime"
           class="meal-type-select base-filter-style"
+          :disabled="isAppBusy"
         >
           <option value="">Meal Type 🕘</option>
           <option
@@ -19,13 +24,18 @@
           v-if="selectedMealTime"
           @click="clearMealTypeFilter"
           class="clear-filter-btn"
+          :disabled="isAppBusy"
         >
           ×
         </button>
       </div>
 
       <div class="filter-modal-container" ref="dietFilterContainer">
-        <button class="filter-button base-filter-style" @click="toggleFilter">
+        <button
+          class="filter-button base-filter-style"
+          @click="toggleFilter"
+          :disabled="isAppBusy"
+        >
           <h2>Diet Type 🍽️</h2>
         </button>
 
@@ -54,8 +64,10 @@
     </div>
 
     <div class="choice-buttons">
-      <button @click="showCamera"><h2>Scan</h2></button>
-      <button @click="showManualBox"><h2>Add Manually</h2></button>
+      <button @click="showCamera" :disabled="isAppBusy"><h2>Scan</h2></button>
+      <button @click="showManualBox" :disabled="isAppBusy">
+        <h2>Add Manually</h2>
+      </button>
     </div>
 
     <hr />
@@ -66,20 +78,32 @@
           @camera-ready="cameraReady = true"
           @camera-error="handleCameraError"
           @items-updated="handleItemsUpdated"
+          @processing-state="handleProcessingState"
+          :is-app-busy="isAppBusy"
         />
         <div v-if="cameraError" class="camera-error">
           <p>Camera Error: {{ cameraError }}</p>
-          <button @click="retryCamera">Retry Camera</button>
+          <button @click="retryCamera" :disabled="isAppBusy">
+            Retry Camera
+          </button>
         </div>
         <div v-else-if="!cameraReady" class="camera-loading">
           <p>Initializing camera...</p>
         </div>
       </div>
 
-      <ManualBox v-if="showManual" @items-updated="handleItemsUpdated" />
+      <ManualBox
+        v-if="showManual"
+        @items-updated="handleItemsUpdated"
+        :is-app-busy="isAppBusy"
+      />
     </div>
 
-    <button class="generate-meals-button" @click="generateMeals">
+    <button
+      class="generate-meals-button"
+      @click="generateMeals"
+      :disabled="isAppBusy"
+    >
       Generate Meals
     </button>
 
@@ -111,7 +135,8 @@ export default {
       showManual: false,
       addedItems: [],
       meals: [],
-      isLoading: false,
+      isLoading: false, // For the skeleton screen specifically
+      isAppBusy: false, // Global state for disabling all controls
       cameraReady: false,
       cameraError: null,
       showFilter: false,
@@ -135,7 +160,12 @@ export default {
     };
   },
   methods: {
+    // Method to handle processing state from child components
+    handleProcessingState(isProcessing) {
+      this.isAppBusy = isProcessing;
+    },
     toggleFilter() {
+      if (this.isAppBusy) return; // Prevent opening filter when busy
       this.showFilter = !this.showFilter;
     },
     resetFilters() {
@@ -146,10 +176,14 @@ export default {
       this.showManual = false;
       this.cameraReady = false;
       this.cameraError = null;
+      this.addedItems = []; // Clear items when switching mode
+      this.meals = []; // Clear meals when switching mode
     },
     showManualBox() {
       this.showManual = true;
       this.showScan = false;
+      this.addedItems = []; // Clear items when switching mode
+      this.meals = []; // Clear meals when switching mode
     },
     handleItemsUpdated(items) {
       const unique = new Set();
@@ -158,6 +192,7 @@ export default {
         if (word) unique.add(word);
       });
       this.addedItems = [...unique];
+      this.meals = []; // Clear previous meals when ingredients change
 
       if (this.addedItems.length) {
         this.errorMessage = "";
@@ -190,6 +225,12 @@ export default {
       }
     },
     async generateMeals() {
+      // Case 1: App is already busy, ignore the click silently and do nothing.
+      if (this.isAppBusy) {
+        return;
+      }
+
+      // Case 2: No items added. Show error, clear old meals, and log a warning.
       if (!this.addedItems.length) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
@@ -200,8 +241,11 @@ export default {
         return;
       }
 
+      // If we passed the checks, continue with the meal generation
       this.errorMessage = "";
-      this.isLoading = true;
+      this.isAppBusy = true;
+      this.isLoading = true; // For skeleton screen
+      this.meals = []; // Clear old results immediately
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
@@ -272,6 +316,47 @@ export default {
 </script>
 
 <style scoped>
+.container.is-loading {
+  pointer-events: none; /* Disables all mouse events on the container */
+}
+
+.loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(25, 27, 49, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  border-radius: 15px;
+  backdrop-filter: blur(4px);
+}
+
+.spinner {
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-left-color: #ffa500;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Style for disabled filter buttons */
+.base-filter-style:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none; /* Prevents hover effect on disabled */
+}
+
 /* container */
 .container {
   background-color: rgba(25, 27, 49, 0.8);

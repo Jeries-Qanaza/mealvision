@@ -13,7 +13,7 @@
       <button
         @click="takeSnapshot"
         class="snapshot-btn"
-        :disabled="!isCameraReady || isProcessing"
+        :disabled="!isCameraReady || isProcessing || isAppBusy"
       >
         <img
           class="btn-icon"
@@ -25,7 +25,10 @@
 
       <div
         class="upload-zone"
-        :class="{ 'drag-over': isDragOver }"
+        :class="{
+          'drag-over': isDragOver,
+          disabled: isProcessing || isAppBusy,
+        }"
         @dragover.prevent="handleDragOver"
         @dragleave.prevent="handleDragLeave"
         @drop.prevent="handleDrop"
@@ -68,7 +71,14 @@
 const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 export default {
   name: "ModelCam",
-  emits: ["camera-error", "camera-ready", "items-updated"], // <- added items-updated
+  // Prop to receive the global busy state from the parent
+  props: {
+    isAppBusy: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  emits: ["camera-error", "camera-ready", "items-updated", "processing-state"],
   data() {
     return {
       stream: null,
@@ -135,8 +145,11 @@ export default {
     },
 
     async takeSnapshot() {
-      if (!this.isCameraReady || this.isProcessing) return;
+      if (!this.isCameraReady || this.isProcessing || this.isAppBusy) return;
 
+      // Clear previous labels and emit processing state to parent
+      this.detectedLabels = "";
+      this.$emit("processing-state", true);
       this.isProcessing = true;
 
       try {
@@ -185,7 +198,9 @@ export default {
         console.error("Detection error:", error);
         this.detectedLabels = "";
       } finally {
+        // Reset local processing state and notify parent
         this.isProcessing = false;
+        this.$emit("processing-state", false);
       }
     },
 
@@ -198,6 +213,8 @@ export default {
       this.isDragOver = false;
     },
     triggerFileInput() {
+      // Prevent clicking when app is busy
+      if (this.isProcessing || this.isAppBusy) return;
       this.$refs.fileInput.click();
     },
 
@@ -222,9 +239,15 @@ export default {
     },
 
     async processImageFile(file) {
+      // Prevent starting a new upload while busy
+      if (this.isProcessing || this.isAppBusy) return;
+
       const formData = new FormData();
       formData.append("image", file);
 
+      // Clear previous labels and emit processing state to parent
+      this.detectedLabels = "";
+      this.$emit("processing-state", true);
       this.isProcessing = true;
       this.debugInfo = "Sending uploaded image to server...";
 
@@ -249,7 +272,9 @@ export default {
         console.error("Upload detection error:", error);
         this.detectedLabels = "";
       } finally {
+        // Reset local processing state and notify parent
         this.isProcessing = false;
+        this.$emit("processing-state", false);
       }
     },
 
@@ -270,6 +295,12 @@ export default {
 </script>
 
 <style scoped>
+.upload-zone.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: #cccccc;
+}
+
 .camera-container {
   text-align: center;
   padding: 15px;
@@ -324,7 +355,7 @@ video.mirrored {
 }
 
 .snapshot-btn:hover:not(:disabled),
-.upload-zone:hover {
+.upload-zone:hover:not(.disabled) {
   background-color: darkorange;
   transform: translateY(-2px);
 }
