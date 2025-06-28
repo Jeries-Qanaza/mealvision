@@ -216,6 +216,10 @@ export default {
       localStorage.setItem("selectedDiets", JSON.stringify(this.selectedDiets));
       this.showFilter = false;
     },
+    // By Clicking 'x' Clear Meal Type filter
+    clearMealTypeFilter() {
+      this.selectedMealTime = "";
+    },
     handleClickOutside_Diet(event) {
       if (
         this.$refs.dietFilterContainer &&
