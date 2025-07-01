@@ -2,12 +2,12 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import PrimeVue from "primevue/config";
-import Lara from "@primevue/themes/lara";
+import Aura from "@primevue/themes/aura";
 
 const app = createApp(App);
 app.use(router, PrimeVue, {
   theme: {
-    preset: Lara,
+    preset: Aura,
   },
 });
 app.mount("#app");
