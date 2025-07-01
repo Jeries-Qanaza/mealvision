@@ -12,10 +12,6 @@
 <script>
 import NavBar from "./components/navbar/navbar.vue";
 import AppFooter from "./components/AppFooter.vue";
-
-
-
-
 export default {
   name: "App",
   components: {
@@ -33,32 +29,30 @@ export default {
       },
     };
   },
-  methods: {
-   
-  },
+  methods: {},
 };
 </script>
-
 
 <style>
 #app {
   font-family: Arial, sans-serif;
   text-align: center;
-  color: #FFC107; /* Apply primary theme color to text */
-  background-color: #191b31;/* Subtle frosted background */
+  color: #ffc107; /* Apply primary theme color to text */
+  background-color: #191b31; /* Subtle frosted background */
   min-height: 100vh;
   margin: 0;
   padding: 0;
 }
 
 /* Optional: make links/buttons use theme color */
-a, button {
-  color: #FFC107;
+a,
+button {
+  color: #ffc107;
 }
 
 button {
   background-color: rgba(255, 255, 255, 0.05);
-  border: 1px solid #FFC107;
+  border: 1px solid #ffc107;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
@@ -66,7 +60,7 @@ button {
 }
 
 button:hover {
-  background-color: #FFC107;
+  background-color: #ffc107;
   color: black;
 }
 
@@ -74,6 +68,6 @@ button:hover {
   flex: 1;
   background-color: rgba(255, 255, 255, 0.05);
   padding: 10px;
-  color: #FFC107;
+  color: #ffc107;
 }
 </style>
