@@ -5,6 +5,9 @@
             <h1>MealVision</h1> 
             <img src="@/assets/logo.png" alt="mealVision_logo" class="logo-image"> 
             <p class="project-description">This project aims to create a tool that can help people decide what to cook. By analyzing images of food ingredients, our model will identify what's in the picture and suggest potential meal ideas using an AI API. This will help users save time and discover new recipes based on the ingredients they have on hand.</p> 
+            <a target="_blank" href="https://universe.roboflow.com/food-updated/food3proj-pf2xc/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true"> 
+                <p>Explore our dataset on Roboflow</p>
+            </a>
         </div> 
         <!-- Lower part: Founders' introduction --> 
           
