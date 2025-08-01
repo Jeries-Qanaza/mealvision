@@ -377,15 +377,18 @@ export default {
   position: relative;
 }
 
-/* container for all header action buttons/filters */
 .header-actions-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
+  position: sticky;
+  top: 0;
   display: flex;
+  justify-content: flex-end; /* Align to the right inside the container */
   align-items: center;
-  gap: 10px; /* space between filters */
+  gap: 10px;
+  margin-bottom: 40px; /* Space below the filters */
+  z-index: 1000;
+  background-color: rgba(25, 27, 49, 0.8); /* Optional: matches container bg to avoid overlap transparency */
+  padding-top: 10px; /* Optional: small spacing above */
+  padding-right: 10px; /* Push from right edge */
 }
 
 /* Wrapper for positioning the select and clear button together */
@@ -397,7 +400,7 @@ export default {
 
 /* New: Shared base style for filter buttons to ensure uniformity */
 .base-filter-style {
-  background-color: rgba(135, 206, 250, 0.8);
+  background-color: #ffffff;
   color: #191b31;
   border: none;
   border-radius: 8px;
@@ -414,7 +417,7 @@ export default {
 }
 
 .base-filter-style:hover {
-  background-color: rgba(135, 206, 250, 1);
+  background-color: #ffffff;
   transform: translateY(-2px);
 }
 
@@ -439,7 +442,7 @@ export default {
   transform: translateY(-50%);
   background: transparent;
   border: none;
-  color: #191b31;
+  color: #ffffff;
   cursor: pointer;
   font-size: 22px;
   line-height: 1;

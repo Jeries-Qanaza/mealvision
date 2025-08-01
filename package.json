@@ -9,10 +9,11 @@
   },
   "dependencies": {
     "@primeuix/themes": "^1.1.2",
+    "@primevue/themes": "^4.3.7",
     "axios": "^1.8.1",
     "core-js": "^3.8.3",
     "firebase": "^11.1.0",
-    "primevue": "^4.3.5",
+    "primevue": "^4.3.7",
     "vue": "^3.2.13",
     "vue-router": "^4.5.0"
   },
