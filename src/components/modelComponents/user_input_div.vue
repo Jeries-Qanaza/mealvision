@@ -690,8 +690,13 @@ export default {
     max-width: 300px;
   }
   .filter-button {
-    width: 44px;
+    min-width: 120px;
     height: 44px;
+  }
+
+  .filter-button h2 {
+    font-size: 14px;
+    white-space: nowrap;
   }
 }
 
