@@ -5,6 +5,7 @@
 @import "./pages/not-found.css";
 @import "./model/generated-data.css";
 @import "./model/generated-meal.css";
+@import "./model/manualbox.css";
 
 body {
   margin: 0;
