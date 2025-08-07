@@ -6,6 +6,7 @@
 @import "./model/generated-data.css";
 @import "./model/generated-meal.css";
 @import "./model/manualbox.css";
+@import "./model/model-cam.css";
 
 body {
   margin: 0;
@@ -45,6 +46,17 @@ button {
 button:hover {
   background-color: #ffc107;
   color: black;
+}
+
+/* A modifier for solid background buttons */
+.btn-solid {
+  background-color: orange;
+  color: black;
+  border-color: orange;
+}
+
+.btn-solid:hover:not(:disabled) {
+  background-color: darkorange;
 }
 
 #myfooter {
