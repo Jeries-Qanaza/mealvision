@@ -4,6 +4,7 @@
 @import "./pages/model.css";
 @import "./pages/not-found.css";
 @import "./model/generated-data.css";
+@import "./model/generated-meal.css";
 
 body {
   margin: 0;

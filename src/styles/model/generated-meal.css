@@ -1,0 +1,96 @@
+/* Skeleton Loading Animation for Meal Card */
+.skeleton-image {
+  width: 100px;
+  height: 100px;
+  background: #e0e0e0; /* Gray background */
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px; /* Rounded corners */
+}
+
+.skeleton-text {
+  background: #e0e0e0; /* Gray background */
+  position: relative;
+  overflow: hidden;
+  border-radius: 4px; /* Rounded corners */
+}
+
+.skeleton-name {
+  width: 80%;
+  height: 20px;
+  margin-bottom: 10px;
+}
+
+.skeleton-step {
+  width: 100%;
+  height: 16px;
+  margin-bottom: 8px;
+}
+
+.skeleton-shimmer {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.5),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    left: 100%;
+  }
+}
+
+/* Generated Meal Styles */
+.generated-meal {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  background-color: rgba(45, 90, 62, 0.39);
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: left;
+}
+
+.generated-meal:hover {
+  background-color: rgba(45, 90, 62, 0.6);
+}
+
+.meal-content {
+  flex: 1;
+}
+
+.meal-name {
+  font-weight: bold;
+  text-decoration: underline;
+  margin-bottom: 10px;
+}
+
+.meal-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin: 15px;
+}
+.skeleton-description {
+  width: 90%;
+  height: 16px;
+  margin-bottom: 10px;
+}
+
+.meal-description {
+  margin-bottom: 10px;
+  font-style: italic;
+  color: #f0f0f0;
+}
