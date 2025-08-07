@@ -1,0 +1,20 @@
+.manual-container {
+  padding: 2%;
+}
+
+.overlay {
+  text-align: center;
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.manual-container h1 {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.manual-container p {
+  font-size: 1.5em;
+}

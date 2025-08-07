@@ -1,6 +1,7 @@
 @import "./components/navbar.css";
 @import "./components/footer.css";
 @import "./pages/home.css";
+@import "./pages/model.css";
 @import "./pages/not-found.css";
 
 body {
