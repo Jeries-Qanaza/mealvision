@@ -7,6 +7,7 @@
 @import "./model/generated-meal.css";
 @import "./model/manualbox.css";
 @import "./model/model-cam.css";
+@import "./model/user-input-div.css";
 
 body {
   margin: 0;
