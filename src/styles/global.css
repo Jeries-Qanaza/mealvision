@@ -1,3 +1,5 @@
+@import "./components/navbar.css";
+
 #app {
   font-family: Arial, sans-serif;
   text-align: center;
@@ -8,7 +10,7 @@
   padding: 0;
 }
 
-/* Optional: make links/buttons use theme color */
+/* links/buttons use theme color */
 a,
 button {
   color: #ffc107;
