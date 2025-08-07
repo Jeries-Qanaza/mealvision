@@ -1,5 +1,6 @@
 @import "./components/navbar.css";
 @import "./components/footer.css";
+@import "./pages/not-found.css";
 
 body {
   margin: 0;
