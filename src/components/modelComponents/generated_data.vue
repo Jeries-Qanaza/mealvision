@@ -1,5 +1,5 @@
 <template>
-  <div id="generatedDataDiv">
+  <div class="generatedDataDiv">
     <h1>Generated Data</h1>
     <!-- Loop through meals and pass each meal as a prop to GeneratedMeal -->
     <GeneratedMeal
@@ -30,12 +30,3 @@ export default {
   },
 };
 </script>
-
-<style>
-#generatedDataDiv {
-  background-color: rgba(45, 90, 62, 0.39);
-  border-radius: 5px;
-  padding: 20px;
-  margin-top: 20px;
-}
-</style>

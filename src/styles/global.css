@@ -3,6 +3,7 @@
 @import "./pages/home.css";
 @import "./pages/model.css";
 @import "./pages/not-found.css";
+@import "./model/generated-data.css";
 
 body {
   margin: 0;
