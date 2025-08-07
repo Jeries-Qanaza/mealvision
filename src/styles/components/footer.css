@@ -1,0 +1,44 @@
+.footer {
+  background: linear-gradient(to bottom, #191b31, orange);
+  color: white;
+  padding: 20px;
+  text-align: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 100vw;
+}
+
+.footer-content > div {
+  flex: 1;
+  margin: 10px;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.footer h3,
+.footer h4,
+.footer p {
+  color: white;
+  margin: 5px 0;
+}
+
+.map-container {
+  display: flex;
+  justify-content: center;
+}
+
+#map {
+  border-radius: 10%;
+  box-shadow: 0 0 10px 2px rgb(255, 255, 255);
+}
+
+#yvc_logo {
+  border-radius: 10%;
+}
