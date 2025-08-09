@@ -50,6 +50,12 @@ video.mirrored {
   border-style: dashed;
   border-width: 2px;
   border-color: transparent;
+    border-radius: 10px;
+}
+
+.upload-zone-layout:hover{
+  cursor: pointer;
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .upload-zone-layout.drag-over {
