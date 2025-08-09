@@ -2,29 +2,57 @@
   <div class="camera-container">
     <h1>YOLO Detection</h1>
 
-    <video
-      ref="videoElement"
-      autoplay
-      playsinline
-      :class="{ mirrored: isFrontCamera }"
-    ></video>
+    <div class="camera-view">
+      <video
+        ref="videoElement"
+        autoplay
+        playsinline
+        :class="{ mirrored: isFrontCamera }"
+      ></video>
+      
+      <!-- Camera Controls Overlay -->
+      <div class="camera-controls-overlay">
+        <div class="camera-controls-bottom">
+          <!-- Switch Camera Button -->
+          <button 
+            @click="switchCamera" 
+            class="camera-switch-btn"
+            :disabled="!isCameraReady || isProcessing"
+            title="Switch Camera"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="currentColor"/>
+              <path d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>
+            </svg>
+          </button>
+          
+          <!-- Capture Button -->
+          <button
+            @click="takeSnapshot"
+            class="camera-capture-btn"
+            :disabled="!isCameraReady || isProcessing || isAppBusy || isSizeLimitReached"
+          >
+            <div class="capture-inner"></div>
+          </button>
+          
+          <!-- Gallery/Upload Button -->
+          <button 
+            @click="triggerFileInput"
+            class="camera-gallery-btn"
+            :disabled="isProcessing || isAppBusy || isSizeLimitReached"
+            title="Upload from Gallery"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
+              <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" fill="none"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div class="controls">
-      <button
-        @click="takeSnapshot"
-        class="btn btn-solid"
-        :disabled="
-          !isCameraReady || isProcessing || isAppBusy || isSizeLimitReached
-        "
-      >
-        <img
-          class="btn-icon"
-          src="@/assets/snappingCamer.png"
-          alt="Snapshot icon"
-        />
-        <span class="btn-text">Take Snapshot</span>
-      </button>
-
       <div
         class="btn btn-solid upload-zone-layout"
         :class="{
@@ -259,6 +287,48 @@ export default {
         this.debugInfo = `Camera error: ${error.message}`;
         this.$emit("camera-error", error);
         this.stopCamera();
+      }
+    },
+
+    // Add switch camera method
+    async switchCamera() {
+      if (!this.isCameraReady || this.isProcessing) return;
+      
+      this.stopCamera();
+      
+      // Toggle camera preference
+      const newFacingMode = this.isFrontCamera ? "environment" : "user";
+      
+      try {
+        const constraints = {
+          video: {
+            facingMode: { ideal: newFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+          },
+        };
+        
+        const videoElement = this.$refs.videoElement;
+        this.stream = await navigator.mediaDevices.getUserMedia(constraints);
+        videoElement.srcObject = this.stream;
+        
+        const videoTrack = this.stream.getVideoTracks()[0];
+        const settings = videoTrack.getSettings();
+        this.isFrontCamera = settings.facingMode === "user";
+        
+        await new Promise((resolve, reject) => {
+          videoElement.onloadedmetadata = () =>
+            videoElement.play().then(resolve).catch(reject);
+          videoElement.onerror = () => reject(new Error("Video load error"));
+          setTimeout(() => reject(new Error("Video load timeout")), 5000);
+        });
+        
+        this.isCameraReady = true;
+        this.debugInfo = "Camera switched successfully!";
+      } catch (error) {
+        this.debugInfo = `Camera switch error: ${error.message}`;
+        // Fallback to original camera
+        this.initCamera();
       }
     },
 
@@ -770,6 +840,119 @@ export default {
   cursor: not-allowed;
 }
 
+/* Camera View Styles */
+.camera-view {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #000;
+  aspect-ratio: 4/3;
+}
+
+.camera-view video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.camera-view video.mirrored {
+  transform: scaleX(-1);
+}
+
+.camera-controls-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.camera-controls-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 30px 30px;
+  pointer-events: auto;
+}
+
+/* Camera Buttons */
+.camera-capture-btn {
+  width: 70px;
+  height: 70px;
+  border: 4px solid white;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.camera-capture-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+  border-color: #ff7043;
+}
+
+.camera-capture-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.camera-capture-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.capture-inner {
+  width: 50px;
+  height: 50px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.camera-capture-btn:active:not(:disabled) .capture-inner {
+  transform: scale(0.9);
+}
+
+.camera-switch-btn,
+.camera-gallery-btn {
+  width: 45px;
+  height: 45px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.camera-switch-btn:hover:not(:disabled),
+.camera-gallery-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.camera-switch-btn:disabled,
+.camera-gallery-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Update existing styles */
 .camera-container {
   max-width: 800px;
@@ -797,7 +980,7 @@ export default {
 }
 
 .btn-solid {
-  background: #ff9800;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
 }
 
