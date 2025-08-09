@@ -13,6 +13,34 @@
       <!-- Camera Controls Overlay -->
       <div class="camera-controls-overlay">
         <div class="camera-controls-bottom">
+          <!-- Video Mode Button -->
+          <button 
+            @click="toggleVideoMode" 
+            class="camera-mode-btn"
+            :class="{ active: isVideoMode }"
+            :disabled="!isCameraReady || isProcessing"
+            title="Video Mode"
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/>
+            </svg>
+            <span class="mode-text">{{ isVideoMode ? 'VIDEO' : 'VIDEO' }}</span>
+          </button>
+          
+          <!-- Capture/Record Button -->
+          <button
+            @click="handleCaptureClick"
+            class="camera-capture-btn"
+            :class="{ 
+              recording: isRecording,
+              'video-mode': isVideoMode 
+            }"
+            :disabled="!isCameraReady || isProcessing || isAppBusy || isSizeLimitReached"
+          >
+            <div class="capture-outer-ring"></div>
+            <div class="capture-inner" :class="{ 'recording-square': isRecording }"></div>
+          </button>
+          
           <!-- Switch Camera Button -->
           <button 
             @click="switchCamera" 
@@ -21,31 +49,8 @@
             title="Switch Camera"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm-8 13c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" fill="currentColor"/>
-              <path d="M12 9c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z" fill="currentColor"/>
-            </svg>
-          </button>
-          
-          <!-- Capture Button -->
-          <button
-            @click="takeSnapshot"
-            class="camera-capture-btn"
-            :disabled="!isCameraReady || isProcessing || isAppBusy || isSizeLimitReached"
-          >
-            <div class="capture-inner"></div>
-          </button>
-          
-          <!-- Gallery/Upload Button -->
-          <button 
-            @click="triggerFileInput"
-            class="camera-gallery-btn"
-            :disabled="isProcessing || isAppBusy || isSizeLimitReached"
-            title="Upload from Gallery"
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="currentColor" stroke-width="2" fill="none"/>
-              <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/>
-              <path d="M21 15l-5-5L5 21" stroke="currentColor" stroke-width="2" fill="none"/>
+              <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2z" stroke="currentColor" stroke-width="2" fill="none"/>
+              <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
             </svg>
           </button>
         </div>
@@ -217,6 +222,11 @@ export default {
       isFrontCamera: false,
       isProcessing: false, // Local processing for spinner
       processingMessage: '',
+      // Video recording state
+      isVideoMode: false,
+      isRecording: false,
+      mediaRecorder: null,
+      recordedChunks: [],
       // State for multi-image & size limit
       previewImages: [], // Holds { url, labels, size, name }
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
@@ -288,6 +298,88 @@ export default {
         this.$emit("camera-error", error);
         this.stopCamera();
       }
+    },
+
+    // Toggle between photo and video mode
+    toggleVideoMode() {
+      if (this.isRecording) return; // Don't switch while recording
+      this.isVideoMode = !this.isVideoMode;
+      this.debugInfo = this.isVideoMode ? "Video mode activated" : "Photo mode activated";
+    },
+
+    // Handle capture button click (photo or video)
+    async handleCaptureClick() {
+      if (this.isVideoMode) {
+        if (this.isRecording) {
+          this.stopRecording();
+        } else {
+          this.startRecording();
+        }
+      } else {
+        this.takeSnapshot();
+      }
+    },
+
+    // Start video recording
+    async startRecording() {
+      if (!this.isCameraReady || this.isProcessing || !this.stream) return;
+
+      try {
+        this.recordedChunks = [];
+        this.mediaRecorder = new MediaRecorder(this.stream, {
+          mimeType: 'video/webm;codecs=vp9'
+        });
+
+        this.mediaRecorder.ondataavailable = (event) => {
+          if (event.data.size > 0) {
+            this.recordedChunks.push(event.data);
+          }
+        };
+
+        this.mediaRecorder.onstop = () => {
+          this.saveRecordedVideo();
+        };
+
+        this.mediaRecorder.start();
+        this.isRecording = true;
+        this.debugInfo = "Recording started...";
+
+      } catch (error) {
+        this.debugInfo = `Recording error: ${error.message}`;
+        console.error('Recording error:', error);
+      }
+    },
+
+    // Stop video recording
+    stopRecording() {
+      if (this.mediaRecorder && this.isRecording) {
+        this.mediaRecorder.stop();
+        this.isRecording = false;
+        this.debugInfo = "Recording stopped. Processing...";
+      }
+    },
+
+    // Save recorded video
+    async saveRecordedVideo() {
+      if (this.recordedChunks.length === 0) return;
+
+      const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
+      const videoFile = new File([blob], `recorded-video-${Date.now()}.webm`, {
+        type: 'video/webm'
+      });
+
+      if (this.currentTotalSize + blob.size > this.MAX_TOTAL_SIZE) {
+        alert(
+          `Cannot save video. Total size would exceed the ${
+            this.MAX_TOTAL_SIZE / 1024 / 1024
+          }MB limit.`
+        );
+        return;
+      }
+
+      // Add to video queue
+      await this.addVideoToQueue(videoFile);
+      this.debugInfo = "Video saved successfully!";
     },
 
     // Add switch camera method
@@ -685,6 +777,11 @@ export default {
     },
 
     stopCamera() {
+      // Stop any ongoing recording
+      if (this.isRecording) {
+        this.stopRecording();
+      }
+      
       if (this.stream) {
         this.stream.getTracks().forEach((track) => track.stop());
         this.stream = null;
@@ -885,12 +982,11 @@ export default {
 
 /* Camera Buttons */
 .camera-capture-btn {
-  width: 70px;
-  height: 70px;
-  border: 4px solid white;
+  width: 80px;
+  height: 80px;
+  border: none;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
+  background: transparent;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -899,9 +995,45 @@ export default {
   position: relative;
 }
 
+.capture-outer-ring {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border: 4px solid #ff7043;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.camera-capture-btn.recording .capture-outer-ring {
+  border-color: #f44336;
+}
+
+.capture-inner {
+  width: 60px;
+  height: 60px;
+  background: #ff7043;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.camera-capture-btn.video-mode .capture-inner {
+  background: #ff7043;
+}
+
+.camera-capture-btn.recording .capture-inner {
+  background: #f44336;
+}
+
+.recording-square {
+  border-radius: 8px !important;
+  width: 30px !important;
+  height: 30px !important;
+}
+
 .camera-capture-btn:hover:not(:disabled) {
   transform: scale(1.05);
-  border-color: #ff7043;
 }
 
 .camera-capture-btn:active:not(:disabled) {
@@ -913,22 +1045,10 @@ export default {
   cursor: not-allowed;
 }
 
-.capture-inner {
+.camera-mode-btn,
+.camera-switch-btn {
   width: 50px;
   height: 50px;
-  background: white;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-}
-
-.camera-capture-btn:active:not(:disabled) .capture-inner {
-  transform: scale(0.9);
-}
-
-.camera-switch-btn,
-.camera-gallery-btn {
-  width: 45px;
-  height: 45px;
   border: 2px solid rgba(255, 255, 255, 0.8);
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.3);
@@ -936,21 +1056,35 @@ export default {
   color: white;
   cursor: pointer;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
 }
 
-.camera-switch-btn:hover:not(:disabled),
-.camera-gallery-btn:hover:not(:disabled) {
+.camera-mode-btn.active {
+  background: rgba(255, 112, 67, 0.3);
+  border-color: #ff7043;
+}
+
+.camera-mode-btn:hover:not(:disabled),
+.camera-switch-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.05);
 }
 
-.camera-switch-btn:disabled,
-.camera-gallery-btn:disabled {
+.camera-mode-btn:disabled,
+.camera-switch-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.mode-text {
+  font-size: 8px;
+  font-weight: bold;
+  margin-top: 2px;
+  text-align: center;
+  line-height: 1;
 }
 
 /* Update existing styles */
