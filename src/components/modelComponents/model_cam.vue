@@ -48,10 +48,11 @@
             :disabled="!isCameraReady || isProcessing"
             title="Switch Camera"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M20 5h-3.17L15 3H9L7.17 5H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2z" stroke="currentColor" stroke-width="2" fill="none"/>
-              <circle cx="12" cy="13" r="3" stroke="currentColor" stroke-width="2" fill="none"/>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M16 7l4-4m0 0l-4-4m4 4H9a5 5 0 0 0 0 10h2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+            <span class="mode-text">SWITCH</span>
           </button>
         </div>
       </div>
@@ -700,8 +701,8 @@ export default {
           extractFrame();
         });
 
-        video.addEventListener('error', () => {
-          reject(new Error('Video loading failed'));
+        video.addEventListener('error', (e) => {
+          reject(new Error(e,'Video loading failed'));
         });
 
         video.src = URL.createObjectURL(videoFile);
@@ -1011,15 +1012,17 @@ export default {
 .capture-inner {
   width: 60px;
   height: 60px;
-  background: #ff7043;
+  background: white;
   border-radius: 50%;
   transition: all 0.3s ease;
   position: relative;
   z-index: 1;
+  border: none;
+  outline: none;
 }
 
 .camera-capture-btn.video-mode .capture-inner {
-  background: #ff7043;
+  background: white;
 }
 
 .camera-capture-btn.recording .capture-inner {
@@ -1114,7 +1117,7 @@ export default {
 }
 
 .btn-solid {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ff9800;
   color: white;
 }
 
