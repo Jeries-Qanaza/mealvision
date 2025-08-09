@@ -542,7 +542,7 @@ export default {
           extractFrame();
         });
 
-        video.addEventListener('error', (e) => {
+        video.addEventListener('error', () => {
           reject(new Error('Video loading failed'));
         });
 
