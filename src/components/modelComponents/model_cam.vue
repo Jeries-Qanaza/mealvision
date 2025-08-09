@@ -102,9 +102,7 @@
               class="delete-btn-modern"
               title="Delete image"
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
+              <span class="delete-x">✕</span>
             </button>
           </div>
         </div>
@@ -139,9 +137,7 @@
               class="delete-btn-modern"
               title="Delete video"
             >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
+              <span class="delete-x">✕</span>
             </button>
           </div>
         </div>
@@ -801,7 +797,7 @@ export default {
 }
 
 .btn-solid {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #ff9800;
   color: white;
 }
 
@@ -875,6 +871,12 @@ export default {
 .delete-btn-modern:hover {
   background: rgba(244, 67, 54, 0.8);
   transform: scale(1.05);
+}
+
+.delete-x {
+  font-weight: bold;
+  font-size: 12px;
+  line-height: 1;
 }
 
 .loading-dots {
