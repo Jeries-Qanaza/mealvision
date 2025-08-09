@@ -89,7 +89,7 @@
     <div v-if="previewImages.length > 0 || videoItems.length > 0" class="glassy-preview">
       <!-- Images Grid -->
       <div v-if="previewImages.length > 0" class="content-section">
-        <h3>Images ({{ previewImages.length }})</h3>
+        <h3 class="section-title">Images ({{ previewImages.length }})</h3>
         <div class="image-grid">
           <div v-for="(img, index) in previewImages" :key="'img-' + index" class="thumb">
             <img :src="img.url" :alt="'Preview ' + (index + 1)" />
@@ -99,10 +99,12 @@
             </div>
             <button
               @click="deleteImage(index)"
-              class="delete-btn"
+              class="delete-btn-modern"
               title="Delete image"
             >
-              ×
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -110,7 +112,7 @@
 
       <!-- Videos Grid -->
       <div v-if="videoItems.length > 0" class="content-section">
-        <h3>Videos ({{ videoItems.length }})</h3>
+        <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
         <div class="video-grid">
           <div v-for="(video, index) in videoItems" :key="'video-' + index" class="video-thumb">
             <video 
@@ -134,10 +136,12 @@
             </div>
             <button
               @click="deleteVideo(index)"
-              class="delete-btn"
+              class="delete-btn-modern"
               title="Delete video"
             >
-              ×
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M9 3L3 9M3 3L9 9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
             </button>
           </div>
         </div>
@@ -538,7 +542,7 @@ export default {
           extractFrame();
         });
 
-        video.addEventListener('error', () => {
+        video.addEventListener('error', (e) => {
           reject(new Error('Video loading failed'));
         });
 
@@ -669,6 +673,11 @@ export default {
   margin: 0 0 10px 0;
   color: #333;
   font-size: 1.1em;
+}
+
+.section-title {
+  color: #ff7043 !important;
+  font-weight: 600;
 }
 
 .video-grid {
@@ -812,7 +821,7 @@ export default {
 .image-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 15px;
+  gap: 10px;
   margin-bottom: 15px;
 }
 
@@ -843,6 +852,29 @@ export default {
   cursor: pointer;
   font-size: 16px;
   font-weight: bold;
+}
+
+.delete-btn-modern {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.delete-btn-modern:hover {
+  background: rgba(244, 67, 54, 0.8);
+  transform: scale(1.05);
 }
 
 .loading-dots {
