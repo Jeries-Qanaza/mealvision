@@ -91,26 +91,6 @@
 
     <!-- Video Processing Options -->
     <div v-if="hasVideos" class="video-options">
-      <div class="option-group">
-        <label>Frame extraction interval:</label>
-        <select v-model="frameInterval">
-          <option value="1">Every frame</option>
-          <option value="5">Every 5th frame</option>
-          <option value="10">Every 10th frame</option>
-          <option value="30">Every 30th frame (~1 sec)</option>
-        </select>
-      </div>
-      
-      <div class="option-group">
-        <label>Max frames per video:</label>
-        <select v-model="maxFrames">
-          <option value="10">10 frames</option>
-          <option value="20">20 frames</option>
-          <option value="50">50 frames</option>
-          <option value="100">100 frames</option>
-        </select>
-      </div>
-
       <button 
         @click="processAllVideos" 
         class="btn btn-primary"
@@ -233,9 +213,9 @@ export default {
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
       allDetectedItems: [],
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
-      // Video processing options
-      frameInterval: 10, // Extract every Nth frame
-      maxFrames: 20, // Maximum frames to extract per video
+      // Video processing options - Fixed at 5 FPS
+      frameInterval: 5, // Extract every 5th frame (5 FPS)
+      maxFrames: 50, // Maximum frames to extract per video
     };
   },
   computed: {
@@ -360,7 +340,7 @@ export default {
       }
     },
 
-    // Save recorded video - FIXED: Now processes the video correctly
+    // Save recorded video - Process immediately with same function as upload
     async saveRecordedVideo() {
       if (this.recordedChunks.length === 0) return;
 
@@ -378,24 +358,9 @@ export default {
         return;
       }
 
-      // Add to video queue and immediately process it
-      await this.addVideoToQueue(videoFile);
-      
-      // Process the recorded video immediately
-      const videoItem = this.videoItems[this.videoItems.length - 1];
-      if (videoItem && videoItem.status === 'pending') {
-        this.$emit("processing-state", true);
-        this.isProcessing = true;
-        this.processingMessage = `Processing recorded video: ${videoItem.name}`;
-        
-        await this.processVideo(videoItem);
-        
-        this.updateAllDetectedItems();
-        this.isProcessing = false;
-        this.processingMessage = '';
-        this.$emit("processing-state", false);
-        this.debugInfo = "Recorded video processed successfully!";
-      }
+      // Process recorded video using the same logic as uploaded videos
+      await this.processFiles([videoFile]);
+      this.debugInfo = "Recorded video processed successfully!";
     },
 
     // Add switch camera method
@@ -671,7 +636,7 @@ export default {
       }
     },
 
-    // Extract frames from video
+    // Extract frames from video - Fixed at 5 FPS
     async extractFramesFromVideo(videoFile) {
       return new Promise((resolve, reject) => {
         const video = document.createElement('video');
@@ -684,19 +649,21 @@ export default {
           canvas.height = video.videoHeight;
           
           const duration = video.duration;
-          const frameCount = Math.min(this.maxFrames, Math.floor(duration * 30 / this.frameInterval)); // Assuming 30fps
-          const timeStep = duration / frameCount;
+          // Extract frames at 5 FPS (every 0.2 seconds)
+          const frameRate = 5; // 5 FPS
+          const timeInterval = 1 / frameRate; // 0.2 seconds between frames
+          const totalFrames = Math.min(this.maxFrames, Math.floor(duration * frameRate));
           
-          let currentFrame = 0;
+          let currentFrameIndex = 0;
           
           const extractFrame = () => {
-            if (currentFrame >= frameCount) {
+            if (currentFrameIndex >= totalFrames) {
               resolve(frames);
               return;
             }
             
-            video.currentTime = currentFrame * timeStep;
-            currentFrame++;
+            video.currentTime = currentFrameIndex * timeInterval;
+            currentFrameIndex++;
           };
 
           video.addEventListener('seeked', () => {
@@ -717,7 +684,7 @@ export default {
         });
 
         video.addEventListener('error', (e) => {
-          reject(new Error(e,'Video loading failed'));
+          reject(new Error('Video loading failed'));
         });
 
         video.src = URL.createObjectURL(videoFile);
