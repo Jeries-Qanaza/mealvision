@@ -21,7 +21,7 @@
             :disabled="!isCameraReady || isProcessing"
             title="Video Mode"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/>
             </svg>
             <span class="mode-text">{{ isVideoMode ? 'VIDEO' : 'VIDEO' }}</span>
@@ -48,7 +48,7 @@
             :disabled="!isCameraReady || isProcessing"
             title="Switch Camera"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M16 7l4-4m0 0l-4-4m4 4H9a5 5 0 0 0 0 10h2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -360,7 +360,7 @@ export default {
       }
     },
 
-    // Save recorded video
+    // Save recorded video - FIXED: Now processes the video correctly
     async saveRecordedVideo() {
       if (this.recordedChunks.length === 0) return;
 
@@ -378,9 +378,24 @@ export default {
         return;
       }
 
-      // Add to video queue
+      // Add to video queue and immediately process it
       await this.addVideoToQueue(videoFile);
-      this.debugInfo = "Video saved successfully!";
+      
+      // Process the recorded video immediately
+      const videoItem = this.videoItems[this.videoItems.length - 1];
+      if (videoItem && videoItem.status === 'pending') {
+        this.$emit("processing-state", true);
+        this.isProcessing = true;
+        this.processingMessage = `Processing recorded video: ${videoItem.name}`;
+        
+        await this.processVideo(videoItem);
+        
+        this.updateAllDetectedItems();
+        this.isProcessing = false;
+        this.processingMessage = '';
+        this.$emit("processing-state", false);
+        this.debugInfo = "Recorded video processed successfully!";
+      }
     },
 
     // Add switch camera method
@@ -796,6 +811,7 @@ export default {
 };
 </script>
 
+
 <style scoped>
 .video-options {
   background: rgba(255, 255, 255, 0.1);
@@ -981,7 +997,7 @@ export default {
   pointer-events: auto;
 }
 
-/* Camera Buttons */
+/* Camera Buttons - Responsive Design */
 .camera-capture-btn {
   width: 80px;
   height: 80px;
@@ -994,6 +1010,7 @@ export default {
   justify-content: center;
   transition: all 0.2s ease;
   position: relative;
+  flex-shrink: 0;
 }
 
 .capture-outer-ring {
@@ -1003,6 +1020,7 @@ export default {
   border: 4px solid #ff7043;
   border-radius: 50%;
   transition: all 0.2s ease;
+  box-sizing: border-box;
 }
 
 .camera-capture-btn.recording .capture-outer-ring {
@@ -1019,6 +1037,10 @@ export default {
   z-index: 1;
   border: none;
   outline: none;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .camera-capture-btn.video-mode .capture-inner {
@@ -1063,6 +1085,8 @@ export default {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  box-sizing: border-box;
+  flex-shrink: 0;
 }
 
 .camera-mode-btn.active {
@@ -1090,11 +1114,98 @@ export default {
   line-height: 1;
 }
 
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+  .camera-controls-bottom {
+    padding: 15px 20px 25px;
+  }
+  
+  .camera-capture-btn {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .capture-outer-ring {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .capture-inner {
+    width: 50px;
+    height: 50px;
+  }
+  
+  .recording-square {
+    width: 25px !important;
+    height: 25px !important;
+  }
+  
+  .camera-mode-btn,
+  .camera-switch-btn {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .mode-text {
+    font-size: 7px;
+  }
+}
+
+@media (max-width: 480px) {
+  .camera-controls-bottom {
+    padding: 12px 15px 20px;
+  }
+  
+  .camera-capture-btn {
+    width: 65px;
+    height: 65px;
+  }
+  
+  .capture-outer-ring {
+    width: 65px;
+    height: 65px;
+    border-width: 3px;
+  }
+  
+  .capture-inner {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .recording-square {
+    width: 20px !important;
+    height: 20px !important;
+  }
+  
+  .camera-mode-btn,
+  .camera-switch-btn {
+    width: 40px;
+    height: 40px;
+    border-width: 1.5px;
+  }
+  
+  .camera-mode-btn svg,
+  .camera-switch-btn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .mode-text {
+    font-size: 6px;
+  }
+}
+
 /* Update existing styles */
 .camera-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+}
+
+@media (max-width: 768px) {
+  .camera-container {
+    padding: 15px;
+  }
 }
 
 .controls {
