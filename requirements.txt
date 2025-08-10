@@ -10,3 +10,4 @@ Pillow
 requests
 google-generativeai
 python-dotenv
+huggingface_hub
