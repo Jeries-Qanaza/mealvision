@@ -18,7 +18,7 @@ import gc
 from dotenv import load_dotenv
 import time
 import traceback
-from huggingface_hub import InferenceClient # Added for image generation
+from huggingface_hub import InferenceClient
 import concurrent.futures
 
 # ==============================================================================
@@ -54,9 +54,18 @@ STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
 
 # --- Hugging Face Setup ---
 HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+# DEBUG: Check if the environment variable was loaded
+print(f"DEBUG: Reading HUGGING_FACE_TOKEN. Found token: {HUGGING_FACE_TOKEN is not None}")
+
 hf_client = None
 if HUGGING_FACE_TOKEN:
     hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
+    # DEBUG: Confirm client initialization
+    print("DEBUG: Hugging Face client has been initialized.")
+else:
+    # DEBUG: Report that the client was NOT initialized
+    print("DEBUG: Hugging Face token NOT found. Client was not initialized.")
+
 
 # --- Email Setup ---
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -232,7 +241,8 @@ def generate_meals():
         # --- Start of new image generation logic ---
         # Check if the Hugging Face client is configured
         if hf_client:
-            print("--- Starting parallel image generation via Hugging Face API ---")
+            # DEBUG: Check if this block is being entered
+            print("DEBUG: Condition 'if hf_client' is TRUE. Entering image generation block.")
             
             def generate_meal_image(meal):
                 # This function generates a single image for a given meal.
@@ -284,6 +294,8 @@ def generate_meals():
 
             print("--- Finished parallel image generation ---")
         else:
+            # DEBUG: Report that the image generation block was skipped
+            print("DEBUG: Condition 'if hf_client' is FALSE. Skipping image generation.")
             # If no HF token is set, do not generate images
             for meal in meal_data["meals"]:
                 meal["image"] = None
