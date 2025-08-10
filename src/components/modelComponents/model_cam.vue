@@ -1,5 +1,4 @@
 <template>
-  
   <div class="camera-container">
     <h1>YOLO Detection</h1>
 
@@ -22,7 +21,7 @@
             :disabled="!isCameraReady || isProcessing"
             title="Video Mode"
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
               <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/>
             </svg>
             <span class="mode-text">{{ isVideoMode ? 'VIDEO' : 'VIDEO' }}</span>
@@ -49,7 +48,7 @@
             :disabled="!isCameraReady || isProcessing"
             title="Switch Camera"
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
               <path d="M16 7l4-4m0 0l-4-4m4 4H9a5 5 0 0 0 0 10h2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
@@ -92,6 +91,26 @@
 
     <!-- Video Processing Options -->
     <div v-if="hasVideos" class="video-options">
+      <div class="option-group">
+        <label>Frame extraction interval:</label>
+        <select v-model="frameInterval">
+          <option value="1">Every frame</option>
+          <option value="5">Every 5th frame</option>
+          <option value="10">Every 10th frame</option>
+          <option value="30">Every 30th frame (~1 sec)</option>
+        </select>
+      </div>
+      
+      <div class="option-group">
+        <label>Max frames per video:</label>
+        <select v-model="maxFrames">
+          <option value="10">10 frames</option>
+          <option value="20">20 frames</option>
+          <option value="50">50 frames</option>
+          <option value="100">100 frames</option>
+        </select>
+      </div>
+
       <button 
         @click="processAllVideos" 
         class="btn btn-primary"
@@ -214,9 +233,9 @@ export default {
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
       allDetectedItems: [],
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
-      // Video processing options - Fixed at 5 FPS
-      frameInterval: 5, // Extract every 5th frame (5 FPS)
-      maxFrames: 50, // Maximum frames to extract per video
+      // Video processing options
+      frameInterval: 10, // Extract every Nth frame
+      maxFrames: 20, // Maximum frames to extract per video
     };
   },
   computed: {
@@ -341,7 +360,7 @@ export default {
       }
     },
 
-    // Save recorded video - Process immediately with same function as upload
+    // Save recorded video
     async saveRecordedVideo() {
       if (this.recordedChunks.length === 0) return;
 
@@ -359,9 +378,9 @@ export default {
         return;
       }
 
-      // Process recorded video using the same logic as uploaded videos
-      await this.processFiles([videoFile]);
-      this.debugInfo = "Recorded video processed successfully!";
+      // Add to video queue
+      await this.addVideoToQueue(videoFile);
+      this.debugInfo = "Video saved successfully!";
     },
 
     // Add switch camera method
@@ -637,7 +656,7 @@ export default {
       }
     },
 
-    // Extract frames from video - Fixed at 5 FPS
+    // Extract frames from video
     async extractFramesFromVideo(videoFile) {
       return new Promise((resolve, reject) => {
         const video = document.createElement('video');
@@ -650,21 +669,19 @@ export default {
           canvas.height = video.videoHeight;
           
           const duration = video.duration;
-          // Extract frames at 5 FPS (every 0.2 seconds)
-          const frameRate = 5; // 5 FPS
-          const timeInterval = 1 / frameRate; // 0.2 seconds between frames
-          const totalFrames = Math.min(this.maxFrames, Math.floor(duration * frameRate));
+          const frameCount = Math.min(this.maxFrames, Math.floor(duration * 30 / this.frameInterval)); // Assuming 30fps
+          const timeStep = duration / frameCount;
           
-          let currentFrameIndex = 0;
+          let currentFrame = 0;
           
           const extractFrame = () => {
-            if (currentFrameIndex >= totalFrames) {
+            if (currentFrame >= frameCount) {
               resolve(frames);
               return;
             }
             
-            video.currentTime = currentFrameIndex * timeInterval;
-            currentFrameIndex++;
+            video.currentTime = currentFrame * timeStep;
+            currentFrame++;
           };
 
           video.addEventListener('seeked', () => {
