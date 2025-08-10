@@ -18,7 +18,8 @@ import gc
 from dotenv import load_dotenv
 import time
 import traceback
-import concurrent.futures # Keep this for future use with Stability AI
+from huggingface_hub import InferenceClient # Added for image generation
+import concurrent.futures
 
 # ==============================================================================
 # Initial Setup
@@ -50,6 +51,12 @@ Gmodel = genai.GenerativeModel("gemini-1.5-flash")
 
 # --- Stability AI Setup ---
 STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
+
+# --- Hugging Face Setup ---
+HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+hf_client = None
+if HUGGING_FACE_TOKEN:
+    hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
 
 # --- Email Setup ---
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -222,14 +229,65 @@ def generate_meals():
         json_text = response.text.strip().removeprefix("```json").removesuffix("```")
         meal_data = json.loads(json_text)
 
-        # NOTE: Image generation is currently disabled if STABILITY_API_KEY is not set.
-        # If we enable it, remember to use parallel processing.
-        if STABILITY_API_KEY:
-             # Left here for future implementation with parallel processing
-            pass
+        # --- Start of new image generation logic ---
+        # Check if the Hugging Face client is configured
+        if hf_client:
+            print("--- Starting parallel image generation via Hugging Face API ---")
+            
+            def generate_meal_image(meal):
+                # This function generates a single image for a given meal.
+                # It will be called in parallel for efficiency.
+                try:
+                    meal_name = meal.get("mealName")
+                    # Create a high-quality, descriptive prompt for better results
+                    image_prompt = f"Professional food photography of {meal_name}, cinematic lighting, high detail, on a rustic wooden table"
+                    
+                    print(f"DEBUG: Generating image for '{meal_name}'...")
+                    
+                    # Call the HF Inference API
+                    generated_image = hf_client.text_to_image(
+                        image_prompt,
+                        model="stabilityai/stable-diffusion-xl-base-1.0",
+                        negative_prompt="cartoon, drawing, anime, ugly, deformed, blurry",
+                        height=1024,
+                        width=1024,
+                        num_inference_steps=30
+                    )
+                    
+                    # Convert the PIL image to a base64 string
+                    buffered = io.BytesIO()
+                    generated_image.save(buffered, format="JPEG")
+                    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+                    
+                    # Return the meal name and the generated image string
+                    return meal_name, img_str
+                except Exception as img_e:
+                    print(f"!!! ERROR generating image for {meal.get('mealName')}: {img_e} !!!")
+                    # Return None on failure
+                    return meal.get("mealName"), None
+
+            # Use a ThreadPoolExecutor to generate images for all meals in parallel
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                # Create a future for each meal's image generation
+                future_to_meal = {executor.submit(generate_meal_image, meal): meal for meal in meal_data["meals"]}
+                
+                # Create a mapping from mealName to the generated image string
+                image_map = {}
+                for future in concurrent.futures.as_completed(future_to_meal):
+                    meal_name, img_str = future.result()
+                    if img_str:
+                        image_map[meal_name] = img_str
+                
+                # Add the generated image to each meal object
+                for meal in meal_data["meals"]:
+                    meal["image"] = image_map.get(meal.get("mealName")) # get() safely returns None if not found
+
+            print("--- Finished parallel image generation ---")
         else:
+            # If no HF token is set, do not generate images
             for meal in meal_data["meals"]:
                 meal["image"] = None
+        # --- End of new image generation logic ---
 
         t_total_end = time.time()
         print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
@@ -268,4 +326,4 @@ def send_email():
 # Main Execution
 # ==============================================================================
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8000, debug=True)    
+    app.run(host="0.0.0.0", port=8000, debug=True)
