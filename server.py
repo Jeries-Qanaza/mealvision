@@ -1,4 +1,4 @@
-# ==============================================================================
+ # ==============================================================================
 # Imports
 # ==============================================================================
 import json
@@ -93,22 +93,37 @@ def get_yolo_model():
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
-def generate_image(prompt):
-    """Generates an image using the Stability AI API."""
-    response = requests.post(
-        "https://api.stability.ai/v2beta/stable-image/generate/core",
-        headers={
-            "authorization": f"Bearer {STABILITY_API_KEY}",
-            "accept": "image/*"
-        },
-        files={"none": ''},
-        data={ "prompt": prompt, "output_format": "jpeg" },
-    )
-    if response.status_code == 200:
-        return base64.b64encode(response.content).decode("utf-8")
-    else:
-        raise Exception(str(response.json()))
-
+def generate_meal_image(meal):
+    # This function generates a single image for a given meal.
+    # It will be called in parallel for efficiency.
+    try:
+        meal_name = meal.get("mealName")
+        # Create a high-quality, descriptive prompt for better results
+        image_prompt = f"Professional food photography of {meal_name}, high detail. Each image should have a unique and different artistic theme or style. Make the image square with dimensions 512x512 pixels."
+        
+        print(f"DEBUG: Generating image for '{meal_name}'...")
+        
+        # Call the HF Inference API
+        generated_image = hf_client.text_to_image(
+            image_prompt,
+            model="stabilityai/stable-diffusion-xl-base-1.0",
+            negative_prompt="cartoon, drawing, anime, ugly, deformed, blurry",
+            height=1024,
+            width=1024,
+            num_inference_steps=30
+        )
+        
+        # Convert the PIL image to a base64 string
+        buffered = io.BytesIO()
+        generated_image.save(buffered, format="JPEG")
+        img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        
+        # Return the meal name and the generated image string
+        return meal_name, img_str
+    except Exception as img_e:
+        print(f"!!! ERROR generating image for {meal.get('mealName')}: {img_e} !!!")
+        # Return None on failure
+        return meal.get("mealName"), None
 # ==============================================================================
 # Flask Routes (API Endpoints)
 # ==============================================================================
@@ -243,38 +258,6 @@ def generate_meals():
         if hf_client:
             # DEBUG: Check if this block is being entered
             print("DEBUG: Condition 'if hf_client' is TRUE. Entering image generation block.")
-            
-            def generate_meal_image(meal):
-                # This function generates a single image for a given meal.
-                # It will be called in parallel for efficiency.
-                try:
-                    meal_name = meal.get("mealName")
-                    # Create a high-quality, descriptive prompt for better results
-                    image_prompt = f"Professional food photography of {meal_name}, cinematic lighting, high detail, on a rustic wooden table"
-                    
-                    print(f"DEBUG: Generating image for '{meal_name}'...")
-                    
-                    # Call the HF Inference API
-                    generated_image = hf_client.text_to_image(
-                        image_prompt,
-                        model="stabilityai/stable-diffusion-xl-base-1.0",
-                        negative_prompt="cartoon, drawing, anime, ugly, deformed, blurry",
-                        height=1024,
-                        width=1024,
-                        num_inference_steps=30
-                    )
-                    
-                    # Convert the PIL image to a base64 string
-                    buffered = io.BytesIO()
-                    generated_image.save(buffered, format="JPEG")
-                    img_str = base64.b64encode(buffered.getvalue()).decode("utf-8")
-                    
-                    # Return the meal name and the generated image string
-                    return meal_name, img_str
-                except Exception as img_e:
-                    print(f"!!! ERROR generating image for {meal.get('mealName')}: {img_e} !!!")
-                    # Return None on failure
-                    return meal.get("mealName"), None
 
             # Use a ThreadPoolExecutor to generate images for all meals in parallel
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -339,4 +322,3 @@ def send_email():
 # ==============================================================================
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)
-    
