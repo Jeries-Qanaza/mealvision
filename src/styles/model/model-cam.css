@@ -1,12 +1,15 @@
+
 .camera-container {
   max-width: 800px;
   margin: 0 auto;
   padding: 20px;
+  text-align: center;
+  box-sizing: border-box;
 }
 
 @media (max-width: 768px) {
   .camera-container {
-    padding: 15px;
+    padding: 20px 15px; /* Enhanced padding for better mobile spacing */
   }
 }
 
@@ -385,23 +388,23 @@
   display: none;
 }
 
-/* --- Responsive Adjustments --- */
+/* --- Responsive Adjustments (Final, with mobile fixes) --- */
 
 @media (max-width: 768px) {
   .camera-controls-bottom {
-    padding: 15px 20px 25px;
+    padding: 20px 20px 35px; /* Increased padding to separate buttons from video */
   }
   .camera-capture-btn {
-    width: 70px;
-    height: 70px;
+    width: 75px;
+    height: 75px;
   }
   .capture-outer-ring {
-    width: 70px;
-    height: 70px;
+    width: 75px;
+    height: 75px;
   }
   .capture-inner {
-    width: 50px;
-    height: 50px;
+    width: 55px;
+    height: 55px;
   }
   .recording-square {
     width: 25px !important;
@@ -409,43 +412,41 @@
   }
   .camera-mode-btn,
   .camera-switch-btn {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
   }
   .mode-text {
-    font-size: 7px;
+    font-size: 9px;
   }
   .controls {
-    gap: 10px;
+    gap: 12px;
+    margin-top: 20px; /* More space above the control buttons */
   }
-  .btn-icon {
-    width: 20px;
-    height: 20px;
+  .btn {
+    padding: 14px 18px;
+    font-size: 15px;
   }
-  .btn-text {
-    font-size: 13px;
-  }
-  .drag-text {
-    font-size: 9px;
+  .upload-zone-layout {
+    min-height: 80px; /* Increased min-height for better tap target */
   }
 }
 
 @media (max-width: 480px) {
   .camera-controls-bottom {
-    padding: 12px 15px 20px;
+    padding: 15px 15px 30px;
   }
   .camera-capture-btn {
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 70px;
   }
   .capture-outer-ring {
-    width: 65px;
-    height: 65px;
+    width: 70px;
+    height: 70px;
     border-width: 3px;
   }
   .capture-inner {
-    width: 45px;
-    height: 45px;
+    width: 50px;
+    height: 50px;
   }
   .recording-square {
     width: 20px !important;
@@ -453,9 +454,8 @@
   }
   .camera-mode-btn,
   .camera-switch-btn {
-    width: 40px;
-    height: 40px;
-    border-width: 1.5px;
+    width: 45px;
+    height: 45px;
   }
   .camera-mode-btn svg,
   .camera-switch-btn svg {
@@ -463,35 +463,43 @@
     height: 14px;
   }
   .mode-text {
-    font-size: 6px;
+    font-size: 8px;
   }
   .controls {
-    gap: 8px;
+    gap: 10px;
+    margin-top: 15px;
   }
-  .btn-icon {
-    width: 18px;
-    height: 18px;
-  }
-  .btn-text {
-    font-size: 12px;
+  .btn {
+    padding: 12px 16px;
+    font-size: 14px;
   }
   .drag-text {
     font-size: 8px;
+  }
+  .upload-zone-layout {
+    min-height: 70px;
   }
 }
 
 @media (orientation: landscape) and (max-height: 500px) {
   .camera-container {
-    padding: 5px;
+    padding: 10px;
   }
   .camera-view video {
-    max-height: 200px;
+    max-height: 180px;
+  }
+  .camera-controls-bottom {
+    padding: 10px 15px;
   }
   .controls {
-    margin: 8px auto;
+    margin: 10px auto;
   }
-  .btn-text {
-    font-size: 12px;
+  .btn {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+  .upload-zone-layout {
+    min-height: 60px;
   }
 }
 

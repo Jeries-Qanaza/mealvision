@@ -1,4 +1,5 @@
 <template>
+  
   <div class="camera-container">
     <h1>YOLO Detection</h1>
 
