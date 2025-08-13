@@ -204,7 +204,7 @@ export default {
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
       // Video processing options (fixed values)
       frameInterval: 30, // Extract every 30th frame (1 FPS from 30 FPS video)
-      maxFrames: 100, // Maximum frames to extract per video
+      maxFrames: 10, // Maximum frames to extract per video
     };
   },
   computed: {
@@ -631,59 +631,78 @@ export default {
       }
     },
 
-    // Extract frames from video at 5 FPS
     async extractFramesFromVideo(videoFile) {
-      return new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const frames = [];
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const frames = [];
 
-        video.addEventListener('loadedmetadata', () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
+    video.addEventListener('loadedmetadata', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      
+      const duration = video.duration;
+      console.log(`Video duration: ${duration} seconds`);
+      
+      // Extract frames at 1 FPS (every 1 second) - more reasonable
+      const frameInterval = 1.0; // 1 FPS = 1 frame per second
+      const totalFrames = Math.min(this.maxFrames, Math.ceil(duration / frameInterval));
+      
+      console.log(`Will extract ${totalFrames} frames`);
+      
+      let currentFrame = 0;
+      let extractedCount = 0;
+      
+      const extractFrame = () => {
+        if (currentFrame >= totalFrames || extractedCount >= this.maxFrames) {
+          console.log(`Extraction complete: ${frames.length} frames extracted`);
+          resolve(frames);
+          return;
+        }
+        
+        const targetTime = Math.min(currentFrame * frameInterval, duration - 0.1);
+        console.log(`Extracting frame ${currentFrame + 1}/${totalFrames} at time ${targetTime.toFixed(2)}s`);
+        
+        video.currentTime = targetTime;
+      };
+
+      const onSeeked = () => {
+        ctx.drawImage(video, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const frameFile = new File([blob], `frame_${extractedCount}.jpg`, {
+              type: 'image/jpeg'
+            });
+            frames.push(frameFile);
+            extractedCount++;
+          }
           
-          const duration = video.duration;
-          // Extract frames at 5 FPS (every 0.2 seconds)
-          const frameInterval = 0.2; // 5 FPS = 1/5 = 0.2 seconds between frames
-          const frameCount = Math.min(this.maxFrames, Math.floor(duration / frameInterval));
-          
-          let currentFrame = 0;
-          
-          const extractFrame = () => {
-            if (currentFrame >= frameCount) {
-              resolve(frames);
-              return;
-            }
-            
-            video.currentTime = currentFrame * frameInterval;
-            currentFrame++;
-          };
+          currentFrame++;
+          // Add a small delay to ensure the seek operation completes
+          setTimeout(extractFrame, 200);
+        }, 'image/jpeg', 0.7); // Reduced quality for faster processing
+      };
 
-          video.addEventListener('seeked', () => {
-            ctx.drawImage(video, 0, 0);
-            canvas.toBlob((blob) => {
-              if (blob) {
-                const frameFile = new File([blob], `frame_${frames.length}.jpg`, {
-                  type: 'image/jpeg'
-                });
-                frames.push(frameFile);
-              }
-              
-              setTimeout(extractFrame, 100); // Small delay to ensure frame is processed
-            }, 'image/jpeg', 0.8);
-          });
+      video.addEventListener('seeked', onSeeked, { once: false });
 
-          extractFrame();
-        });
-
-        video.addEventListener('error', (e) => {
-          reject(new Error(e,'Video loading failed'));
-        });
-
-        video.src = URL.createObjectURL(videoFile);
+      video.addEventListener('error', (e) => {
+        console.error('Video error:', e);
+        reject(new Error('Video loading failed'));
       });
-    },
+
+      // Start extraction
+      extractFrame();
+    });
+
+    video.addEventListener('error', (e) => {
+      console.error('Video loading error:', e);
+      reject(new Error('Video loading failed'));
+    });
+
+    video.src = URL.createObjectURL(videoFile);
+  });
+},
 
     // Get video status text
     getVideoStatusText(video) {
