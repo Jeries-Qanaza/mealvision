@@ -1,4 +1,3 @@
-
 .camera-container {
   max-width: 800px;
   margin: 0 auto;
@@ -14,8 +13,7 @@
 }
 
 /* Glassy background effect for sections like previews */
-.glassy-preview,
-.video-options {
+.glassy-preview {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border-radius: 15px;
@@ -245,6 +243,18 @@
 
 /* --- Photo and Video Grids --- */
 
+.content-section {
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #333;
+  text-align: left;
+}
+
 .image-grid,
 .video-grid {
   display: grid;
@@ -303,6 +313,40 @@
   color: #666;
   font-style: italic;
   word-break: break-word;
+}
+
+.limit-note {
+  font-size: 0.9em;
+  color: #666;
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+  text-align: center;
+}
+
+.processing-text {
+  margin-top: 10px;
+  font-size: 14px;
+  color: #666;
+}
+
+#labels {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.debug-info {
+  margin-top: 15px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 5px;
+  font-family: monospace;
+  font-size: 12px;
+  text-align: left;
 }
 
 /* Delete buttons for previews */

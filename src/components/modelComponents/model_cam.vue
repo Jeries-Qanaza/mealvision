@@ -89,37 +89,6 @@
       </div>
     </div>
 
-    <!-- Video Processing Options -->
-    <div v-if="hasVideos" class="video-options">
-      <div class="option-group">
-        <label>Frame extraction interval:</label>
-        <select v-model="frameInterval">
-          <option value="1">Every frame</option>
-          <option value="5">Every 5th frame</option>
-          <option value="10">Every 10th frame</option>
-          <option value="30">Every 30th frame (~1 sec)</option>
-        </select>
-      </div>
-      
-      <div class="option-group">
-        <label>Max frames per video:</label>
-        <select v-model="maxFrames">
-          <option value="10">10 frames</option>
-          <option value="20">20 frames</option>
-          <option value="50">50 frames</option>
-          <option value="100">100 frames</option>
-        </select>
-      </div>
-
-      <button 
-        @click="processAllVideos" 
-        class="btn btn-primary"
-        :disabled="isProcessing || isAppBusy"
-      >
-        Process Videos ({{ videoItems.length }} pending)
-      </button>
-    </div>
-
     <div v-if="previewImages.length > 0 || videoItems.length > 0" class="glassy-preview">
       <!-- Images Grid -->
       <div v-if="previewImages.length > 0" class="content-section">
@@ -233,9 +202,9 @@ export default {
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
       allDetectedItems: [],
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
-      // Video processing options
-      frameInterval: 10, // Extract every Nth frame
-      maxFrames: 20, // Maximum frames to extract per video
+      // Video processing options (fixed values)
+      frameInterval: 6, // Extract every 6th frame (5 FPS from 30 FPS video)
+      maxFrames: 100, // Maximum frames to extract per video
     };
   },
   computed: {
@@ -378,9 +347,12 @@ export default {
         return;
       }
 
-      // Add to video queue
+      // Add to video queue and auto-process
       await this.addVideoToQueue(videoFile);
-      this.debugInfo = "Video saved successfully!";
+      // Auto-process the video immediately at 5 FPS
+      const videoItem = this.videoItems[this.videoItems.length - 1];
+      await this.processVideo(videoItem);
+      this.debugInfo = "Video saved and processed successfully!";
     },
 
     // Add switch camera method
@@ -500,9 +472,12 @@ export default {
         await this.processImageFiles(imageFiles);
       }
 
-      // Add videos to the queue (don't process immediately)
+      // Process videos immediately (auto-process at 5 FPS)
       for (const videoFile of videoFiles) {
         await this.addVideoToQueue(videoFile);
+        // Auto-process the video immediately
+        const videoItem = this.videoItems[this.videoItems.length - 1];
+        await this.processVideo(videoItem);
       }
     },
 
