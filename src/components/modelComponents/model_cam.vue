@@ -203,7 +203,7 @@ export default {
       allDetectedItems: [],
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
       // Video processing options (fixed values)
-      frameInterval: 6, // Extract every 6th frame (5 FPS from 30 FPS video)
+      frameInterval: 30, // Extract every 30th frame (1 FPS from 30 FPS video)
       maxFrames: 100, // Maximum frames to extract per video
     };
   },
@@ -349,7 +349,7 @@ export default {
 
       // Add to video queue and auto-process
       await this.addVideoToQueue(videoFile);
-      // Auto-process the video immediately at 5 FPS
+      // Auto-process the video immediately at 1 FPS
       const videoItem = this.videoItems[this.videoItems.length - 1];
       await this.processVideo(videoItem);
       this.debugInfo = "Video saved and processed successfully!";
@@ -472,7 +472,7 @@ export default {
         await this.processImageFiles(imageFiles);
       }
 
-      // Process videos immediately (auto-process at 5 FPS)
+      // Process videos immediately (auto-process at 1 FPS)
       for (const videoFile of videoFiles) {
         await this.addVideoToQueue(videoFile);
         // Auto-process the video immediately
@@ -537,7 +537,7 @@ export default {
         url: previewURL,
         poster: poster,
         size: videoFile.size,
-        status: 'pending', // pending, processing, completed, error
+        status: 'processing', // Start processing immediately
         labels: [],
         extractedFrames: 0,
         file: videoFile // Keep reference to original file
@@ -631,7 +631,7 @@ export default {
       }
     },
 
-    // Extract frames from video
+    // Extract frames from video at 5 FPS
     async extractFramesFromVideo(videoFile) {
       return new Promise((resolve, reject) => {
         const video = document.createElement('video');
@@ -644,8 +644,9 @@ export default {
           canvas.height = video.videoHeight;
           
           const duration = video.duration;
-          const frameCount = Math.min(this.maxFrames, Math.floor(duration * 30 / this.frameInterval)); // Assuming 30fps
-          const timeStep = duration / frameCount;
+          // Extract frames at 5 FPS (every 0.2 seconds)
+          const frameInterval = 0.2; // 5 FPS = 1/5 = 0.2 seconds between frames
+          const frameCount = Math.min(this.maxFrames, Math.floor(duration / frameInterval));
           
           let currentFrame = 0;
           
@@ -655,7 +656,7 @@ export default {
               return;
             }
             
-            video.currentTime = currentFrame * timeStep;
+            video.currentTime = currentFrame * frameInterval;
             currentFrame++;
           };
 
@@ -677,7 +678,7 @@ export default {
         });
 
         video.addEventListener('error', (e) => {
-          reject(new Error(e,'Video loading failed'));
+          reject(new Error('Video loading failed'));
         });
 
         video.src = URL.createObjectURL(videoFile);
