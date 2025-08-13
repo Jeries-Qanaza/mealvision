@@ -140,6 +140,7 @@ def detect():
         t_start = time.time()
         print("\n--- Received new request for /detect ---")
 
+        # Load image from request
         if "image" in request.files:
             file = request.files["image"]
             image = Image.open(file.stream).convert("RGB")
@@ -152,42 +153,49 @@ def detect():
         t_image_loaded = time.time()
         print(f"DEBUG: Image loading took {t_image_loaded - t_start:.2f} seconds")
 
-        #----------- Resizing large images to improve performance and prevent crashes -----------
+        # Resize large images to improve performance
         MAX_RESOLUTION = (1280, 1280)
         if image.width > MAX_RESOLUTION[0] or image.height > MAX_RESOLUTION[1]:
             print(f"DEBUG: Image is large ({image.size}), resizing it down...")
             image.thumbnail(MAX_RESOLUTION, Image.Resampling.LANCZOS)
             print(f"DEBUG: Image resized to {image.size}")
-        #----------- End of resizing block -----------
 
+        # Load YOLO model
         model = get_yolo_model()
         t_model_got = time.time()
         print(f"DEBUG: Getting YOLO model took {t_model_got - t_image_loaded:.2f} seconds")
 
-        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as temp:
-            image.save(temp.name)
-            #----------- Running model with a fixed image size for consistent performance -----------
-            results = model.predict(source=temp.name, imgsz=[640, 640])
-            image.close()
-            os.unlink(temp.name)
+        # --- Use mkstemp for Windows-safe temporary file ---
+        fd, temp_name = tempfile.mkstemp(suffix=".jpg")
+        os.close(fd)  # Close OS handle immediately
+        image.save(temp_name)
+        image.close()  # Close PIL handle
 
-        t_prediction_done = time.time()
-        print(f"DEBUG: YOLO Prediction took {t_prediction_done - t_model_got:.2f} seconds <<<<<<<<<<<<<<<<<<")
+        try:
+            # Run YOLO prediction
+            results = model.predict(source=temp_name, imgsz=[640, 640])
+        finally:
+            # Cleanup temp file safely
+            if os.path.exists(temp_name):
+                os.unlink(temp_name)
 
+        # Extract detected labels
         labels = [results[0].names[int(box.cls[0])] for box in results[0].boxes]
 
+        # Clean up
         del results
         gc.collect()
 
         t_end = time.time()
         print(f"--- TOTAL DETECT TIME: {t_end - t_start:.2f} seconds ---")
 
-        return jsonify({"labels": list(set(labels))}) # Using set to return unique labels
+        return jsonify({"labels": list(set(labels))})  # Return unique labels
 
     except Exception as e:
         print(f"!!! ERROR in /detect: {e} !!!")
         traceback.print_exc()
         return jsonify({"error": "An error occurred during image detection."}), 500
+
 
 @app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
