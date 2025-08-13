@@ -678,7 +678,7 @@ export default {
         });
 
         video.addEventListener('error', (e) => {
-          reject(new Error('Video loading failed'));
+          reject(new Error(e,'Video loading failed'));
         });
 
         video.src = URL.createObjectURL(videoFile);
