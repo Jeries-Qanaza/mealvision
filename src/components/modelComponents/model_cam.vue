@@ -100,7 +100,7 @@
         <input
           ref="fileInput"
           type="file"
-          accept="image/*,video/*"
+          accept="image/*,video/mp4,video/webm"
           @change="handleFileUpload"
           class="file-input"
           :disabled="isProcessing || isAppBusy || isSizeLimitReached"
