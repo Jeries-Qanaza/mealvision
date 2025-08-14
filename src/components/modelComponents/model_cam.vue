@@ -710,6 +710,7 @@ export default {
 
         this.videoItems[videoIndex].labels = Array.from(allLabels);
         this.videoItems[videoIndex].status = "completed";
+        this.updateAllDetectedItems();
         this.debugInfo = `Video "${
           videoItem.name
         }" processed successfully. Found: ${Array.from(allLabels).join(", ")}`;
