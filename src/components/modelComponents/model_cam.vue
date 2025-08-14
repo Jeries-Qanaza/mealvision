@@ -426,24 +426,32 @@ export default {
       }
 
       try {
+        this.debugInfo = "Step 1: Preparing to send video...";
         const formData = new FormData();
         formData.append("video", videoFile, videoFile.name);
 
+        this.debugInfo = "Step 2: Sending request to /process-video...";
         const response = await fetch(`${API_BASE}/process-video`, {
           method: "POST",
           body: formData,
         });
+        this.debugInfo = `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`;
 
         if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Server processing failed");
+          const errorText = await response.text();
+          this.debugInfo += `\nError Body: ${errorText}`;
+          throw new Error(`Server returned status ${response.status}`);
         }
 
+        this.debugInfo = "Step 4: Trying to parse response as JSON...";
         const result = await response.json();
+        this.debugInfo =
+          "Step 5: JSON parsed successfully! Processing result...";
+
         const uniqueLabels = [...new Set(result.labels)];
 
         // Add video thumbnail to the UI for visual feedback
-        await this.addVideoToQueue(videoFile, result.thumbnail);
+        await this.addVideoToQueue(videoFile);
         const videoIndex = this.videoItems.findIndex(
           (v) => v.name === videoFile.name
         );
@@ -451,10 +459,10 @@ export default {
           this.videoItems[videoIndex].labels = uniqueLabels;
           this.videoItems[videoIndex].status = "completed";
         }
-
         this.updateAllDetectedItems();
       } catch (error) {
-        this.debugInfo = `Error processing recorded video: ${error.message}`;
+        // Display the full error on the screen for debugging
+        this.debugInfo = `CRITICAL ERROR:\nName: ${error.name}\nMessage: ${error.message}\n\nLast Status:\n${this.debugInfo}`;
         console.error("Recorded video processing error:", error);
         await this.addVideoToQueue(videoFile);
         const videoIndex = this.videoItems.findIndex(
@@ -549,14 +557,14 @@ export default {
     async processFiles(files) {
       if (this.isProcessing || this.isAppBusy) return;
 
-      this.$emit("processing-state", true);
       this.isProcessing = true;
+      this.$emit("processing-state", true);
 
       const imageFiles = [];
       const videoFiles = [];
 
-      // First, separate files into images and videos
       for (const file of files) {
+        // ... (the file separation logic remains the same)
         const isDuplicateImage = this.previewImages.some(
           (img) => img.name === file.name
         );
@@ -567,12 +575,10 @@ export default {
           console.warn(`Skipping duplicate file: ${file.name}`);
           continue;
         }
-
         if (this.currentTotalSize + file.size > this.MAX_TOTAL_SIZE) {
           alert(`Could not add "${file.name}". Total size limit reached.`);
           continue;
         }
-
         if (file.type.startsWith("image/")) {
           imageFiles.push(file);
         } else if (file.type.startsWith("video/")) {
@@ -580,35 +586,43 @@ export default {
         }
       }
 
-      // --- Process Images ---
+      // --- Process Images (Existing Logic) ---
       if (imageFiles.length > 0) {
         this.processingMessage = "Processing images...";
-        await this.processImageFiles(imageFiles);
+        await this.processImageFiles(imageFiles); // This function is fine as it is
       }
 
-      // --- Process Videos (New Server-Side Logic) ---
       for (const videoFile of videoFiles) {
         this.processingMessage = `Uploading and processing video: ${videoFile.name}...`;
 
         try {
+          this.debugInfo = "Step 1: Preparing to send video...";
           const formData = new FormData();
           formData.append("video", videoFile, videoFile.name);
 
+          this.debugInfo = "Step 2: Sending request to /process-video...";
           const response = await fetch(`${API_BASE}/process-video`, {
             method: "POST",
             body: formData,
           });
 
+          this.debugInfo = `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`;
+
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Server processing failed");
+            const errorText = await response.text();
+            this.debugInfo += `\nError Body: ${errorText}`;
+            throw new Error(`Server returned status ${response.status}`);
           }
 
+          this.debugInfo = "Step 4: Trying to parse response as JSON...";
           const result = await response.json();
+          this.debugInfo =
+            "Step 5: JSON parsed successfully! Processing result...";
+
           const uniqueLabels = [...new Set(result.labels)];
 
           // Add video thumbnail to the UI for visual feedback
-          await this.addVideoToQueue(videoFile, result.thumbnail);
+          await this.addVideoToQueue(videoFile);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
           );
@@ -619,9 +633,9 @@ export default {
 
           this.updateAllDetectedItems();
         } catch (error) {
-          this.debugInfo = `Error processing video ${videoFile.name}: ${error.message}`;
+          // Display the full error on the screen for debugging
+          this.debugInfo = `CRITICAL ERROR:\nName: ${error.name}\nMessage: ${error.message}\n\nLast Status:\n${this.debugInfo}`;
           console.error("Video processing error:", error);
-          // Optionally add the video to the UI with an error state
           await this.addVideoToQueue(videoFile);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
@@ -630,7 +644,6 @@ export default {
         }
       }
 
-      // --- Final Cleanup ---
       this.isProcessing = false;
       this.processingMessage = "";
       this.$emit("processing-state", false);
