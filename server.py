@@ -2,6 +2,7 @@
 # Imports
 # ==============================================================================
 import json
+import subprocess
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import google.generativeai as genai
@@ -196,6 +197,64 @@ def detect():
         traceback.print_exc()
         return jsonify({"error": "An error occurred during image detection."}), 500
 
+
+@app.route("/process-video", methods=["POST"])
+def process_video():
+    """Receives a video file, extracts frames using FFmpeg, detects items in each frame, and returns unique labels."""
+    if 'video' not in request.files:
+        return jsonify({"error": "No video file provided"}), 400
+    
+    video_file = request.files['video']
+    if video_file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+
+    t_start = time.time()
+    print("\n--- Received new request for /process-video ---")
+
+    # Use a temporary directory that cleans itself up automatically
+    with tempfile.TemporaryDirectory() as temp_dir:
+        video_path = os.path.join(temp_dir, video_file.filename)
+        video_file.save(video_path)
+        
+        t_uploaded = time.time()
+        print(f"DEBUG: Video saved to temp path in {t_uploaded - t_start:.2f} seconds")
+
+        # --- Use FFmpeg to extract frames (1 frame per second) ---
+        frames_output_pattern = os.path.join(temp_dir, 'frame-%03d.jpg')
+        try:
+            subprocess.run(
+                ['ffmpeg', '-i', video_path, '-vf', 'fps=1', frames_output_pattern],
+                check=True, capture_output=True, text=True # capture_output to hide ffmpeg logs from console
+            )
+            t_frames_extracted = time.time()
+            print(f"DEBUG: Frame extraction took {t_frames_extracted - t_uploaded:.2f} seconds")
+        except subprocess.CalledProcessError as e:
+            print(f"!!! FFmpeg ERROR: {e.stderr} !!!")
+            return jsonify({"error": "Failed to process video with FFmpeg."}), 500
+
+        # --- Process each frame with YOLO ---
+        model = get_yolo_model()
+        all_detected_labels = set()
+        
+        extracted_frames = sorted([f for f in os.listdir(temp_dir) if f.startswith('frame-')])
+
+        for frame_filename in extracted_frames:
+            frame_path = os.path.join(temp_dir, frame_filename)
+            try:
+                # Run YOLO prediction on the frame
+                results = model.predict(source=frame_path, imgsz=[640, 640])
+                frame_labels = {results[0].names[int(box.cls[0])] for box in results[0].boxes}
+                all_detected_labels.update(frame_labels)
+            except Exception as e:
+                print(f"!!! Could not process frame {frame_filename}: {e} !!!")
+                continue # Move to the next frame
+
+        t_end = time.time()
+        print(f"DEBUG: YOLO processing of all frames took {t_end - t_frames_extracted:.2f} seconds")
+        print(f"--- TOTAL PROCESS-VIDEO TIME: {t_end - t_start:.2f} seconds ---")
+
+        # Return unique labels found across all frames
+        return jsonify({"labels": list(all_detected_labels)})
 
 @app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():

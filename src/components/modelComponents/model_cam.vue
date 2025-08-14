@@ -393,9 +393,13 @@ export default {
       }
     },
 
-    // Save recorded video
+    // Save recorded video by uploading it to the server for processing
     async saveRecordedVideo() {
       if (this.recordedChunks.length === 0 || !this.recordedMimeType) return;
+
+      this.isProcessing = true;
+      this.$emit("processing-state", true);
+      this.processingMessage = `Uploading and processing recorded video...`;
 
       const fileExtension = this.recordedMimeType.split("/")[1].split(";")[0];
       const fileName = `recorded-video-${Date.now()}.${fileExtension}`;
@@ -408,20 +412,53 @@ export default {
       });
 
       if (this.currentTotalSize + blob.size > this.MAX_TOTAL_SIZE) {
-        alert(
-          `Cannot save video. Total size would exceed the ${
-            this.MAX_TOTAL_SIZE / 1024 / 1024
-          }MB limit.`
-        );
+        alert(`Cannot save video. Total size limit reached.`);
+        this.isProcessing = false;
+        this.$emit("processing-state", false);
         return;
       }
 
-      // Add to video queue and auto-process
-      await this.addVideoToQueue(videoFile);
-      // Auto-process the video immediately at 1 FPS
-      const videoItem = this.videoItems[this.videoItems.length - 1];
-      await this.processVideo(videoItem);
-      this.debugInfo = "Video saved and processed successfully!";
+      try {
+        const formData = new FormData();
+        formData.append("video", videoFile, videoFile.name);
+
+        const response = await fetch(`${API_BASE}/process-video`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Server processing failed");
+        }
+
+        const result = await response.json();
+        const uniqueLabels = [...new Set(result.labels)];
+
+        // Add video thumbnail to the UI for visual feedback
+        await this.addVideoToQueue(videoFile);
+        const videoIndex = this.videoItems.findIndex(
+          (v) => v.name === videoFile.name
+        );
+        if (videoIndex !== -1) {
+          this.videoItems[videoIndex].labels = uniqueLabels;
+          this.videoItems[videoIndex].status = "completed";
+        }
+
+        this.updateAllDetectedItems();
+      } catch (error) {
+        this.debugInfo = `Error processing recorded video: ${error.message}`;
+        console.error("Recorded video processing error:", error);
+        await this.addVideoToQueue(videoFile);
+        const videoIndex = this.videoItems.findIndex(
+          (v) => v.name === videoFile.name
+        );
+        if (videoIndex !== -1) this.videoItems[videoIndex].status = "error";
+      } finally {
+        this.isProcessing = false;
+        this.processingMessage = "";
+        this.$emit("processing-state", false);
+      }
     },
 
     // Add switch camera method
@@ -503,34 +540,32 @@ export default {
       }, "image/jpeg");
     },
 
-    // Separate files into images and videos
+    // Separate files into images and videos and process accordingly
     async processFiles(files) {
       if (this.isProcessing || this.isAppBusy) return;
+
+      this.$emit("processing-state", true);
+      this.isProcessing = true;
 
       const imageFiles = [];
       const videoFiles = [];
 
+      // First, separate files into images and videos
       for (const file of files) {
-        // Check for duplicates by filename
         const isDuplicateImage = this.previewImages.some(
           (img) => img.name === file.name
         );
         const isDuplicateVideo = this.videoItems.some(
           (video) => video.name === file.name
         );
-
         if (isDuplicateImage || isDuplicateVideo) {
           console.warn(`Skipping duplicate file: ${file.name}`);
           continue;
         }
 
         if (this.currentTotalSize + file.size > this.MAX_TOTAL_SIZE) {
-          alert(
-            `Could not add "${file.name}". Total size would exceed the ${
-              this.MAX_TOTAL_SIZE / 1024 / 1024
-            }MB limit.`
-          );
-          break;
+          alert(`Could not add "${file.name}". Total size limit reached.`);
+          continue;
         }
 
         if (file.type.startsWith("image/")) {
@@ -540,18 +575,60 @@ export default {
         }
       }
 
-      // Process images immediately
+      // --- Process Images (Existing Logic) ---
       if (imageFiles.length > 0) {
+        this.processingMessage = "Processing images...";
         await this.processImageFiles(imageFiles);
       }
 
-      // Process videos immediately (auto-process at 1 FPS)
+      // --- Process Videos (New Server-Side Logic) ---
       for (const videoFile of videoFiles) {
-        await this.addVideoToQueue(videoFile);
-        // Auto-process the video immediately
-        const videoItem = this.videoItems[this.videoItems.length - 1];
-        await this.processVideo(videoItem);
+        this.processingMessage = `Uploading and processing video: ${videoFile.name}...`;
+
+        try {
+          const formData = new FormData();
+          formData.append("video", videoFile, videoFile.name);
+
+          const response = await fetch(`${API_BASE}/process-video`, {
+            method: "POST",
+            body: formData,
+          });
+
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Server processing failed");
+          }
+
+          const result = await response.json();
+          const uniqueLabels = [...new Set(result.labels)];
+
+          // Add video thumbnail to the UI for visual feedback
+          await this.addVideoToQueue(videoFile);
+          const videoIndex = this.videoItems.findIndex(
+            (v) => v.name === videoFile.name
+          );
+          if (videoIndex !== -1) {
+            this.videoItems[videoIndex].labels = uniqueLabels;
+            this.videoItems[videoIndex].status = "completed";
+          }
+
+          this.updateAllDetectedItems();
+        } catch (error) {
+          this.debugInfo = `Error processing video ${videoFile.name}: ${error.message}`;
+          console.error("Video processing error:", error);
+          // Optionally add the video to the UI with an error state
+          await this.addVideoToQueue(videoFile);
+          const videoIndex = this.videoItems.findIndex(
+            (v) => v.name === videoFile.name
+          );
+          if (videoIndex !== -1) this.videoItems[videoIndex].status = "error";
+        }
       }
+
+      // --- Final Cleanup ---
+      this.isProcessing = false;
+      this.processingMessage = "";
+      this.$emit("processing-state", false);
     },
 
     // Process image files (existing logic)
@@ -640,177 +717,6 @@ export default {
 
         video.addEventListener("error", () => {
           resolve(null); // Return null if poster generation fails
-        });
-
-        video.src = URL.createObjectURL(videoFile);
-      });
-    },
-
-    // Process all pending videos
-    async processAllVideos() {
-      const pendingVideos = this.videoItems.filter(
-        (video) => video.status === "pending"
-      );
-      if (pendingVideos.length === 0) return;
-
-      this.$emit("processing-state", true);
-      this.isProcessing = true;
-
-      for (let i = 0; i < pendingVideos.length; i++) {
-        const video = pendingVideos[i];
-        this.processingMessage = `Processing video ${i + 1} of ${
-          pendingVideos.length
-        }: ${video.name}`;
-        await this.processVideo(video);
-      }
-
-      this.updateAllDetectedItems();
-      this.isProcessing = false;
-      this.processingMessage = "";
-      this.$emit("processing-state", false);
-    },
-
-    // Process individual video
-    async processVideo(videoItem) {
-      const videoIndex = this.videoItems.findIndex(
-        (v) => v.name === videoItem.name
-      );
-      if (videoIndex === -1) return;
-
-      this.videoItems[videoIndex].status = "processing";
-
-      try {
-        const frames = await this.extractFramesFromVideo(videoItem.file);
-        this.videoItems[videoIndex].extractedFrames = frames.length;
-
-        const allLabels = new Set();
-
-        for (let i = 0; i < frames.length; i++) {
-          this.processingMessage = `Processing frame ${i + 1}/${
-            frames.length
-          } of ${videoItem.name}`;
-
-          const formData = new FormData();
-          formData.append(
-            "image",
-            frames[i],
-            `${videoItem.name}_frame_${i}.jpg`
-          );
-
-          const response = await fetch(`${API_BASE}/detect`, {
-            method: "POST",
-            body: formData,
-          });
-
-          if (response.ok) {
-            const result = await response.json();
-            result.labels.forEach((label) => allLabels.add(label));
-          }
-        }
-
-        this.videoItems[videoIndex].labels = Array.from(allLabels);
-        this.videoItems[videoIndex].status = "completed";
-        this.updateAllDetectedItems();
-        this.debugInfo = `Video "${
-          videoItem.name
-        }" processed successfully. Found: ${Array.from(allLabels).join(", ")}`;
-      } catch (error) {
-        console.error("Video processing error:", error);
-        this.videoItems[videoIndex].status = "error";
-        this.debugInfo = `Error processing video "${videoItem.name}": ${error.message}`;
-      }
-    },
-
-    async extractFramesFromVideo(videoFile) {
-      return new Promise((resolve, reject) => {
-        const video = document.createElement("video");
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-        const frames = [];
-
-        video.addEventListener("loadedmetadata", () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-
-          const duration = video.duration;
-          console.log(`Video duration: ${duration} seconds`);
-
-          // Extract frames at 1 FPS (every 1 second) - more reasonable
-          const frameInterval = 1.0; // 1 FPS = 1 frame per second
-          const totalFrames = Math.min(
-            this.maxFrames,
-            Math.ceil(duration / frameInterval)
-          );
-
-          console.log(`Will extract ${totalFrames} frames`);
-
-          let currentFrame = 0;
-          let extractedCount = 0;
-
-          const extractFrame = () => {
-            if (
-              currentFrame >= totalFrames ||
-              extractedCount >= this.maxFrames
-            ) {
-              console.log(
-                `Extraction complete: ${frames.length} frames extracted`
-              );
-              resolve(frames);
-              return;
-            }
-
-            const targetTime = Math.min(
-              currentFrame * frameInterval,
-              duration - 0.1
-            );
-            console.log(
-              `Extracting frame ${
-                currentFrame + 1
-              }/${totalFrames} at time ${targetTime.toFixed(2)}s`
-            );
-
-            video.currentTime = targetTime;
-          };
-
-          const onSeeked = () => {
-            ctx.drawImage(video, 0, 0);
-            canvas.toBlob(
-              (blob) => {
-                if (blob) {
-                  const frameFile = new File(
-                    [blob],
-                    `frame_${extractedCount}.jpg`,
-                    {
-                      type: "image/jpeg",
-                    }
-                  );
-                  frames.push(frameFile);
-                  extractedCount++;
-                }
-
-                currentFrame++;
-                // Add a small delay to ensure the seek operation completes
-                setTimeout(extractFrame, 200);
-              },
-              "image/jpeg",
-              0.7
-            ); // Reduced quality for faster processing
-          };
-
-          video.addEventListener("seeked", onSeeked, { once: false });
-
-          video.addEventListener("error", (e) => {
-            console.error("Video error:", e);
-            reject(new Error("Video loading failed"));
-          });
-
-          // Start extraction
-          extractFrame();
-        });
-
-        video.addEventListener("error", (e) => {
-          console.error("Video loading error:", e);
-          reject(new Error("Video loading failed"));
         });
 
         video.src = URL.createObjectURL(videoFile);
