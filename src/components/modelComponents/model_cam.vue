@@ -9,48 +9,68 @@
         playsinline
         :class="{ mirrored: isFrontCamera }"
       ></video>
-      
+
       <!-- Camera Controls Overlay -->
       <div class="camera-controls-overlay">
         <div class="camera-controls-bottom">
           <!-- Video Mode Button -->
-          <button 
-            @click="toggleVideoMode" 
+          <button
+            @click="toggleVideoMode"
             class="camera-mode-btn"
             :class="{ active: isVideoMode }"
             :disabled="!isCameraReady || isProcessing"
             title="Video Mode"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/>
+              <path
+                d="M17 10.5V7c0-.55-.45-1-1-1H4c-.55 0-1 .45-1 1v10c0 .55.45 1 1 1h12c.55 0 1-.45 1-1v-3.5l4 4v-11l-4 4z"
+                fill="currentColor"
+              />
             </svg>
-            <span class="mode-text">{{ isVideoMode ? 'VIDEO' : 'VIDEO' }}</span>
+            <span class="mode-text">{{ isVideoMode ? "VIDEO" : "VIDEO" }}</span>
           </button>
-          
+
           <!-- Capture/Record Button -->
           <button
             @click="handleCaptureClick"
             class="camera-capture-btn"
-            :class="{ 
+            :class="{
               recording: isRecording,
-              'video-mode': isVideoMode 
+              'video-mode': isVideoMode,
             }"
-            :disabled="!isCameraReady || isProcessing || isAppBusy || isSizeLimitReached"
+            :disabled="
+              !isCameraReady || isProcessing || isAppBusy || isSizeLimitReached
+            "
           >
             <div class="capture-outer-ring"></div>
-            <div class="capture-inner" :class="{ 'recording-square': isRecording }"></div>
+            <div
+              class="capture-inner"
+              :class="{ 'recording-square': isRecording }"
+            ></div>
           </button>
-          
+
           <!-- Switch Camera Button -->
-          <button 
-            @click="switchCamera" 
+          <button
+            @click="switchCamera"
             class="camera-switch-btn"
             :disabled="!isCameraReady || isProcessing"
             title="Switch Camera"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M16 7l4-4m0 0l-4-4m4 4H9a5 5 0 0 0 0 10h2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path
+                d="M16 7l4-4m0 0l-4-4m4 4H9a5 5 0 0 0 0 10h2.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
             </svg>
             <span class="mode-text">SWITCH</span>
           </button>
@@ -89,16 +109,23 @@
       </div>
     </div>
 
-    <div v-if="previewImages.length > 0 || videoItems.length > 0" class="glassy-preview">
+    <div
+      v-if="previewImages.length > 0 || videoItems.length > 0"
+      class="glassy-preview"
+    >
       <!-- Images Grid -->
       <div v-if="previewImages.length > 0" class="content-section">
         <h3 class="section-title">Images ({{ previewImages.length }})</h3>
         <div class="image-grid">
-          <div v-for="(img, index) in previewImages" :key="'img-' + index" class="thumb">
+          <div
+            v-for="(img, index) in previewImages"
+            :key="'img-' + index"
+            class="thumb"
+          >
             <img :src="img.url" :alt="'Preview ' + (index + 1)" />
             <div class="item-info">
               <div class="item-name">{{ img.name }}</div>
-              <div class="item-labels">{{ img.labels.join(', ') }}</div>
+              <div class="item-labels">{{ img.labels.join(", ") }}</div>
             </div>
             <button
               @click="deleteImage(index)"
@@ -115,11 +142,15 @@
       <div v-if="videoItems.length > 0" class="content-section">
         <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
         <div class="video-grid">
-          <div v-for="(video, index) in videoItems" :key="'video-' + index" class="video-thumb">
-            <video 
-              :src="video.url" 
+          <div
+            v-for="(video, index) in videoItems"
+            :key="'video-' + index"
+            class="video-thumb"
+          >
+            <video
+              :src="video.url"
               :poster="video.poster"
-              controls 
+              controls
               preload="metadata"
               class="video-preview"
             ></video>
@@ -131,8 +162,11 @@
               <div v-if="video.extractedFrames > 0" class="frame-count">
                 {{ video.extractedFrames }} frames extracted
               </div>
-              <div v-if="video.labels && video.labels.length > 0" class="item-labels">
-                {{ video.labels.join(', ') }}
+              <div
+                v-if="video.labels && video.labels.length > 0"
+                class="item-labels"
+              >
+                {{ video.labels.join(", ") }}
               </div>
             </div>
             <button
@@ -191,12 +225,13 @@ export default {
       isDragOver: false,
       isFrontCamera: false,
       isProcessing: false, // Local processing for spinner
-      processingMessage: '',
+      processingMessage: "",
       // Video recording state
       isVideoMode: false,
       isRecording: false,
       mediaRecorder: null,
       recordedChunks: [],
+      recordedMimeType: null,
       // State for multi-image & size limit
       previewImages: [], // Holds { url, labels, size, name }
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
@@ -210,8 +245,14 @@ export default {
   computed: {
     // Computed properties for size management
     currentTotalSize() {
-      const imageSize = this.previewImages.reduce((total, img) => total + img.size, 0);
-      const videoSize = this.videoItems.reduce((total, video) => total + video.size, 0);
+      const imageSize = this.previewImages.reduce(
+        (total, img) => total + img.size,
+        0
+      );
+      const videoSize = this.videoItems.reduce(
+        (total, video) => total + video.size,
+        0
+      );
       return imageSize + videoSize;
     },
     isSizeLimitReached() {
@@ -223,11 +264,11 @@ export default {
       return `Total size: ${currentMB} / ${maxMB} MB`;
     },
     hasVideos() {
-      return this.videoItems.some(video => video.status === 'pending');
+      return this.videoItems.some((video) => video.status === "pending");
     },
     totalItemCount() {
       return this.previewImages.length + this.videoItems.length;
-    }
+    },
   },
   mounted() {
     this.initCamera();
@@ -274,7 +315,9 @@ export default {
     toggleVideoMode() {
       if (this.isRecording) return; // Don't switch while recording
       this.isVideoMode = !this.isVideoMode;
-      this.debugInfo = this.isVideoMode ? "Video mode activated" : "Photo mode activated";
+      this.debugInfo = this.isVideoMode
+        ? "Video mode activated"
+        : "Photo mode activated";
     },
 
     // Handle capture button click (photo or video)
@@ -295,9 +338,31 @@ export default {
       if (!this.isCameraReady || this.isProcessing || !this.stream) return;
 
       try {
+        // List of candidate MIME types, with iOS-friendly mp4 first
+        const mimeTypeCandidates = [
+          "video/mp4",
+          "video/webm;codecs=vp9",
+          "video/webm",
+        ];
+
+        // Find the first supported MIME type
+        const supportedMimeType = mimeTypeCandidates.find((type) =>
+          MediaRecorder.isTypeSupported(type)
+        );
+
+        if (!supportedMimeType) {
+          alert("Video recording is not supported on this browser.");
+          console.error("No supported MIME type for MediaRecorder.");
+          return;
+        }
+
+        this.recordedMimeType = supportedMimeType; // Save the chosen mimeType
+        this.debugInfo = `Using supported format: ${supportedMimeType}`;
+        console.log(`Using supported format: ${supportedMimeType}`);
+
         this.recordedChunks = [];
         this.mediaRecorder = new MediaRecorder(this.stream, {
-          mimeType: 'video/webm;codecs=vp9'
+          mimeType: supportedMimeType,
         });
 
         this.mediaRecorder.ondataavailable = (event) => {
@@ -313,10 +378,9 @@ export default {
         this.mediaRecorder.start();
         this.isRecording = true;
         this.debugInfo = "Recording started...";
-
       } catch (error) {
         this.debugInfo = `Recording error: ${error.message}`;
-        console.error('Recording error:', error);
+        console.error("Recording error:", error);
       }
     },
 
@@ -331,11 +395,16 @@ export default {
 
     // Save recorded video
     async saveRecordedVideo() {
-      if (this.recordedChunks.length === 0) return;
+      if (this.recordedChunks.length === 0 || !this.recordedMimeType) return;
 
-      const blob = new Blob(this.recordedChunks, { type: 'video/webm' });
-      const videoFile = new File([blob], `recorded-video-${Date.now()}.webm`, {
-        type: 'video/webm'
+      const fileExtension = this.recordedMimeType.split("/")[1].split(";")[0];
+      const fileName = `recorded-video-${Date.now()}.${fileExtension}`;
+
+      const blob = new Blob(this.recordedChunks, {
+        type: this.recordedMimeType,
+      });
+      const videoFile = new File([blob], fileName, {
+        type: this.recordedMimeType,
       });
 
       if (this.currentTotalSize + blob.size > this.MAX_TOTAL_SIZE) {
@@ -358,12 +427,12 @@ export default {
     // Add switch camera method
     async switchCamera() {
       if (!this.isCameraReady || this.isProcessing) return;
-      
+
       this.stopCamera();
-      
+
       // Toggle camera preference
       const newFacingMode = this.isFrontCamera ? "environment" : "user";
-      
+
       try {
         const constraints = {
           video: {
@@ -372,22 +441,22 @@ export default {
             height: { ideal: 720 },
           },
         };
-        
+
         const videoElement = this.$refs.videoElement;
         this.stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = this.stream;
-        
+
         const videoTrack = this.stream.getVideoTracks()[0];
         const settings = videoTrack.getSettings();
         this.isFrontCamera = settings.facingMode === "user";
-        
+
         await new Promise((resolve, reject) => {
           videoElement.onloadedmetadata = () =>
             videoElement.play().then(resolve).catch(reject);
           videoElement.onerror = () => reject(new Error("Video load error"));
           setTimeout(() => reject(new Error("Video load timeout")), 5000);
         });
-        
+
         this.isCameraReady = true;
         this.debugInfo = "Camera switched successfully!";
       } catch (error) {
@@ -443,9 +512,13 @@ export default {
 
       for (const file of files) {
         // Check for duplicates by filename
-        const isDuplicateImage = this.previewImages.some((img) => img.name === file.name);
-        const isDuplicateVideo = this.videoItems.some((video) => video.name === file.name);
-        
+        const isDuplicateImage = this.previewImages.some(
+          (img) => img.name === file.name
+        );
+        const isDuplicateVideo = this.videoItems.some(
+          (video) => video.name === file.name
+        );
+
         if (isDuplicateImage || isDuplicateVideo) {
           console.warn(`Skipping duplicate file: ${file.name}`);
           continue;
@@ -460,9 +533,9 @@ export default {
           break;
         }
 
-        if (file.type.startsWith('image/')) {
+        if (file.type.startsWith("image/")) {
           imageFiles.push(file);
-        } else if (file.type.startsWith('video/')) {
+        } else if (file.type.startsWith("video/")) {
           videoFiles.push(file);
         }
       }
@@ -485,7 +558,7 @@ export default {
     async processImageFiles(files) {
       this.$emit("processing-state", true);
       this.isProcessing = true;
-      this.processingMessage = 'Processing images...';
+      this.processingMessage = "Processing images...";
 
       let initialDebugInfo = this.debugInfo;
 
@@ -521,9 +594,12 @@ export default {
       }
 
       this.updateAllDetectedItems();
-      this.debugInfo = this.previewImages.length > 0 ? "Image processing complete." : initialDebugInfo;
+      this.debugInfo =
+        this.previewImages.length > 0
+          ? "Image processing complete."
+          : initialDebugInfo;
       this.isProcessing = false;
-      this.processingMessage = '';
+      this.processingMessage = "";
       this.$emit("processing-state", false);
     },
 
@@ -531,38 +607,38 @@ export default {
     async addVideoToQueue(videoFile) {
       const previewURL = await this.readFileAsDataURL(videoFile);
       const poster = await this.generateVideoPoster(videoFile);
-      
+
       this.videoItems.push({
         name: videoFile.name,
         url: previewURL,
         poster: poster,
         size: videoFile.size,
-        status: 'processing', // Start processing immediately
+        status: "processing", // Start processing immediately
         labels: [],
         extractedFrames: 0,
-        file: videoFile // Keep reference to original file
+        file: videoFile, // Keep reference to original file
       });
     },
 
     // Generate video poster/thumbnail
     async generateVideoPoster(videoFile) {
       return new Promise((resolve) => {
-        const video = document.createElement('video');
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
+        const video = document.createElement("video");
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
 
-        video.addEventListener('loadedmetadata', () => {
+        video.addEventListener("loadedmetadata", () => {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
           video.currentTime = Math.min(1, video.duration / 2); // Seek to middle or 1 second
         });
 
-        video.addEventListener('seeked', () => {
+        video.addEventListener("seeked", () => {
           ctx.drawImage(video, 0, 0);
-          resolve(canvas.toDataURL('image/jpeg'));
+          resolve(canvas.toDataURL("image/jpeg"));
         });
 
-        video.addEventListener('error', () => {
+        video.addEventListener("error", () => {
           resolve(null); // Return null if poster generation fails
         });
 
@@ -572,7 +648,9 @@ export default {
 
     // Process all pending videos
     async processAllVideos() {
-      const pendingVideos = this.videoItems.filter(video => video.status === 'pending');
+      const pendingVideos = this.videoItems.filter(
+        (video) => video.status === "pending"
+      );
       if (pendingVideos.length === 0) return;
 
       this.$emit("processing-state", true);
@@ -580,22 +658,26 @@ export default {
 
       for (let i = 0; i < pendingVideos.length; i++) {
         const video = pendingVideos[i];
-        this.processingMessage = `Processing video ${i + 1} of ${pendingVideos.length}: ${video.name}`;
+        this.processingMessage = `Processing video ${i + 1} of ${
+          pendingVideos.length
+        }: ${video.name}`;
         await this.processVideo(video);
       }
 
       this.updateAllDetectedItems();
       this.isProcessing = false;
-      this.processingMessage = '';
+      this.processingMessage = "";
       this.$emit("processing-state", false);
     },
 
     // Process individual video
     async processVideo(videoItem) {
-      const videoIndex = this.videoItems.findIndex(v => v.name === videoItem.name);
+      const videoIndex = this.videoItems.findIndex(
+        (v) => v.name === videoItem.name
+      );
       if (videoIndex === -1) return;
 
-      this.videoItems[videoIndex].status = 'processing';
+      this.videoItems[videoIndex].status = "processing";
 
       try {
         const frames = await this.extractFramesFromVideo(videoItem.file);
@@ -604,10 +686,16 @@ export default {
         const allLabels = new Set();
 
         for (let i = 0; i < frames.length; i++) {
-          this.processingMessage = `Processing frame ${i + 1}/${frames.length} of ${videoItem.name}`;
-          
+          this.processingMessage = `Processing frame ${i + 1}/${
+            frames.length
+          } of ${videoItem.name}`;
+
           const formData = new FormData();
-          formData.append("image", frames[i], `${videoItem.name}_frame_${i}.jpg`);
+          formData.append(
+            "image",
+            frames[i],
+            `${videoItem.name}_frame_${i}.jpg`
+          );
 
           const response = await fetch(`${API_BASE}/detect`, {
             method: "POST",
@@ -616,102 +704,131 @@ export default {
 
           if (response.ok) {
             const result = await response.json();
-            result.labels.forEach(label => allLabels.add(label));
+            result.labels.forEach((label) => allLabels.add(label));
           }
         }
 
         this.videoItems[videoIndex].labels = Array.from(allLabels);
-        this.videoItems[videoIndex].status = 'completed';
-        this.debugInfo = `Video "${videoItem.name}" processed successfully. Found: ${Array.from(allLabels).join(', ')}`;
-
+        this.videoItems[videoIndex].status = "completed";
+        this.debugInfo = `Video "${
+          videoItem.name
+        }" processed successfully. Found: ${Array.from(allLabels).join(", ")}`;
       } catch (error) {
-        console.error('Video processing error:', error);
-        this.videoItems[videoIndex].status = 'error';
+        console.error("Video processing error:", error);
+        this.videoItems[videoIndex].status = "error";
         this.debugInfo = `Error processing video "${videoItem.name}": ${error.message}`;
       }
     },
 
     async extractFramesFromVideo(videoFile) {
-  return new Promise((resolve, reject) => {
-    const video = document.createElement('video');
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    const frames = [];
+      return new Promise((resolve, reject) => {
+        const video = document.createElement("video");
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+        const frames = [];
 
-    video.addEventListener('loadedmetadata', () => {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      
-      const duration = video.duration;
-      console.log(`Video duration: ${duration} seconds`);
-      
-      // Extract frames at 1 FPS (every 1 second) - more reasonable
-      const frameInterval = 1.0; // 1 FPS = 1 frame per second
-      const totalFrames = Math.min(this.maxFrames, Math.ceil(duration / frameInterval));
-      
-      console.log(`Will extract ${totalFrames} frames`);
-      
-      let currentFrame = 0;
-      let extractedCount = 0;
-      
-      const extractFrame = () => {
-        if (currentFrame >= totalFrames || extractedCount >= this.maxFrames) {
-          console.log(`Extraction complete: ${frames.length} frames extracted`);
-          resolve(frames);
-          return;
-        }
-        
-        const targetTime = Math.min(currentFrame * frameInterval, duration - 0.1);
-        console.log(`Extracting frame ${currentFrame + 1}/${totalFrames} at time ${targetTime.toFixed(2)}s`);
-        
-        video.currentTime = targetTime;
-      };
+        video.addEventListener("loadedmetadata", () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
 
-      const onSeeked = () => {
-        ctx.drawImage(video, 0, 0);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            const frameFile = new File([blob], `frame_${extractedCount}.jpg`, {
-              type: 'image/jpeg'
-            });
-            frames.push(frameFile);
-            extractedCount++;
-          }
-          
-          currentFrame++;
-          // Add a small delay to ensure the seek operation completes
-          setTimeout(extractFrame, 200);
-        }, 'image/jpeg', 0.7); // Reduced quality for faster processing
-      };
+          const duration = video.duration;
+          console.log(`Video duration: ${duration} seconds`);
 
-      video.addEventListener('seeked', onSeeked, { once: false });
+          // Extract frames at 1 FPS (every 1 second) - more reasonable
+          const frameInterval = 1.0; // 1 FPS = 1 frame per second
+          const totalFrames = Math.min(
+            this.maxFrames,
+            Math.ceil(duration / frameInterval)
+          );
 
-      video.addEventListener('error', (e) => {
-        console.error('Video error:', e);
-        reject(new Error('Video loading failed'));
+          console.log(`Will extract ${totalFrames} frames`);
+
+          let currentFrame = 0;
+          let extractedCount = 0;
+
+          const extractFrame = () => {
+            if (
+              currentFrame >= totalFrames ||
+              extractedCount >= this.maxFrames
+            ) {
+              console.log(
+                `Extraction complete: ${frames.length} frames extracted`
+              );
+              resolve(frames);
+              return;
+            }
+
+            const targetTime = Math.min(
+              currentFrame * frameInterval,
+              duration - 0.1
+            );
+            console.log(
+              `Extracting frame ${
+                currentFrame + 1
+              }/${totalFrames} at time ${targetTime.toFixed(2)}s`
+            );
+
+            video.currentTime = targetTime;
+          };
+
+          const onSeeked = () => {
+            ctx.drawImage(video, 0, 0);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const frameFile = new File(
+                    [blob],
+                    `frame_${extractedCount}.jpg`,
+                    {
+                      type: "image/jpeg",
+                    }
+                  );
+                  frames.push(frameFile);
+                  extractedCount++;
+                }
+
+                currentFrame++;
+                // Add a small delay to ensure the seek operation completes
+                setTimeout(extractFrame, 200);
+              },
+              "image/jpeg",
+              0.7
+            ); // Reduced quality for faster processing
+          };
+
+          video.addEventListener("seeked", onSeeked, { once: false });
+
+          video.addEventListener("error", (e) => {
+            console.error("Video error:", e);
+            reject(new Error("Video loading failed"));
+          });
+
+          // Start extraction
+          extractFrame();
+        });
+
+        video.addEventListener("error", (e) => {
+          console.error("Video loading error:", e);
+          reject(new Error("Video loading failed"));
+        });
+
+        video.src = URL.createObjectURL(videoFile);
       });
-
-      // Start extraction
-      extractFrame();
-    });
-
-    video.addEventListener('error', (e) => {
-      console.error('Video loading error:', e);
-      reject(new Error('Video loading failed'));
-    });
-
-    video.src = URL.createObjectURL(videoFile);
-  });
-},
+    },
 
     // Get video status text
     getVideoStatusText(video) {
       switch (video.status) {
-        case 'pending': return 'Ready to process';
-        case 'processing': return 'Processing...';
-        case 'completed': return `Complete (${video.labels.length} unique objects)`;
-        case 'error': return 'Processing failed';
-        default: return 'Unknown status';
+        case "pending":
+          return "Ready to process";
+        case "processing":
+          return "Processing...";
+        case "completed":
+          return `Complete (${video.labels.length} unique objects)`;
+        case "error":
+          return "Processing failed";
+        default:
+          return "Unknown status";
       }
     },
 
@@ -777,7 +894,7 @@ export default {
       if (this.isRecording) {
         this.stopRecording();
       }
-      
+
       if (this.stream) {
         this.stream.getTracks().forEach((track) => track.stop());
         this.stream = null;
