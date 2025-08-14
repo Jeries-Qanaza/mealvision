@@ -9,7 +9,6 @@
         playsinline
         :class="{ mirrored: isFrontCamera }"
       ></video>
-
       <!-- Camera Controls Overlay -->
       <div class="camera-controls-overlay">
         <div class="camera-controls-bottom">
@@ -27,6 +26,7 @@
                 fill="currentColor"
               />
             </svg>
+
             <span class="mode-text">{{ isVideoMode ? "VIDEO" : "VIDEO" }}</span>
           </button>
 
@@ -43,6 +43,7 @@
             "
           >
             <div class="capture-outer-ring"></div>
+
             <div
               class="capture-inner"
               :class="{ 'recording-square': isRecording }"
@@ -64,6 +65,7 @@
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
+
               <path
                 d="M8 17l-4 4m0 0l4 4m-4-4h11a5 5 0 0 0 0-10h-2.5"
                 stroke="currentColor"
@@ -97,6 +99,7 @@
         />
         <span class="btn-text">Upload Images/Videos</span>
         <div class="drag-text">or drag & drop here</div>
+
         <input
           ref="fileInput"
           type="file"
@@ -116,6 +119,7 @@
       <!-- Images Grid -->
       <div v-if="previewImages.length > 0" class="content-section">
         <h3 class="section-title">Images ({{ previewImages.length }})</h3>
+
         <div class="image-grid">
           <div
             v-for="(img, index) in previewImages"
@@ -123,10 +127,13 @@
             class="thumb"
           >
             <img :src="img.url" :alt="'Preview ' + (index + 1)" />
+
             <div class="item-info">
               <div class="item-name">{{ img.name }}</div>
+
               <div class="item-labels">{{ img.labels.join(", ") }}</div>
             </div>
+
             <button
               @click="deleteImage(index)"
               class="delete-btn-modern"
@@ -141,6 +148,7 @@
       <!-- Videos Grid -->
       <div v-if="videoItems.length > 0" class="content-section">
         <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
+
         <div class="video-grid">
           <div
             v-for="(video, index) in videoItems"
@@ -154,14 +162,18 @@
               preload="metadata"
               class="video-preview"
             ></video>
+
             <div class="item-info">
               <div class="item-name">{{ video.name }}</div>
+
               <div class="item-status" :class="video.status">
                 {{ getVideoStatusText(video) }}
               </div>
+
               <div v-if="video.extractedFrames > 0" class="frame-count">
                 {{ video.extractedFrames }} frames extracted
               </div>
+
               <div
                 v-if="video.labels && video.labels.length > 0"
                 class="item-labels"
@@ -169,6 +181,7 @@
                 {{ video.labels.join(", ") }}
               </div>
             </div>
+
             <button
               @click="deleteVideo(index)"
               class="delete-btn-modern"
@@ -226,20 +239,19 @@ export default {
       isFrontCamera: false,
       isProcessing: false, // Local processing for spinner
       processingMessage: "",
+
       // Video recording state
       isVideoMode: false,
       isRecording: false,
       mediaRecorder: null,
       recordedChunks: [],
       recordedMimeType: null,
+
       // State for multi-image & size limit
       previewImages: [], // Holds { url, labels, size, name }
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
       allDetectedItems: [],
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
-      // Video processing options (fixed values)
-      frameInterval: 30, // Extract every 30th frame (1 FPS from 30 FPS video)
-      maxFrames: 10, // Maximum frames to extract per video
     };
   },
   computed: {
@@ -310,7 +322,6 @@ export default {
         this.stopCamera();
       }
     },
-
     // Toggle between photo and video mode
     toggleVideoMode() {
       if (this.isRecording) return; // Don't switch while recording
@@ -319,7 +330,6 @@ export default {
         ? "Video mode activated"
         : "Photo mode activated";
     },
-
     // Handle capture button click (photo or video)
     async handleCaptureClick() {
       if (this.isVideoMode) {
@@ -332,7 +342,6 @@ export default {
         this.takeSnapshot();
       }
     },
-
     // Start video recording
     async startRecording() {
       if (!this.isCameraReady || this.isProcessing || !this.stream) return;
@@ -344,7 +353,6 @@ export default {
           "video/webm;codecs=vp9",
           "video/webm",
         ];
-
         // Find the first supported MIME type
         const supportedMimeType = mimeTypeCandidates.find((type) =>
           MediaRecorder.isTypeSupported(type)
@@ -383,7 +391,6 @@ export default {
         console.error("Recording error:", error);
       }
     },
-
     // Stop video recording
     stopRecording() {
       if (this.mediaRecorder && this.isRecording) {
@@ -436,7 +443,7 @@ export default {
         const uniqueLabels = [...new Set(result.labels)];
 
         // Add video thumbnail to the UI for visual feedback
-        await this.addVideoToQueue(videoFile);
+        await this.addVideoToQueue(videoFile, result.thumbnail);
         const videoIndex = this.videoItems.findIndex(
           (v) => v.name === videoFile.name
         );
@@ -460,13 +467,11 @@ export default {
         this.$emit("processing-state", false);
       }
     },
-
     // Add switch camera method
     async switchCamera() {
       if (!this.isCameraReady || this.isProcessing) return;
 
       this.stopCamera();
-
       // Toggle camera preference
       const newFacingMode = this.isFrontCamera ? "environment" : "user";
 
@@ -575,7 +580,7 @@ export default {
         }
       }
 
-      // --- Process Images (Existing Logic) ---
+      // --- Process Images ---
       if (imageFiles.length > 0) {
         this.processingMessage = "Processing images...";
         await this.processImageFiles(imageFiles);
@@ -603,7 +608,7 @@ export default {
           const uniqueLabels = [...new Set(result.labels)];
 
           // Add video thumbnail to the UI for visual feedback
-          await this.addVideoToQueue(videoFile);
+          await this.addVideoToQueue(videoFile, result.thumbnail);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
           );
@@ -631,7 +636,7 @@ export default {
       this.$emit("processing-state", false);
     },
 
-    // Process image files (existing logic)
+    // Process image files
     async processImageFiles(files) {
       this.$emit("processing-state", true);
       this.isProcessing = true;
@@ -681,45 +686,17 @@ export default {
     },
 
     // Add video to queue without processing
-    async addVideoToQueue(videoFile) {
+    async addVideoToQueue(videoFile, posterDataUrl) {
       const previewURL = await this.readFileAsDataURL(videoFile);
-      const poster = await this.generateVideoPoster(videoFile);
-
       this.videoItems.push({
         name: videoFile.name,
         url: previewURL,
-        poster: poster,
+        poster: posterDataUrl, // Use the poster from the server
         size: videoFile.size,
-        status: "processing", // Start processing immediately
+        status: "processing",
         labels: [],
         extractedFrames: 0,
-        file: videoFile, // Keep reference to original file
-      });
-    },
-
-    // Generate video poster/thumbnail
-    async generateVideoPoster(videoFile) {
-      return new Promise((resolve) => {
-        const video = document.createElement("video");
-        const canvas = document.createElement("canvas");
-        const ctx = canvas.getContext("2d");
-
-        video.addEventListener("loadedmetadata", () => {
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          video.currentTime = Math.min(1, video.duration / 2); // Seek to middle or 1 second
-        });
-
-        video.addEventListener("seeked", () => {
-          ctx.drawImage(video, 0, 0);
-          resolve(canvas.toDataURL("image/jpeg"));
-        });
-
-        video.addEventListener("error", () => {
-          resolve(null); // Return null if poster generation fails
-        });
-
-        video.src = URL.createObjectURL(videoFile);
+        file: videoFile,
       });
     },
 
