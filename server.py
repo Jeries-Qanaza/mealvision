@@ -1,9 +1,10 @@
-# Apply gevent monkey patching at the very top to prevent conflicts with libraries like torch
-from gevent import monkey
-monkey.patch_all()
 # ==============================================================================
 # Imports
 # ==============================================================================
+# Apply gevent monkey patching at the very top to prevent conflicts with libraries like torch
+from gevent import monkey
+monkey.patch_all()
+
 import json
 import subprocess
 from flask import Flask, request, jsonify
@@ -24,6 +25,7 @@ import time
 import traceback
 from huggingface_hub import InferenceClient
 import concurrent.futures
+from google.api_core.exceptions import ResourceExhausted
 
 # ==============================================================================
 # Initial Setup
@@ -40,7 +42,8 @@ os.environ["MKL_NUM_THREADS"] = "1"
 
 # --- Flask App and CORS Setup ---
 app = Flask(__name__)
-CORS(app) # Simplified CORS setup, it will handle OPTIONS requests automatically
+# Allowing the app to accept requests from different origins
+CORS(app) 
 
 # ==============================================================================
 # API Client Configurations
@@ -49,26 +52,38 @@ CORS(app) # Simplified CORS setup, it will handle OPTIONS requests automatically
 # --- Gemini AI Setup ---
 GEMINI_API_KEY = os.getenv("VUE_APP_GEMINI_KEY")
 if not GEMINI_API_KEY:
-    raise RuntimeError("Missing VUE_APP_GEMINI_KEY environment variable")
+    raise RuntimeError("Missing Gemini API key.")
 genai.configure(api_key=GEMINI_API_KEY)
 Gmodel = genai.GenerativeModel("gemini-1.5-flash")
 
-# --- Stability AI Setup ---
-STABILITY_API_KEY = os.getenv("STABILITY_API_KEY")
+try:
+    # Validate the key and connection
+    Gmodel.count_tokens("validate") 
+    print("INFO: Gemini client initialized and validated successfully.")
+except Exception as e:
+    # If this fails, the key is likely invalid or there's a connection issue.
+    print("ERROR: Failed to validate Gemini API key. The server will not start!")
+    raise RuntimeError(f"Gemini API key validation failed: {e}") from e
 
 # --- Hugging Face Setup ---
 HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
-# DEBUG: Check if the environment variable was loaded
-print(f"DEBUG: Reading HUGGING_FACE_TOKEN. Found token: {HUGGING_FACE_TOKEN is not None}")
-
 hf_client = None
+
 if HUGGING_FACE_TOKEN:
-    hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
-    # DEBUG: Confirm client initialization
-    print("DEBUG: Hugging Face client has been initialized.")
+    try:
+        # Initialize the client first
+        hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
+        
+        # Validate the token
+        hf_client.whoami() 
+        
+        print("INFO: Hugging Face client initialized and validated successfully.")
+    except Exception as e:
+        # Reset the client to None and print a warning
+        hf_client = None
+        print(f"WARNING: Hugging Face token is invalid. Image generation will be disabled. Error: {e}")
 else:
-    # DEBUG: Report that the client was NOT initialized
-    print("DEBUG: Hugging Face token NOT found. Client was not initialized.")
+    print("WARNING: Hugging Face token not found. Image generation will be disabled.")
 
 
 # --- Email Setup ---
@@ -115,25 +130,24 @@ def check_yolo_health():
             "./src/assets/health_check_images/tomato.jpg"
         ]
 
-        # Loop through each image and run prediction
         for image_path in test_image_paths:
             if not os.path.exists(image_path):
-                print(f"!!! Health Check Error: Test image not found at path: {image_path}")
+                print(f"Health Check Error: Test image not found at path: {image_path}")
                 return False # Fail the check if any image is missing
 
-            # Run prediction with verbose=False to keep the main logs clean
+            # verbose=False to keep the main logs clean
             results = model.predict(source=image_path, imgsz=[640, 640], verbose=False)
 
-            # Check for a valid result. If any prediction fails, the whole check fails.
+            # Check for a valid result. If any prediction fails, the whole check fails
             if not results or len(results) == 0:
-                print(f"!!! Health Check Error: Model returned an invalid result for {image_path}")
+                print(f"Health Check Error: Model returned an invalid result for {image_path}")
                 return False
         
-        # If the loop completes without returning False, all checks passed.
+        # All checks passed
         return True
 
     except Exception as e:
-        print(f"!!! Health Check Error (YOLO): An exception occurred: {e} !!!")
+        print(f"Health Check Error (YOLO): An exception occurred: {e}.")
         return False
 
 # Gemini api check (of the genreate meals)
@@ -143,7 +157,7 @@ def check_gemini_health():
     Returns True on success, False on failure.
     """
     try:
-        # Simple prompt with a timeout
+        # Simple prompt 
         response = Gmodel.generate_content(
             "Are you operational? Respond with only the word: ok", 
             request_options={'timeout': 15}
@@ -151,7 +165,7 @@ def check_gemini_health():
         # Check if the expected word is in the response
         return "ok" in response.text.lower()
     except Exception as e:
-        print(f"!!! Health Check Error (Gemini): {e} !!!")
+        print(f"Health Check Error (Gemini): {e}.")
         return False
 
 # Check if the model available on Hugging Face
@@ -163,17 +177,17 @@ def check_hf_model_health(model_id="stabilityai/stable-diffusion-xl-base-1.0"):
     try:
         # Check if the client was initialized in the first place
         if not hf_client:
-            print("!!! Health Check Error (Hugging Face): Client not initialized, token might be missing.")
+            print("Health Check Error (Hugging Face): Client not initialized, token might be missing.")
             return False
             
         url = f"https://huggingface.co/api/models/{model_id}"
-        # Simple GET request to the model's API endpoint with a timeout
+        # Simple GET request to the model's API endpoint
         response = requests.get(url, timeout=15)
         
         # Status 200 means the model exists and is accessible
         return response.status_code == 200
     except requests.RequestException as e:
-        print(f"!!! Health Check Error (Hugging Face): {e} !!!")
+        print(f"Health Check Error (Hugging Face): {e}.")
         return False
     
 # Generate meal image
@@ -205,7 +219,7 @@ def generate_meal_image(meal):
         # Return the meal name and the generated image string
         return meal_name, img_str
     except Exception as img_e:
-        print(f"!!! ERROR generating image for {meal.get('mealName')}: {img_e} !!!")
+        print(f"ERROR generating image for {meal.get('mealName')}: {img_e}.")
         # Return None on failure
         return meal.get("mealName"), None
     
@@ -256,7 +270,7 @@ def full_health_check():
     }
     
     # Return a 200 status code if all checks passed, otherwise 503 (Service Unavailable)
-    # UptimeRobot and other services look for this status code to determine if the service is "up" or "down".
+    # UptimeRobot service look for this status code to determine if the service is "up" or "down".
     http_status = 200 if overall_status == "ok" else 503
     
     print(f"--- Health check finished with status: {overall_status} ---")
@@ -322,7 +336,7 @@ def detect():
         return jsonify({"labels": list(set(labels))})  # Return unique labels
 
     except Exception as e:
-        print(f"!!! ERROR in /detect: {e} !!!")
+        print(f"ERROR in /detect: {e}.")
         traceback.print_exc()
         return jsonify({"Error": "An error occurred during image detection."}), 500
 
@@ -354,8 +368,8 @@ def process_video():
             subprocess.run(['ffmpeg', '-i', video_path, '-vf', 'fps=1', frames_output_pattern], check=True, capture_output=True, text=True)
             subprocess.run(['ffmpeg', '-i', video_path, '-ss', '00:00:01.000', '-vframes', '1', thumbnail_path], check=True, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
-            print(f"!!! FFmpeg ERROR: {e.stderr} !!!")
-            return jsonify({"error": "Failed to process video with FFmpeg."}), 500
+            print(f"FFmpeg ERROR: {e.stderr}.")
+            return jsonify({"Error": "Failed to process video with FFmpeg."}), 500
 
         model = get_yolo_model()
         all_detected_labels = set()
@@ -375,12 +389,12 @@ def process_video():
                         # Overwrite the original frame with the resized version
                         img.save(frame_path)
 
-                # Run YOLO prediction on the (potentially resized) frame
+                # Run YOLO prediction on the frame
                 results = model.predict(source=frame_path, imgsz=[640, 640])
                 frame_labels = {results[0].names[int(box.cls[0])] for box in results[0].boxes}
                 all_detected_labels.update(frame_labels)
             except Exception as e:
-                print(f"!!! Could not process frame {frame_filename}: {e} !!!")
+                print(f"Could not process frame {frame_filename}: {e}.")
                 continue
         # --- END OF RESIZING ---
 
@@ -398,58 +412,41 @@ def process_video():
         })
 
 # Generate meals
-@app.route("/generate-meals", methods=["POST", "OPTIONS"])
+@app.route("/generate-meals", methods=["POST"])
 def generate_meals():
-    # Handle CORS preflight requests
-    if request.method == "OPTIONS":
-        return jsonify({}), 200, {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        }
     try:
         t_total_start = time.time()
         print("\n--- Received new request for /generate-meals ---")
 
         data = request.json
-        if not data:
-            return jsonify({"Error": "No JSON data received"}), 400
+        if not data or not data.get("ingredients"):
+            return jsonify({"Error": "No ingredients provided."}), 400
             
         ingredients_str = ", ".join(data.get("ingredients", []))
         dietary_preferences = data.get('dietary_preferences', '')
-        # Get the meal type from the request, will be None if not provided
         meal_type = data.get("meal_type")
 
         # --- Prompt Engineering ---
-        # Previous prompt = f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. Answer in JSON format with at least 3 options including meal names and steps."
-
-        # Start with the base prompt
+        """ Previous prompt = 
+            f"What meal can I make with these ingredients: {ingredients_str}, considering the following dietary preferences: {dietary_preferences}. 
+            Answer in JSON format with at least 3 options including meal names and steps."""
+        
         prompt_parts = [
             f'What meal can I make with these ingredients: {ingredients_str}.'
         ]
-
-        # Add dietary preferences if they exist
         if dietary_preferences:
             prompt_parts.append(f'Considering the following dietary preferences: {dietary_preferences}.')
-
-        # Add meal type context ONLY if it was selected by the user
         if meal_type:
             prompt_parts.append(f'The meal should be suitable for {meal_type}.')
-
-        # Add formatting instructions and specify the number of options
         prompt_parts.append(
             'Answer in JSON format exactly like this: '
             '{"meals": [{"mealName": "", "description": "", "steps": []}]} '
-            'with at least 3 meal options'
+            'with at least 3 meal options.'
         )
-        
-        # Add meal type suitability to the final instruction part, if applicable
         if meal_type:
             prompt_parts[-1] += f' suitable for {meal_type}.'
         else:
             prompt_parts[-1] += '.'
-
-        # Join all parts to form the final prompt
         prompt = " ".join(prompt_parts)
         
         print(f"DEBUG: Final prompt sent to Gemini: {prompt}")
@@ -459,49 +456,63 @@ def generate_meals():
         t1 = time.time()
         print(f"DEBUG: Gemini generation took {t1-t0:.2f} seconds")
         
+        # Safely parse the JSON response from the model
         json_text = response.text.strip().removeprefix("```json").removesuffix("```")
         meal_data = json.loads(json_text)
 
         # --- Start of new image generation ---
-        # Check if the Hugging Face client is configured
-        if hf_client:
-            # DEBUG: Check if this block is being entered
-            print("DEBUG: Condition 'if hf_client' is TRUE. Entering image generation block.")
-
-            # Use a ThreadPoolExecutor to generate images for all meals in parallel
+        if hf_client and meal_data.get("meals"):
+            print("DEBUG: Entering image generation block.")
             with concurrent.futures.ThreadPoolExecutor() as executor:
-                # Create a future for each meal's image generation
                 future_to_meal = {executor.submit(generate_meal_image, meal): meal for meal in meal_data["meals"]}
-                
-                # Create a mapping from mealName to the generated image string
                 image_map = {}
                 for future in concurrent.futures.as_completed(future_to_meal):
                     meal_name, img_str = future.result()
                     if img_str:
                         image_map[meal_name] = img_str
                 
-                # Add the generated image to each meal object
                 for meal in meal_data["meals"]:
-                    meal["image"] = image_map.get(meal.get("mealName")) # get() safely returns None if not found
+                    meal["image"] = image_map.get(meal.get("mealName"))
 
             print("--- Finished parallel image generation ---")
         else:
-            # DEBUG: Report that the image generation block was skipped
-            print("DEBUG: Condition 'if hf_client' is FALSE. Skipping image generation.")
-            # If no HF token is set, do not generate images
-            for meal in meal_data["meals"]:
-                meal["image"] = None
+            print("DEBUG: Skipping image generation.")
+            if meal_data.get("meals"):
+                for meal in meal_data["meals"]:
+                    meal["image"] = None
         # --- End of new image generation ---
 
         t_total_end = time.time()
         print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
+        return jsonify({"meals_res": meal_data.get("meals", [])})
 
-        return jsonify({"meals_res": meal_data["meals"]})
+    except ResourceExhausted as e:
+        # Rate limit errors from Google API
+        error_message_str = str(e).lower()
+        user_message = "The AI model is temporarily unavailable due to high traffic. Please try again later."
+        
+        # Check for the specific type of rate limit based on keywords in the error
+        if "perday" in error_message_str or "daily" in error_message_str:
+            user_message = "The daily request limit for the AI model has been reached. This will reset tomorrow."
+            print("DAILY RATE LIMIT EXCEEDED for Gemini API.")
+        elif "perminute" in error_message_str:
+            user_message = "Too many requests made in a short time. Please wait a minute and try again."
+            print("PER-MINUTE RATE LIMIT EXCEEDED for Gemini API.")
+        
+        # Return a specific message and the 429 status code for "Too Many Requests"
+        return jsonify({"Error": user_message}), 429
+
+    except json.JSONDecodeError:
+        # catches errors if the AI returns a non-JSON response
+        print("ERROR: Failed to decode JSON from Gemini response.")
+        traceback.print_exc()
+        return jsonify({"Error": "The AI model returned an invalid response format. Please try again."}), 500
 
     except Exception as e:
-        print(f"!!! ERROR in /generate-meals: {e} !!!")
+        # Catches all OTHER unexpected errors
+        print(f"ERROR in /generate-meals: {e}.")
         traceback.print_exc()
-        return jsonify({"Error": "An error occurred while generating meals."}), 500
+        return jsonify({"Error": "An unexpected error occurred while generating meals."}), 500
 
 # Emails 
 @app.route('/send-email', methods=['POST'])
@@ -514,7 +525,7 @@ def send_email():
         message = data.get('message')
 
         if not all([name, email, message]):
-            return jsonify({"error": "Missing form data"}), 400
+            return jsonify({"Error": "Missing form data"}), 400
 
         msg = Message(subject=f"New Contact Message from {name}",
                       recipients=['je.yo.yvc@gmail.com'],
@@ -523,9 +534,9 @@ def send_email():
         mail.send(msg)
         return jsonify({"message": "Email sent successfully"}), 200
     except Exception as e:
-        print(f"!!! ERROR sending email: {e} !!!")
+        print(f"ERROR sending email: {e}.")
         traceback.print_exc()
-        return jsonify({"error": "An error occurred while sending the email."}), 500
+        return jsonify({"Error": "An error occurred while sending the email."}), 500
 
 # ==============================================================================
 # Main Execution
