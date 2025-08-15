@@ -97,6 +97,86 @@ def get_yolo_model():
 # ==============================================================================
 # Helper Functions
 # ==============================================================================
+
+# YOLO health
+def check_yolo_health():
+    """
+    Runs prediction on multiple test images to check YOLO model health.
+    Returns True only if all images are processed successfully, False otherwise.
+    """
+    try:
+        model = get_yolo_model()
+        
+        # Images path
+        test_image_paths = [
+            "./src/assets/health_check_images/apple.jpg",
+            "./src/assets/health_check_images/salmon.jpg",
+            "./src/assets/health_check_images/spaghetti.jpg",
+            "./src/assets/health_check_images/tomato.jpg"
+        ]
+
+        # Loop through each image and run prediction
+        for image_path in test_image_paths:
+            if not os.path.exists(image_path):
+                print(f"!!! Health Check Error: Test image not found at path: {image_path}")
+                return False # Fail the check if any image is missing
+
+            # Run prediction with verbose=False to keep the main logs clean
+            results = model.predict(source=image_path, imgsz=[640, 640], verbose=False)
+
+            # Check for a valid result. If any prediction fails, the whole check fails.
+            if not results or len(results) == 0:
+                print(f"!!! Health Check Error: Model returned an invalid result for {image_path}")
+                return False
+        
+        # If the loop completes without returning False, all checks passed.
+        return True
+
+    except Exception as e:
+        print(f"!!! Health Check Error (YOLO): An exception occurred: {e} !!!")
+        return False
+
+# Gemini api check (of the genreate meals)
+def check_gemini_health():
+    """
+    Sends a prompt to Gemini to check its health and API key.
+    Returns True on success, False on failure.
+    """
+    try:
+        # Simple prompt with a timeout
+        response = Gmodel.generate_content(
+            "Are you operational? Respond with only the word: ok", 
+            request_options={'timeout': 15}
+        )
+        # Check if the expected word is in the response
+        return "ok" in response.text.lower()
+    except Exception as e:
+        print(f"!!! Health Check Error (Gemini): {e} !!!")
+        return False
+
+# Check if the model available on Hugging Face
+def check_hf_model_health(model_id="stabilityai/stable-diffusion-xl-base-1.0"):
+    """
+    Checks the Hugging Face Hub API to see if the model repository is accessible.
+    Returns True on success, False on failure.
+    """
+    try:
+        # Check if the client was initialized in the first place
+        if not hf_client:
+            print("!!! Health Check Error (Hugging Face): Client not initialized, token might be missing.")
+            return False
+            
+        url = f"https://huggingface.co/api/models/{model_id}"
+        # Simple GET request to the model's API endpoint with a timeout
+        response = requests.get(url, timeout=15)
+        
+        # Status 200 means the model exists and is accessible
+        return response.status_code == 200
+    except requests.RequestException as e:
+        print(f"!!! Health Check Error (Hugging Face): {e} !!!")
+        return False
+    
+# Generate meal image
 def generate_meal_image(meal):
     """This function generates a single image for a given meal.
         It will be called in parallel for efficiency."""
@@ -128,15 +208,61 @@ def generate_meal_image(meal):
         print(f"!!! ERROR generating image for {meal.get('mealName')}: {img_e} !!!")
         # Return None on failure
         return meal.get("mealName"), None
+    
 # ==============================================================================
 # Flask Routes (API Endpoints)
 # ==============================================================================
 
+# Server Health
 @app.route("/", methods=["GET"])
 def health_check():
     """Health check endpoint to confirm the server is running."""
     return jsonify({"status": "Server is running!", "message": "API is healthy"})
 
+# API's and YOLO model Health
+@app.route("/health")
+def full_health_check():
+    """
+    Runs an health check on all critical external dependencies (YOLO, Gemini, HF).
+    Returns a detailed JSON status report.
+    """
+    print("\n--- Running full health check ---")
+    
+    # Run all checks in parallel for efficiency
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        future_yolo = executor.submit(check_yolo_health)
+        future_gemini = executor.submit(check_gemini_health)
+        future_hf = executor.submit(check_hf_model_health)
+
+        checks = {
+            "yolo_model": future_yolo.result(),
+            "gemini_api": future_gemini.result(),
+            "huggingface_model_api": future_hf.result()
+        }
+    
+    overall_status = "ok"
+    # If any check failed, the overall status is 'error'
+    if not all(checks.values()):
+        overall_status = "error"
+        
+    # Prepare a detailed JSON response
+    response_body = {
+        "overall_status": overall_status,
+        "details": {
+            "yolo_model": "ok" if checks["yolo_model"] else "error",
+            "gemini_api": "ok" if checks["gemini_api"] else "error",
+            "huggingface_model_api": "ok" if checks["huggingface_model_api"] else "error"
+        }
+    }
+    
+    # Return a 200 status code if all checks passed, otherwise 503 (Service Unavailable)
+    # UptimeRobot and other services look for this status code to determine if the service is "up" or "down".
+    http_status = 200 if overall_status == "ok" else 503
+    
+    print(f"--- Health check finished with status: {overall_status} ---")
+    return jsonify(response_body), http_status
+
+# Detect (By YOLOv10s)
 @app.route("/detect", methods=["POST"])
 def detect():
     """Receives an image, detects food items using YOLO, and returns labels."""
@@ -200,6 +326,7 @@ def detect():
         traceback.print_exc()
         return jsonify({"Error": "An error occurred during image detection."}), 500
 
+# Processing videos
 @app.route("/process-video", methods=["POST"])
 def process_video():
     """Receives a video, extracts frames, resizes them, detects items, and returns labels AND a thumbnail."""
@@ -270,6 +397,7 @@ def process_video():
             "thumbnail": f"data:image/jpeg;base64,{thumbnail_base64}" if thumbnail_base64 else None
         })
 
+# Generate meals
 @app.route("/generate-meals", methods=["POST", "OPTIONS"])
 def generate_meals():
     # Handle CORS preflight requests
@@ -375,6 +503,7 @@ def generate_meals():
         traceback.print_exc()
         return jsonify({"Error": "An error occurred while generating meals."}), 500
 
+# Emails 
 @app.route('/send-email', methods=['POST'])
 def send_email():
     """Handles sending a contact form email."""
