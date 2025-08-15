@@ -45,5 +45,8 @@ python server.py
 
 <div>
   <h3> Used Technologies </h3>
-  <img src="" alt="logo">
+  <img src="./src/assets/roboflowLogo.png" alt="logo" width="80" height="80">
+  <img src="./src/assets/python.png" alt="logo" width="80" height="80">
+  <img src="./src/assets/vueJSlogo.png" alt="logo" width="80" height="80">
+  <img src="./src/assets/vueJSlogo.png" alt="logo" width="80" height="80">
 </div>
