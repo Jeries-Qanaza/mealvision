@@ -1,24 +1,11 @@
-# first_vue_app
+# MealVision
 
-## Project setup
-```
-npm install
-```
+<img src="./public/favicon.ico" alt="MealVision Logo">
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+### Welcome to the future of food recognition.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+##### This project aims to create a tool that can help people decide what to cook. By analyzing images of food ingredients, our model will identify what's in the picture and suggest potential meal ideas using an AI API. This will help users save time and discover new recipes based on the ingredients they have on hand.
 
-### Lints and fixes files
-```
-npm run lint
-```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+---
+# YOLO
