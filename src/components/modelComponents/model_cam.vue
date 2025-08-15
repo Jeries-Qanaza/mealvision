@@ -219,6 +219,7 @@
 </template>
 
 <script>
+import { findEmoji } from './get_emoji.js';
 const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 
 export default {
@@ -228,6 +229,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    // NEW: Accept existing items from parent component
+    existingItems: {
+      type: Array,
+      default: () => []
+    }
   },
   emits: ["camera-error", "camera-ready", "items-updated", "processing-state"],
   data() {
@@ -250,7 +256,7 @@ export default {
       // State for multi-image & size limit
       previewImages: [], // Holds { url, labels, size, name }
       videoItems: [], // Holds { url, name, size, status, labels, extractedFrames, poster }
-      allDetectedItems: [],
+      allDetectedItems: [], // This will sync with parent
       MAX_TOTAL_SIZE: 15 * 1024 * 1024, // 15MB limit
     };
   },
@@ -282,6 +288,16 @@ export default {
       return this.previewImages.length + this.videoItems.length;
     },
   },
+  watch: {
+    // NEW: Watch for changes in existing items from parent
+    existingItems: {
+      handler(newItems) {
+        this.syncWithExistingItems(newItems);
+      },
+      immediate: true,
+      deep: true
+    }
+  },
   mounted() {
     this.initCamera();
   },
@@ -289,6 +305,49 @@ export default {
     this.stopCamera();
   },
   methods: {
+    // NEW: Sync with parent state
+    syncWithExistingItems(existingItems) {
+      if (!existingItems || existingItems.length === 0) {
+        // Only reset if there are no newly detected items
+        const imageItems = this.previewImages.flatMap((img) => img.labels);
+        const videoItems = this.videoItems.flatMap((video) => video.labels);
+        const localDetectedItems = [...imageItems, ...videoItems];
+        
+        if (localDetectedItems.length === 0) {
+          this.allDetectedItems = [];
+        }
+        return;
+      }
+      
+      // Extract just the ingredient names from existing items (remove emojis)
+      const existingItemNames = existingItems.map(item => {
+        // If item has emoji, extract just the ingredient name
+        return item.split(' ')[0].toLowerCase();
+      });
+      
+      // Get currently detected items
+      const imageItems = this.previewImages.flatMap((img) => img.labels);
+      const videoItems = this.videoItems.flatMap((video) => video.labels);
+      const localDetectedItems = [...imageItems, ...videoItems];
+      
+      // Filter out duplicates and combine
+      const newDetectedItems = localDetectedItems.filter(item => 
+        !existingItemNames.includes(item.toLowerCase())
+      );
+      
+      // Combine existing items with newly detected items
+      this.allDetectedItems = [
+        ...existingItems, // Keep original format from parent (with emojis)
+        ...newDetectedItems.filter((item, index, self) => 
+          self.indexOf(item) === index // Remove duplicates
+        ).map(item => {
+          // Add emojis to new detected items
+          const emoji = findEmoji(item);
+          return emoji ? `${item} ${emoji}` : item;
+        })
+      ];
+    },
+
     async initCamera() {
       this.debugInfo = "Initializing camera...";
       this.isCameraReady = false;
@@ -772,11 +831,39 @@ export default {
       this.updateAllDetectedItems();
     },
 
+    // UPDATED: New method that syncs with parent state
     updateAllDetectedItems() {
       const imageItems = this.previewImages.flatMap((img) => img.labels);
       const videoItems = this.videoItems.flatMap((video) => video.labels);
-      const allItems = [...imageItems, ...videoItems];
-      this.allDetectedItems = [...new Set(allItems)];
+      const localDetectedItems = [...imageItems, ...videoItems];
+      
+      // Get existing items from parent (extract just ingredient names)
+      const existingItemNames = this.existingItems.map(item => 
+        item.split(' ')[0].toLowerCase()
+      );
+      
+      // Filter out items that already exist in parent
+      const newDetectedItems = localDetectedItems.filter(item => 
+        !existingItemNames.includes(item.toLowerCase())
+      );
+      
+      // Remove duplicates from new items and add emojis
+      const uniqueNewItems = newDetectedItems.filter((item, index, self) => 
+        self.indexOf(item) === index
+      ).map(item => {
+        const emoji = findEmoji(item);
+        return emoji ? `${item} ${emoji}` : item;
+      });
+      
+      // Combine existing items (original format with emojis) with new detected items
+      const combinedItems = [
+        ...this.existingItems, // Keep original format from parent
+        ...uniqueNewItems      // Add new detected items with emojis
+      ];
+      
+      this.allDetectedItems = combinedItems;
+      
+      // Emit the complete updated list to parent
       this.$emit("items-updated", this.allDetectedItems);
     },
 

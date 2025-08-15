@@ -75,11 +75,12 @@
     <div class="content">
       <div v-if="showScan" class="camera-placeholder">
         <ModelCam
-          @camera-ready="cameraReady = true"
-          @camera-error="handleCameraError"
-          @items-updated="handleItemsUpdated"
-          @processing-state="handleProcessingState"
-          :is-app-busy="isAppBusy"
+            @camera-ready="cameraReady = true"
+            @camera-error="handleCameraError"
+            @items-updated="handleItemsUpdated"
+            @processing-state="handleProcessingState"
+            :is-app-busy="isAppBusy"
+            :existing-items="addedItems"
         />
         <div v-if="cameraError" class="camera-error">
           <p>Camera Error: {{ cameraError }}</p>
@@ -93,9 +94,10 @@
       </div>
 
       <ManualBox
-        v-if="showManual"
-        @items-updated="handleItemsUpdated"
-        :is-app-busy="isAppBusy"
+          v-if="showManual"
+          @items-updated="handleItemsUpdated"
+          :is-app-busy="isAppBusy"
+          :existing-items="addedItems"
       />
     </div>
 
@@ -176,13 +178,11 @@ export default {
       this.showManual = false;
       this.cameraReady = false;
       this.cameraError = null;
-      this.addedItems = []; // Clear items when switching mode
       this.meals = []; // Clear meals when switching mode
     },
     showManualBox() {
       this.showManual = true;
       this.showScan = false;
-      this.addedItems = []; // Clear items when switching mode
       this.meals = []; // Clear meals when switching mode
     },
     handleItemsUpdated(items) {
