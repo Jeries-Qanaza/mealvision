@@ -48,9 +48,11 @@ python server.py
 
 
 <div>
-  <h3> Used Technologies </h3>
-  <img src="./src/assets/roboflowLogo.png" alt="logo" width="80" height="80">
-  <img src="./src/assets/python.png" alt="logo" width="80" height="80">
-  <img src="./src/assets/vueJSlogo.png" alt="logo" width="80" height="80">
-  <img src="./src/assets/vueJSlogo.png" alt="logo" width="80" height="80">
+  <h3>Used Technologies</h3>
+  <img src="./src/assets/roboflowLogo.png" alt="Roboflow logo" width="80" height="80">
+  <img src="./src/assets/python.png" alt="Python logo" width="80" height="80">
+  <img src="./src/assets/vueJSlogo.png" alt="Vue.js logo" width="80" height="80">
+  <img src="./src/assets/Gemini.png" alt="Gemini logo" width="80" height="80">
+  <img src="./src/assets/stable_diffusion.png" alt="Stable Diffusion logo" width="80" height="80">
 </div>
+
