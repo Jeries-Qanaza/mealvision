@@ -209,7 +209,7 @@
     </div>
 
     <div id="labels">
-      Detected Labels: <span>{{ allDetectedItems.join(", ") }}</span>
+      <u>Detected Labels </u> <br/> <span>{{ allDetectedItems.join(", ") }}</span>
     </div>
 
     <div v-if="debugInfo" class="debug-info">
