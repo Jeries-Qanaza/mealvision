@@ -1,6 +1,10 @@
-# MealVision
+<div align="center">
+  <h1> MealVision </h1>
+  <a href="https://mealvision.vercel.app/" target="_blank">
+    <img src="./public/favicon.ico" alt="MealVision Logo" width="80" height="80">
+  </a>
+</div>
 
-<img src="./public/favicon.ico" alt="MealVision Logo">
 
 ### Welcome to the future of food recognition.
 
