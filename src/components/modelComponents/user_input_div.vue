@@ -253,7 +253,7 @@ export default {
       const dietaryPreferencesStr = this.selectedDiets.join(", ");
 
       try {
-        // Added payload: removed user_local_time and added optional meal_type
+        // Optional meal_type filter
         const payload = {
           ingredients: this.addedItems,
           dietary_preferences: dietaryPreferencesStr,
@@ -276,9 +276,22 @@ export default {
           this.errorMessage = "Server returned an unexpected response.";
           this.meals = [];
         }
-      } catch (err) {
-        console.error("Axios error:", err);
-        this.errorMessage = "Error generating meals. Please try again.";
+      } catch (error) {
+        console.error("Axios error:", error);
+
+        // Check if the server sent back a specific error message in the response
+        if (
+          error.response &&
+          error.response.data &&
+          error.response.data.error
+        ) {
+          // Use the specific error message from the server
+          this.errorMessage = error.response.data.error;
+        } else {
+          // Fallback to a generic message for other types of errors
+          this.errorMessage =
+            "An error occurred. Please check your connection and try again.";
+        }
         this.meals = [];
       } finally {
         this.isLoading = false;
