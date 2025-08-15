@@ -14,6 +14,11 @@
 </div>
 
 
+<div>
+  <img src="./src/assets/the_flow.png" alt="Flow Image">
+</div>
+
+
 
 ---
 # YOLO
