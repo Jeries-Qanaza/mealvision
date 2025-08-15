@@ -557,14 +557,14 @@ export default {
     async processFiles(files) {
       if (this.isProcessing || this.isAppBusy) return;
 
-      this.isProcessing = true;
       this.$emit("processing-state", true);
+      this.isProcessing = true;
 
-      const imageFiles = [];
-      const videoFiles = [];
+      const filesToProcess = [];
+      let limitReached = false; // Create a local running total, starting with the size of already uploaded items
+      let runningTotalSize = this.currentTotalSize; // This loop will collect files one by one until the size limit is reached
 
       for (const file of files) {
-        // ... (the file separation logic remains the same)
         const isDuplicateImage = this.previewImages.some(
           (img) => img.name === file.name
         );
@@ -575,54 +575,60 @@ export default {
           console.warn(`Skipping duplicate file: ${file.name}`);
           continue;
         }
-        if (this.currentTotalSize + file.size > this.MAX_TOTAL_SIZE) {
-          alert(`Could not add "${file.name}". Total size limit reached.`);
-          continue;
+        // Check if adding the current file would exceed the limit
+        if (runningTotalSize + file.size > this.MAX_TOTAL_SIZE) {
+          limitReached = true; // Stop iterating, we have all the files we can fit
+          break;
         }
-        if (file.type.startsWith("image/")) {
-          imageFiles.push(file);
-        } else if (file.type.startsWith("video/")) {
-          videoFiles.push(file);
-        }
+
+        // If the file fits, add it to our list for processing and update the local running total
+        filesToProcess.push(file);
+        runningTotalSize += file.size;
       }
 
-      // --- Process Images (Existing Logic) ---
+      // Inform the user if the upload was partial
+      if (limitReached) {
+        const maxMB = (this.MAX_TOTAL_SIZE / 1024 / 1024).toFixed(1);
+        alert(
+          `Some files were not uploaded because the ${maxMB}MB total size limit was reached.`
+        );
+      }
+      // Process only the files that fit within the limit
+      const imageFiles = filesToProcess.filter((f) =>
+        f.type.startsWith("image/")
+      );
+      const videoFiles = filesToProcess.filter((f) =>
+        f.type.startsWith("video/")
+      );
+
+      // --- Process Images ---
       if (imageFiles.length > 0) {
         this.processingMessage = "Processing images...";
-        await this.processImageFiles(imageFiles); // This function is fine as it is
+        await this.processImageFiles(imageFiles);
       }
 
+      // --- Process Videos (Server-Side ) ---
       for (const videoFile of videoFiles) {
         this.processingMessage = `Uploading and processing video: ${videoFile.name}...`;
 
         try {
-          this.debugInfo = "Step 1: Preparing to send video...";
           const formData = new FormData();
           formData.append("video", videoFile, videoFile.name);
 
-          this.debugInfo = "Step 2: Sending request to /process-video...";
           const response = await fetch(`${API_BASE}/process-video`, {
             method: "POST",
             body: formData,
           });
 
-          this.debugInfo = `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`;
-
           if (!response.ok) {
-            const errorText = await response.text();
-            this.debugInfo += `\nError Body: ${errorText}`;
-            throw new Error(`Server returned status ${response.status}`);
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Server processing failed");
           }
 
-          this.debugInfo = "Step 4: Trying to parse response as JSON...";
           const result = await response.json();
-          this.debugInfo =
-            "Step 5: JSON parsed successfully! Processing result...";
+          const uniqueLabels = [...new Set(result.labels)]; // Add video thumbnail to the UI for visual feedback
 
-          const uniqueLabels = [...new Set(result.labels)];
-
-          // Add video thumbnail to the UI for visual feedback
-          await this.addVideoToQueue(videoFile);
+          await this.addVideoToQueue(videoFile, result.thumbnail);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
           );
@@ -633,9 +639,8 @@ export default {
 
           this.updateAllDetectedItems();
         } catch (error) {
-          // Display the full error on the screen for debugging
-          this.debugInfo = `CRITICAL ERROR:\nName: ${error.name}\nMessage: ${error.message}\n\nLast Status:\n${this.debugInfo}`;
-          console.error("Video processing error:", error);
+          this.debugInfo = `Error processing video ${videoFile.name}: ${error.message}`;
+          console.error("Video processing error:", error); // add the video to the UI with an error state
           await this.addVideoToQueue(videoFile);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
@@ -643,7 +648,7 @@ export default {
           if (videoIndex !== -1) this.videoItems[videoIndex].status = "error";
         }
       }
-
+      // --- Final Cleanup ---
       this.isProcessing = false;
       this.processingMessage = "";
       this.$emit("processing-state", false);
