@@ -13,3 +13,37 @@
 
 ---
 # YOLO
+
+
+---
+
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Run server
+```
+python server.py
+```
+
+
+<div>
+  <h3> Used Technologies </h3>
+  <img src="" alt="logo">
+</div>
