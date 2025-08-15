@@ -1,4 +1,7 @@
- # ==============================================================================
+# Apply gevent monkey patching at the very top to prevent conflicts with libraries like torch
+from gevent import monkey
+monkey.patch_all()
+# ==============================================================================
 # Imports
 # ==============================================================================
 import json
@@ -95,8 +98,8 @@ def get_yolo_model():
 # Helper Functions
 # ==============================================================================
 def generate_meal_image(meal):
-    # This function generates a single image for a given meal.
-    # It will be called in parallel for efficiency.
+    """This function generates a single image for a given meal.
+        It will be called in parallel for efficiency."""
     try:
         meal_name = meal.get("mealName")
         # Create a high-quality, descriptive prompt for better results
@@ -109,8 +112,8 @@ def generate_meal_image(meal):
             image_prompt,
             model="stabilityai/stable-diffusion-xl-base-1.0",
             negative_prompt="cartoon, drawing, anime, ugly, deformed, blurry",
-            height=1024,
-            width=1024,
+            height=512,
+            width=512,
             num_inference_steps=30
         )
         
@@ -195,63 +198,65 @@ def detect():
     except Exception as e:
         print(f"!!! ERROR in /detect: {e} !!!")
         traceback.print_exc()
-        return jsonify({"error": "An error occurred during image detection."}), 500
+        return jsonify({"Error": "An error occurred during image detection."}), 500
 
 @app.route("/process-video", methods=["POST"])
 def process_video():
-    """Receives a video, extracts frames, detects items, and returns labels AND a thumbnail."""
+    """Receives a video, extracts frames, resizes them, detects items, and returns labels AND a thumbnail."""
     if 'video' not in request.files:
-        return jsonify({"error": "No video file provided"}), 400
+        return jsonify({"Error": "No video file provided"}), 400
     
     video_file = request.files['video']
     if video_file.filename == '':
-        return jsonify({"error": "No file selected"}), 400
+        return jsonify({"Error": "No file selected"}), 400
 
     t_start = time.time()
     print("\n--- Received new request for /process-video ---")
 
     with tempfile.TemporaryDirectory() as temp_dir:
-        video_path = os.path.join(temp_dir, "input_video") # Use a generic name
+        video_path = os.path.join(temp_dir, "input_video")
         video_file.save(video_path)
         
         t_uploaded = time.time()
         print(f"DEBUG: Video saved to temp path in {t_uploaded - t_start:.2f} seconds")
 
-        # --- Use FFmpeg to extract frames (1 frame per second) ---
         frames_output_pattern = os.path.join(temp_dir, 'frame-%03d.jpg')
         thumbnail_path = os.path.join(temp_dir, 'thumbnail.jpg')
         
         try:
-            # Extract all frames for processing
-            subprocess.run(
-                ['ffmpeg', '-i', video_path, '-vf', 'fps=1', frames_output_pattern],
-                check=True, capture_output=True, text=True
-            )
-            # Extract just the first frame for the thumbnail
-            subprocess.run(
-                ['ffmpeg', '-i', video_path, '-ss', '00:00:01.000', '-vframes', '1', thumbnail_path],
-                check=True, capture_output=True, text=True
-            )
+            subprocess.run(['ffmpeg', '-i', video_path, '-vf', 'fps=1', frames_output_pattern], check=True, capture_output=True, text=True)
+            subprocess.run(['ffmpeg', '-i', video_path, '-ss', '00:00:01.000', '-vframes', '1', thumbnail_path], check=True, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             print(f"!!! FFmpeg ERROR: {e.stderr} !!!")
             return jsonify({"error": "Failed to process video with FFmpeg."}), 500
 
-        # --- Process each frame with YOLO ---
         model = get_yolo_model()
         all_detected_labels = set()
         extracted_frames = sorted([f for f in os.listdir(temp_dir) if f.startswith('frame-')])
+        
+        # --- RESIZING ---
+        MAX_RESOLUTION = (1280, 1280)
 
         for frame_filename in extracted_frames:
             frame_path = os.path.join(temp_dir, frame_filename)
             try:
+                # Open the frame image with PIL
+                with Image.open(frame_path) as img:
+                    # Check if resizing is needed
+                    if img.width > MAX_RESOLUTION[0] or img.height > MAX_RESOLUTION[1]:
+                        img.thumbnail(MAX_RESOLUTION, Image.Resampling.LANCZOS)
+                        # Overwrite the original frame with the resized version
+                        img.save(frame_path)
+
+                # Run YOLO prediction on the (potentially resized) frame
                 results = model.predict(source=frame_path, imgsz=[640, 640])
                 frame_labels = {results[0].names[int(box.cls[0])] for box in results[0].boxes}
                 all_detected_labels.update(frame_labels)
             except Exception as e:
                 print(f"!!! Could not process frame {frame_filename}: {e} !!!")
                 continue
+        # --- END OF RESIZING ---
 
-        # --- Encode thumbnail to base64 ---
         thumbnail_base64 = None
         if os.path.exists(thumbnail_path):
             with open(thumbnail_path, "rb") as image_file:
@@ -280,7 +285,7 @@ def generate_meals():
 
         data = request.json
         if not data:
-            return jsonify({"error": "No JSON data received"}), 400
+            return jsonify({"Error": "No JSON data received"}), 400
             
         ingredients_str = ", ".join(data.get("ingredients", []))
         dietary_preferences = data.get('dietary_preferences', '')
@@ -329,7 +334,7 @@ def generate_meals():
         json_text = response.text.strip().removeprefix("```json").removesuffix("```")
         meal_data = json.loads(json_text)
 
-        # --- Start of new image generation logic ---
+        # --- Start of new image generation ---
         # Check if the Hugging Face client is configured
         if hf_client:
             # DEBUG: Check if this block is being entered
@@ -358,7 +363,7 @@ def generate_meals():
             # If no HF token is set, do not generate images
             for meal in meal_data["meals"]:
                 meal["image"] = None
-        # --- End of new image generation logic ---
+        # --- End of new image generation ---
 
         t_total_end = time.time()
         print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
@@ -368,7 +373,7 @@ def generate_meals():
     except Exception as e:
         print(f"!!! ERROR in /generate-meals: {e} !!!")
         traceback.print_exc()
-        return jsonify({"error": "An error occurred while generating meals."}), 500
+        return jsonify({"Error": "An error occurred while generating meals."}), 500
 
 @app.route('/send-email', methods=['POST'])
 def send_email():

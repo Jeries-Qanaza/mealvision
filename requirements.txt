@@ -11,3 +11,4 @@ requests
 google-generativeai
 python-dotenv
 huggingface_hub
+gevent
