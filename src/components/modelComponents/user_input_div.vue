@@ -359,6 +359,14 @@ export default {
       }
       console.log("Total ingredients list updated:", newItems);
     },
+    // Debugging to the console the meal type filter
+    selectedMealTime(newSelection) {
+      if (newSelection) {
+        console.log(`Meal Type selected: ${newSelection}`);
+      } else {
+        console.log("Meal Type filter cleared.");
+      }
+    },
   },
   beforeUnmount() {
     document.removeEventListener("mousedown", this.handleClickOutside_Diet);
