@@ -1,4 +1,5 @@
 <template>
+  <NavBar style="background-color: #174329;"/>
   <div class="contact-us-container">
     <div class="contact-us-form">
       <h2 class="heading-gradient">Contact Us</h2>
@@ -20,30 +21,31 @@
         >
           {{ loading ? 'Sending...' : 'Send Message' }}
         </button>
-
       </form>
     </div>
     <div class="contact-us-illustration">
       <img
         src="@/assets/contact.jpg"
         alt="Contact Image"
-        style="max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px rgb(255, 165, 0);"
+        style="max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px #719920;"
       />
     </div>
   </div>
 </template>
 
 <script>
+import NavBar from "../components/navbar/navbar.vue";
 export default {
   name: "ContactUs",
+  components: {
+    NavBar,
+  },
   data() {
     return {
       name: "",
       email: "",
       message: "",
       loading: false,
-      primaryColor: "orange", // Consistent primary color
-      darkColor: "#191b31",
     };
   },
   methods: {
@@ -88,11 +90,12 @@ export default {
   align-items: center;
   padding: 40px;
   border-radius: 16px;
-  background-color: #0c1021;
-  box-shadow: 0 12px 24px rgba(255, 165, 0, 0.3);
+  background-color: #ffffff;
+  box-shadow: 0 12px 24px #174329;
   flex-wrap: wrap;
   margin: 20px;
-  border: 1px solid #191b31;
+  margin-top: 7%;
+  border: 1px solid #174329;
 }
 
 .contact-us-form {
@@ -103,16 +106,15 @@ export default {
 }
 
 .contact-us-form h2 {
-  color: #ff8c00;
   margin-bottom: 30px;
   font-size: 32px;
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  background-image: linear-gradient(to right, #ff8c00, #ff4500);
+  background-image: linear-gradient(to right, #719920, #174329);
   -webkit-background-clip: text;
   color: transparent;
+  text-shadow: 1px 1px 2px rgba(113, 153, 32, 0.4);
 }
 
 .form-group {
@@ -124,18 +126,18 @@ textarea {
   width: 100%;
   padding: 15px;
   border-radius: 8px;
-  border: 1px solid #4a148c;
+  border: 1px solid #174329;
   font-size: 16px;
   transition: border-color 0.3s;
-  background-color: #191b31;
-  color: #eee;
+  background-color: #f8f8f8;
+  color: #333;
 }
 
 input:focus,
 textarea:focus {
   outline: none;
-  border-color: #ff8c00;
-  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.3);
+  border-color: #174329;
+  box-shadow: 0 4px 8px rgba(113, 153, 32, 0.3);
 }
 
 textarea {
@@ -151,14 +153,14 @@ textarea {
   transition: all 0.3s;
   font-size: 18px;
   font-weight: 500;
-  background-image: linear-gradient(to right, #ff8c00, #ff4500);
-  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-  border: 2px solid #ff6f00;
+  background-image: linear-gradient(to right, #719920, #174329);
+  box-shadow: 0 5px 10px rgba(113, 153, 32, 0.3);
+  border: 2px solid #719920;
 }
 
 .button-gradient:hover {
-  background-image: linear-gradient(to right, #ff7f00, #e65100);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);
+  background-image: linear-gradient(to right, #89b833, #174329);
+  box-shadow: 0 6px 12px rgba(113, 153, 32, 0.4);
   transform: translateY(-2px);
 }
 
@@ -173,7 +175,7 @@ textarea {
 .contact-us-illustration img {
   max-width: 100%;
   border-radius: 12px;
-  box-shadow: 0 10px 30px rgb(255, 166, 0);
+  box-shadow: 0 10px 30px #174329;
   transition: transform 0.3s ease;
 }
 
@@ -217,11 +219,13 @@ textarea {
     font-size: 16px;
     padding: 12px 24px;
   }
-}.button-gradient.loading {
+}
+
+.button-gradient.loading {
   position: relative;
   pointer-events: none;
   color: transparent;
-  background-color: #ff8c00;
+  background-color: #174329;
   opacity: 0.9;
 }
 
@@ -247,6 +251,4 @@ textarea {
     box-shadow: 12px 0 white, -12px 0 white;
   }
 }
-
-
 </style>

@@ -41,7 +41,7 @@
 
 /* container */
 .container {
-  background-color: rgba(25, 27, 49, 0.8);
+  background-color: #174329;
   border-radius: 15px;
   padding: 30px;
   text-align: center;
@@ -63,7 +63,6 @@
   gap: 10px;
   margin-bottom: 40px;
   z-index: 1000;
-  background-color: rgba(25, 27, 49, 0.8);
   padding-top: 10px;
   padding-right: 10px;
 }

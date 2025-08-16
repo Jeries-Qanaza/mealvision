@@ -2,14 +2,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #191b31;
   padding: 1rem 2rem;
-  border-radius: 0 0 1rem 1rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
-  position: sticky;
-  top: 0;
   z-index: 1000;
   flex-wrap: wrap;
+  transition: top 0.3s ease; /* smooth hide/show */
+  top: 0;
+  left: 0;
+  background-color: #3d592600;
+  position: absolute;
+  width: 100%;
+  height: fit-content;
+}
+
+.hidden-navbar {
+  top: -100px; /* move out of view */
 }
 
 .brand {
@@ -36,6 +42,7 @@
   color: orange;
   text-decoration: none;
   font-weight: 500;
+  font-weight: bold;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   transition: 0.3s ease;
@@ -180,3 +187,4 @@
     padding: 1rem;
   }
 }
+
