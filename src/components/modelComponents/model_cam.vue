@@ -239,9 +239,17 @@ export default {
     existingItems: {
       type: Array,
       default: () => []
-    }
+    },
+     existingPreviewImages: {
+    type: Array,
+    default: () => []
   },
-  emits: ["camera-error", "camera-ready", "items-updated", "processing-state"],
+  existingVideoItems: {
+    type: Array,
+    default: () => []
+  }
+  },
+emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "media-updated"],
   data() {
     return {
       stream: null,
@@ -302,7 +310,23 @@ export default {
       },
       immediate: true,
       deep: true
-    }
+    },
+      existingPreviewImages: {
+    handler(newImages) {
+      this.previewImages = [...newImages];
+      this.updateAllDetectedItems();
+    },
+    immediate: true,
+    deep: true
+  },
+  existingVideoItems: {
+    handler(newVideos) {
+      this.videoItems = [...newVideos];
+      this.updateAllDetectedItems();
+    },
+    immediate: true,
+    deep: true
+  }
   },
   mounted() {
     this.initCamera();
@@ -353,6 +377,13 @@ export default {
         })
       ];
     },
+
+      emitMediaUpdate() {
+    this.$emit("media-updated", {
+      previewImages: this.previewImages,
+      videoItems: this.videoItems
+    });
+  },
 
     async initCamera() {
       this.debugInfo = "Initializing camera...";
@@ -719,69 +750,72 @@ export default {
       this.$emit("processing-state", false);
     },
 
-    // Process image files
-    async processImageFiles(files) {
-      this.$emit("processing-state", true);
-      this.isProcessing = true;
-      this.processingMessage = "Processing images...";
+    
+ async processImageFiles(files) {
+    this.$emit("processing-state", true);
+    this.isProcessing = true;
+    this.processingMessage = "Processing images...";
 
-      let initialDebugInfo = this.debugInfo;
+    let initialDebugInfo = this.debugInfo;
 
-      for (const file of files) {
-        try {
-          const formData = new FormData();
-          formData.append("image", file, file.name);
+    for (const file of files) {
+      try {
+        const formData = new FormData();
+        formData.append("image", file, file.name);
 
-          this.debugInfo = `Sending "${file.name}" to server...`;
+        this.debugInfo = `Sending "${file.name}" to server...`;
 
-          const response = await fetch(`${API_BASE}/detect`, {
-            method: "POST",
-            body: formData,
-          });
-          if (!response.ok)
-            throw new Error(`Detection failed for ${file.name}`);
+        const response = await fetch(`${API_BASE}/detect`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok)
+          throw new Error(`Detection failed for ${file.name}`);
 
-          const result = await response.json();
-          const uniqueLabels = [...new Set(result.labels)];
+        const result = await response.json();
+        const uniqueLabels = [...new Set(result.labels)];
 
-          const previewURL = await this.readFileAsDataURL(file);
-          this.previewImages.push({
-            name: file.name,
-            url: previewURL,
-            labels: uniqueLabels,
-            size: file.size,
-          });
-        } catch (error) {
-          this.debugInfo = `Error: ${error.message}`;
-          console.error("Processing error:", error);
-          break;
-        }
+        const previewURL = await this.readFileAsDataURL(file);
+        this.previewImages.push({
+          name: file.name,
+          url: previewURL,
+          labels: uniqueLabels,
+          size: file.size,
+        });
+      } catch (error) {
+        this.debugInfo = `Error: ${error.message}`;
+        console.error("Processing error:", error);
+        break;
       }
+    }
 
-      this.updateAllDetectedItems();
-      this.debugInfo =
-        this.previewImages.length > 0
-          ? "Image processing complete."
-          : initialDebugInfo;
-      this.isProcessing = false;
-      this.processingMessage = "";
-      this.$emit("processing-state", false);
-    },
+    this.updateAllDetectedItems();
+    this.emitMediaUpdate(); // ADD THIS
+    this.debugInfo =
+      this.previewImages.length > 0
+        ? "Image processing complete."
+        : initialDebugInfo;
+    this.isProcessing = false;
+    this.processingMessage = "";
+    this.$emit("processing-state", false);
+  },
 
-    // Add video to queue without processing
-    async addVideoToQueue(videoFile, posterDataUrl) {
-      const previewURL = await this.readFileAsDataURL(videoFile);
-      this.videoItems.push({
-        name: videoFile.name,
-        url: previewURL,
-        poster: posterDataUrl, // Use the poster from the server
-        size: videoFile.size,
-        status: "processing",
-        labels: [],
-        extractedFrames: 0,
-        file: videoFile,
-      });
-    },
+  // UPDATE addVideoToQueue method - add emitMediaUpdate() at the end:
+  async addVideoToQueue(videoFile, posterDataUrl) {
+    const previewURL = await this.readFileAsDataURL(videoFile);
+    this.videoItems.push({
+      name: videoFile.name,
+      url: previewURL,
+      poster: posterDataUrl,
+      size: videoFile.size,
+      status: "processing",
+      labels: [],
+      extractedFrames: 0,
+      file: videoFile,
+    });
+    this.emitMediaUpdate(); // ADD THIS
+  },
+  
 
     // Get video status text
     getVideoStatusText(video) {
@@ -827,15 +861,17 @@ export default {
     },
 
     // Methods for managing the preview grids
-    deleteImage(index) {
-      this.previewImages.splice(index, 1);
-      this.updateAllDetectedItems();
-    },
+     deleteImage(index) {
+    this.previewImages.splice(index, 1);
+    this.updateAllDetectedItems();
+    this.emitMediaUpdate(); // ADD THIS
+  },
 
-    deleteVideo(index) {
-      this.videoItems.splice(index, 1);
-      this.updateAllDetectedItems();
-    },
+     deleteVideo(index) {
+    this.videoItems.splice(index, 1);
+    this.updateAllDetectedItems(); 
+    this.emitMediaUpdate(); // ADD THIS
+  },
 
     // UPDATED: New method that syncs with parent state
     updateAllDetectedItems() {

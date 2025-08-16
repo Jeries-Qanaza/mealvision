@@ -73,25 +73,29 @@
     <hr />
 
     <div class="content">
-      <div v-if="showScan" class="camera-placeholder">
-        <ModelCam
-            @camera-ready="cameraReady = true"
-            @camera-error="handleCameraError"
-            @items-updated="handleItemsUpdated"
-            @processing-state="handleProcessingState"
-            :is-app-busy="isAppBusy"
-            :existing-items="addedItems"
-        />
-        <div v-if="cameraError" class="camera-error">
-          <p>Camera Error: {{ cameraError }}</p>
-          <button @click="retryCamera" :disabled="isAppBusy">
-            Retry Camera
-          </button>
+      <!-- UPDATE your template section in user_input_div.vue -->
+        <div v-if="showScan" class="camera-placeholder">
+          <ModelCam
+              @camera-ready="cameraReady = true"
+              @camera-error="handleCameraError"
+              @items-updated="handleItemsUpdated"
+              @processing-state="handleProcessingState"
+              @media-updated="handleMediaUpdated"
+              :is-app-busy="isAppBusy"
+              :existing-items="addedItems"
+              :existing-preview-images="previewImages"
+              :existing-video-items="videoItems"
+          />
+          <div v-if="cameraError" class="camera-error">
+            <p>Camera Error: {{ cameraError }}</p>
+            <button @click="retryCamera" :disabled="isAppBusy">
+              Retry Camera
+            </button>
+          </div>
+          <div v-else-if="!cameraReady" class="camera-loading">
+            <p>Initializing camera...</p>
+          </div>
         </div>
-        <div v-else-if="!cameraReady" class="camera-loading">
-          <p>Initializing camera...</p>
-        </div>
-      </div>
 
       <ManualBox
           v-if="showManual"
@@ -142,6 +146,8 @@ export default {
       cameraReady: false,
       cameraError: null,
       showFilter: false,
+      previewImages: [], 
+      videoItems: [],   
       dietOptions: [
         "Vegan 🌱",
         "Vegetarian 🥦",
@@ -162,6 +168,11 @@ export default {
     };
   },
   methods: {
+
+    handleMediaUpdated(mediaData) {
+    this.previewImages = mediaData.previewImages || [];
+    this.videoItems = mediaData.videoItems || [];
+    },
     // Method to handle processing state from child components
     handleProcessingState(isProcessing) {
       this.isAppBusy = isProcessing;
@@ -174,11 +185,11 @@ export default {
       this.selectedDiets = [];
     },
     showCamera() {
-      this.showScan = true;
-      this.showManual = false;
-      this.cameraReady = false;
-      this.cameraError = null;
-      this.meals = []; // Clear meals when switching mode
+          this.showScan = true;
+          this.showManual = false;
+          this.cameraReady = false;
+          this.cameraError = null;
+          this.meals = [];
     },
     showManualBox() {
       this.showManual = true;
