@@ -352,6 +352,9 @@ export default {
         document.removeEventListener("mousedown", this.handleClickOutside_Diet);
       }
     },
+    combinedItems(newItems) {
+      console.log("Total ingredients list updated:", newItems);
+    },
   },
   beforeUnmount() {
     document.removeEventListener("mousedown", this.handleClickOutside_Diet);
