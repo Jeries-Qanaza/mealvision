@@ -224,7 +224,6 @@
 </template>
 
 <script>
-import { findEmoji } from "./get_emoji.js";
 const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 
 export default {
