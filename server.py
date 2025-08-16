@@ -460,7 +460,7 @@ def generate_meals():
         json_text = response.text.strip().removeprefix("```json").removesuffix("```")
         meal_data = json.loads(json_text)
 
-        # --- Start of new image generation ---
+        # --- Image generation ---
         if hf_client and meal_data.get("meals"):
             print("DEBUG: Entering image generation block.")
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -480,40 +480,35 @@ def generate_meals():
             if meal_data.get("meals"):
                 for meal in meal_data["meals"]:
                     meal["image"] = None
-        # --- End of new image generation ---
+        # --- End of image generation ---
 
         t_total_end = time.time()
         print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
         return jsonify({"meals_res": meal_data.get("meals", [])})
 
-    except ResourceExhausted as e:
-        # Rate limit errors from Google API
-        error_message_str = str(e).lower()
-        user_message = "The AI model is temporarily unavailable due to high traffic. Please try again later."
-        
-        # Check for the specific type of rate limit based on keywords in the error
-        if "perday" in error_message_str or "daily" in error_message_str:
-            user_message = "The daily request limit for the AI model has been reached. This will reset tomorrow."
-            print("DAILY RATE LIMIT EXCEEDED for Gemini API.")
-        elif "perminute" in error_message_str:
-            user_message = "Too many requests made in a short time. Please wait a minute and try again."
-            print("PER-MINUTE RATE LIMIT EXCEEDED for Gemini API.")
-        
-        # Return a specific message and the 429 status code for "Too Many Requests"
-        return jsonify({"Error": user_message}), 429
-
-    except json.JSONDecodeError:
-        # catches errors if the AI returns a non-JSON response
-        print("ERROR: Failed to decode JSON from Gemini response.")
-        traceback.print_exc()
-        return jsonify({"Error": "The AI model returned an invalid response format. Please try again."}), 500
-
     except Exception as e:
-        # Catches all OTHER unexpected errors
+        # CATCH ALL errors, then inspect the error message to decide the response
+        error_message_str = str(e).lower()
         print(f"ERROR in /generate-meals: {e}.")
         traceback.print_exc()
-        return jsonify({"Error": "An unexpected error occurred while generating meals."}), 500
 
+        # Check for keywords related to quota/rate limit errors
+        if "rate limit" in error_message_str or "resource has been exhausted" in error_message_str or "too many requests" in error_message_str:
+            user_message = "You have exceeded the daily request limit for the AI model. Please try again tomorrow."
+            print("QUOTA/RATE LIMIT EXCEEDED for Gemini API.")
+            return jsonify({"error": user_message}), 429
+        
+        # Check for JSON decoding error specifically
+        elif "json" in error_message_str or isinstance(e, json.JSONDecodeError):
+            user_message = "The AI model returned an invalid response format. Please try again."
+            print("ERROR: Failed to decode JSON from Gemini response.")
+            return jsonify({"error": user_message}), 500
+
+        # For all other errors, return a generic server error
+        else:
+            user_message = "An unexpected error occurred while generating meals."
+            return jsonify({"error": user_message}), 500
+       
 # Emails 
 @app.route('/send-email', methods=['POST'])
 def send_email():
