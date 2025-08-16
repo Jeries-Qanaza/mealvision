@@ -352,7 +352,11 @@ export default {
         document.removeEventListener("mousedown", this.handleClickOutside_Diet);
       }
     },
-    combinedItems(newItems) {
+    combinedItems(newItems, oldItems) {
+      // Compare the string representation of the arrays. If they are identical, do nothing
+      if (JSON.stringify(newItems) === JSON.stringify(oldItems)) {
+        return;
+      }
       console.log("Total ingredients list updated:", newItems);
     },
   },
