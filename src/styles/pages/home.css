@@ -50,6 +50,7 @@ body {
 /* YOLO Section */
 .yolo-section {
   padding-bottom: 50px;
+  margin: 40px auto;
 }
 
 .yolo-container {

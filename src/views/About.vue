@@ -65,7 +65,7 @@
       
       <div class="about-project">
         <div class="tech-carousel">
-          <h2 style="color: orange;">Used Technologies</h2>
+          <h2 style="color: #174329;">Used Technologies</h2>
           <div class="carousel-track">
             <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
             <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
