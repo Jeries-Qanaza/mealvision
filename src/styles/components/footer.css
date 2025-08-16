@@ -42,3 +42,15 @@
 #yvc_logo {
   border-radius: 10%;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column; /* Stack items vertically on smaller screens */
+    text-align: center; /* Center text for smaller screens */
+  }
+
+  .footer-content > div {
+    margin-bottom: 20px; /* Adjust margin for smaller screens */
+  }
+}

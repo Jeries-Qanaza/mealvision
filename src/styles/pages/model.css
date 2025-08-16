@@ -19,3 +19,23 @@
 .manual-container p {
   font-size: 1.5em;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .manual-container {
+    padding: 10px; /* Adjust padding for smaller screens */
+    flex-direction: column; /* Stack items vertically on smaller screens */
+  }
+
+  .overlay {
+    padding: 10px; /* Adjust padding for smaller screens */
+  }
+
+  .manual-container h1 {
+    font-size: 2em; /* Adjust font size for smaller screens */
+  }
+
+  .manual-container p {
+    font-size: 1.2em; /* Adjust font size for smaller screens */
+  }
+}

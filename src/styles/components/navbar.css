@@ -42,7 +42,6 @@
   color: orange;
   text-decoration: none;
   font-weight: 500;
-  font-weight: bold;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   transition: 0.3s ease;
@@ -130,7 +129,7 @@
   position: absolute;
   top: 70px;
   right: 20px;
-  background: rgba(25, 27, 49, 0.98);
+  background: #174329;
   padding: 1rem;
   border-radius: 10px;
   gap: 1rem;
@@ -187,4 +186,3 @@
     padding: 1rem;
   }
 }
-

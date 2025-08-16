@@ -1,5 +1,4 @@
-body
-{
+body {
   margin: 0;
 }
 
@@ -48,14 +47,9 @@ body
   width: 80%;
 }
 
-
-
-
 /* YOLO Section */
 .yolo-section {
   padding-bottom: 50px;
-  display: flex;
-  justify-content: center;
 }
 
 .yolo-container {
@@ -134,7 +128,7 @@ body
   margin: 40px auto;
   width: 80%;
   max-width: 1000px;
-  background: linear-gradient(to right, #191b3100,#174329);
+  background: linear-gradient(to right, #191b3100, #174329);
   border-radius: 20px;
   display: flex;
   font-family: "Mogra", system-ui;
@@ -195,17 +189,7 @@ body
   }
 }
 
-
-  .header-content h1 {
-    font-size: 2.2em;
-  }
-
-  .header-content p {
-    font-size: 1.1em;
-  }
-
-#first-title
-{
+#first-title {
   font-size: 90px;
   margin: 0;
 }

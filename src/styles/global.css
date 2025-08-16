@@ -60,3 +60,14 @@ button:hover {
 .btn-solid:hover:not(:disabled) {
   background-color: darkorange;
 }
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  body {
+    font-size: 14px; /* Adjust font size for smaller screens */
+  }
+
+  #app {
+    padding: 10px; /* Add padding for smaller screens */
+  }
+}

@@ -61,6 +61,27 @@
 </div>
 
       </div>
+
+      
+      <div class="about-project">
+        <div class="tech-carousel">
+          <h2 style="color: orange;">Used Technologies</h2>
+          <div class="carousel-track">
+            <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
+            <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
+            <div class="tech-slide"> <img src="@/assets/vueJSlogo.png" alt="Vue.js"> </div>
+            <div class="tech-slide"> <img src="@/assets/Gemini.png" alt="Gemini"> </div>
+            <div class="tech-slide"> <img src="@/assets/stable_diffusion.png" alt="Stable Diffusion"> </div>
+            <div class="tech-slide"> <img src="@/assets/yolo.png" alt="YOLO"> </div>
+            <div class="tech-slide"> <img src="@/assets/oracle_cloud.png" alt="Oracle Cloud"> </div>
+            <div class="tech-slide"> <img src="@/assets/google_colab.jpg" alt="Google Colab"> </div>
+          </div>
+        </div>
+
+
+      </div>
+
+
   </div> 
 </template> 
  
@@ -268,5 +289,75 @@ export default {
     width: 90%;
     max-width: 350px;
   }
+}
+
+
+.tech-carousel {
+    width: 100%;
+    max-width: 800px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.carousel-track {
+    display: flex;
+    animation: scroll 15s linear infinite;
+    gap: 30px;
+}
+
+.tech-slide {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: transform 0.3s ease;
+    min-width: 120px;
+}
+
+.tech-slide:hover {
+    transform: translateY(-5px);
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.tech-slide img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+}
+
+
+@keyframes scroll {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+/* Pause on hover */
+.tech-carousel:hover .carousel-track {
+    animation-play-state: paused;
+}
+
+@media (max-width: 600px) {
+    .tech-slide {
+        min-width: 100px;
+        padding: 15px;
+    }
+    
+    .tech-slide img {
+        width: 45px;
+        height: 45px;
+    }
+  
 }
 </style>
