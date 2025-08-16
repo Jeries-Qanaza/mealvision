@@ -54,7 +54,7 @@ GEMINI_API_KEY = os.getenv("VUE_APP_GEMINI_KEY")
 if not GEMINI_API_KEY:
     raise RuntimeError("Missing Gemini API key.")
 genai.configure(api_key=GEMINI_API_KEY)
-Gmodel = genai.GenerativeModel("gemini-1.5-flash")
+Gmodel = genai.GenerativeModel("Gemini 2.5 Flash-Lite")
 
 try:
     # Validate the key and connection
