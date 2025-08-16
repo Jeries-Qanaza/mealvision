@@ -118,8 +118,10 @@
     >
       <!-- Images Grid -->
       <div v-if="previewImages.length > 0" class="content-section">
-        <h3 class="section-title">Images ({{ previewImages.length }})</h3>
-
+        <u>
+          <h3 class="section-title">Images ({{ previewImages.length }})</h3>
+        </u>
+        
         <div class="image-grid">
           <div
             v-for="(img, index) in previewImages"
@@ -147,7 +149,11 @@
 
       <!-- Videos Grid -->
       <div v-if="videoItems.length > 0" class="content-section">
-        <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
+        <u>
+          <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
+        </u>
+
+        
 
         <div class="video-grid">
           <div
