@@ -82,7 +82,6 @@
           @processing-state="handleProcessingState"
           @media-updated="handleMediaUpdated"
           :is-app-busy="isAppBusy"
-          :existing-items="scannedItems"
           :existing-preview-images="previewImages"
           :existing-video-items="videoItems"
         />
