@@ -73,7 +73,6 @@
     <hr />
 
     <div class="content">
-      <!-- UPDATE your template section in user_input_div.vue -->
       <div v-if="showScan" class="camera-placeholder">
         <ModelCam
           @camera-ready="cameraReady = true"
@@ -82,6 +81,7 @@
           @processing-state="handleProcessingState"
           @media-updated="handleMediaUpdated"
           :is-app-busy="isAppBusy"
+          :total-ingredients="combinedItems"
           :existing-preview-images="previewImages"
           :existing-video-items="videoItems"
         />

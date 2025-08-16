@@ -224,9 +224,9 @@
       <div class="processing-text">{{ processingMessage }}</div>
     </div>
 
-    <div id="labels">
-      <u>Detected Labels </u> <br />
-      <span>{{ allDetectedItems.join(", ") }}</span>
+    <div v-if="totalIngredients.length > 0" id="labels">
+      <u>Total Ingredients:</u> <br />
+      <span>{{ totalIngredients.join(", ") }}</span>
     </div>
 
     <div v-if="debugInfo" class="debug-info">
@@ -244,6 +244,10 @@ export default {
     isAppBusy: {
       type: Boolean,
       default: false,
+    },
+    totalIngredients: {
+      type: Array,
+      default: () => [],
     },
     existingPreviewImages: {
       type: Array,
