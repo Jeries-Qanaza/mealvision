@@ -78,11 +78,11 @@
         <ModelCam
           @camera-ready="cameraReady = true"
           @camera-error="handleCameraError"
-          @items-updated="handleItemsUpdated"
+          @scanned-items-updated="handleScannedItemsUpdate"
           @processing-state="handleProcessingState"
           @media-updated="handleMediaUpdated"
           :is-app-busy="isAppBusy"
-          :existing-items="addedItems"
+          :existing-items="scannedItems"
           :existing-preview-images="previewImages"
           :existing-video-items="videoItems"
         />
@@ -99,9 +99,9 @@
 
       <ManualBox
         v-if="showManual"
-        @items-updated="handleItemsUpdated"
+        @manual-items-updated="handleManualItemsUpdate"
         :is-app-busy="isAppBusy"
-        :existing-items="addedItems"
+        :existing-items="manualItems"
       />
     </div>
 
@@ -139,7 +139,8 @@ export default {
     return {
       showScan: true,
       showManual: false,
-      addedItems: [],
+      scannedItems: [], // From Scan
+      manualItems: [], // From Manually
       meals: [],
       isLoading: false, // For the skeleton screen specifically
       isAppBusy: false, // Global state for disabling all controls
@@ -166,6 +167,22 @@ export default {
       selectedMealTime: "", // Empty string means no preference
       errorMessage: "",
     };
+  },
+  computed: {
+    // Creates an unified  list from both sources
+    combinedItems() {
+      const combined = [...this.scannedItems, ...this.manualItems];
+      // Set in order to handle duplicates after cleaning the items
+      const unique = new Set(
+        combined
+          .map((rawItem) => {
+            if (typeof rawItem !== "string") return ""; // Safety check
+            return rawItem.split(" ")[0].toLowerCase();
+          })
+          .filter((item) => item) // Filter out any empty strings
+      );
+      return [...unique];
+    },
   },
   methods: {
     handleMediaUpdated(mediaData) {
@@ -195,20 +212,20 @@ export default {
       this.showScan = false;
       this.meals = []; // Clear meals when switching mode
     },
-    handleItemsUpdated(items) {
-      const unique = new Set();
-      items.forEach((raw) => {
-        const word = raw.split(" ")[0].toLowerCase();
-        if (word) unique.add(word);
-      });
-      this.addedItems = [...unique];
-      this.meals = []; // Clear previous meals when ingredients change
-
-      if (this.addedItems.length) {
+    // Items from ModelCam
+    handleScannedItemsUpdate(items) {
+      this.scannedItems = items || [];
+      this.meals = []; // Clear previous meals on any change
+      if (this.combinedItems.length > 0) {
         this.errorMessage = "";
-        console.info("Current ingredients list:", this.addedItems);
-      } else {
-        this.meals = [];
+      }
+    },
+    // Items from ManualBox
+    handleManualItemsUpdate(items) {
+      this.manualItems = items || [];
+      this.meals = []; // Clear previous meals on any change
+      if (this.combinedItems.length > 0) {
+        this.errorMessage = "";
       }
     },
     handleCameraError(error) {
@@ -245,11 +262,11 @@ export default {
       }
 
       // Case 2: No items added. Show error, clear old meals, and log a warning.
-      if (!this.addedItems.length) {
+      if (!this.combinedItems.length) {
         this.errorMessage =
           "You must scan or add at least one ingredient first.";
         this.meals = [];
-        console.warn("GenerateMeals aborted – addedItems empty", {
+        console.warn("GenerateMeals aborted – combinedItems empty", {
           selectedDiets: this.selectedDiets,
         });
         return;
@@ -265,7 +282,7 @@ export default {
       try {
         // Optional meal_type filter
         const payload = {
-          ingredients: this.addedItems,
+          ingredients: this.combinedItems,
           dietary_preferences: dietaryPreferencesStr,
         };
         if (this.selectedMealTime) {

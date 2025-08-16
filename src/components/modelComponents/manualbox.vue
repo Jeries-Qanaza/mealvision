@@ -61,6 +61,7 @@ export default {
       default: () => [],
     },
   },
+  emits: ["manual-items-updated"],
   data() {
     return {
       searchQuery: "",
@@ -161,7 +162,7 @@ export default {
       const emoji = findEmoji(term);
       this.searchHistory.unshift({ text: term, emoji });
       this.$emit(
-        "items-updated",
+        "manual-items-updated",
         this.searchHistory.map(
           (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
         )
@@ -174,7 +175,7 @@ export default {
     removeFromHistory(index) {
       this.searchHistory.splice(index, 1);
       this.$emit(
-        "items-updated",
+        "manual-items-updated",
         this.searchHistory.map(
           (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
         )

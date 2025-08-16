@@ -234,11 +234,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    // NEW: Accept existing items from parent component
-    existingItems: {
-      type: Array,
-      default: () => [],
-    },
     existingPreviewImages: {
       type: Array,
       default: () => [],
@@ -251,7 +246,7 @@ export default {
   emits: [
     "camera-error",
     "camera-ready",
-    "items-updated",
+    "scanned-items-updated",
     "processing-state",
     "media-updated",
   ],
@@ -308,14 +303,6 @@ export default {
     },
   },
   watch: {
-    // NEW: Watch for changes in existing items from parent
-    existingItems: {
-      handler(newItems) {
-        this.syncWithExistingItems(newItems);
-      },
-      immediate: true,
-      deep: true,
-    },
     existingPreviewImages: {
       handler(newImages) {
         this.previewImages = [...newImages];
@@ -340,51 +327,6 @@ export default {
     this.stopCamera();
   },
   methods: {
-    // NEW: Sync with parent state
-    syncWithExistingItems(existingItems) {
-      if (!existingItems || existingItems.length === 0) {
-        // Only reset if there are no newly detected items
-        const imageItems = this.previewImages.flatMap((img) => img.labels);
-        const videoItems = this.videoItems.flatMap((video) => video.labels);
-        const localDetectedItems = [...imageItems, ...videoItems];
-
-        if (localDetectedItems.length === 0) {
-          this.allDetectedItems = [];
-        }
-        return;
-      }
-
-      // Extract just the ingredient names from existing items (remove emojis)
-      const existingItemNames = existingItems.map((item) => {
-        // If item has emoji, extract just the ingredient name
-        return item.split(" ")[0].toLowerCase();
-      });
-
-      // Get currently detected items
-      const imageItems = this.previewImages.flatMap((img) => img.labels);
-      const videoItems = this.videoItems.flatMap((video) => video.labels);
-      const localDetectedItems = [...imageItems, ...videoItems];
-
-      // Filter out duplicates and combine
-      const newDetectedItems = localDetectedItems.filter(
-        (item) => !existingItemNames.includes(item.toLowerCase())
-      );
-
-      // Combine existing items with newly detected items
-      this.allDetectedItems = [
-        ...existingItems, // Keep original format from parent (with emojis)
-        ...newDetectedItems
-          .filter(
-            (item, index, self) => self.indexOf(item) === index // Remove duplicates
-          )
-          .map((item) => {
-            // Add emojis to new detected items
-            const emoji = findEmoji(item);
-            return emoji ? `${item} ${emoji}` : item;
-          }),
-      ];
-    },
-
     emitMediaUpdate() {
       this.$emit("media-updated", {
         previewImages: this.previewImages,
@@ -892,7 +834,7 @@ export default {
       this.allDetectedItems = uniqueLabels;
 
       // Emit the complete, recalculated list to the parent component
-      this.$emit("items-updated", this.allDetectedItems);
+      this.$emit("scanned-items-updated", this.allDetectedItems);
     },
 
     handleDragOver(event) {
