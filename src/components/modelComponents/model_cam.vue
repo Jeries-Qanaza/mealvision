@@ -121,7 +121,7 @@
         <u>
           <h3 class="section-title">Images ({{ previewImages.length }})</h3>
         </u>
-        
+
         <div class="image-grid">
           <div
             v-for="(img, index) in previewImages"
@@ -152,8 +152,6 @@
         <u>
           <h3 class="section-title">Videos ({{ videoItems.length }})</h3>
         </u>
-
-        
 
         <div class="video-grid">
           <div
@@ -215,7 +213,8 @@
     </div>
 
     <div id="labels">
-      <u>Detected Labels </u> <br/> <span>{{ allDetectedItems.join(", ") }}</span>
+      <u>Detected Labels </u> <br />
+      <span>{{ allDetectedItems.join(", ") }}</span>
     </div>
 
     <div v-if="debugInfo" class="debug-info">
@@ -225,7 +224,7 @@
 </template>
 
 <script>
-import { findEmoji } from './get_emoji.js';
+import { findEmoji } from "./get_emoji.js";
 const API_BASE = process.env.VUE_APP_API_BASE; // Save the Backend url in a variable
 
 export default {
@@ -238,18 +237,24 @@ export default {
     // NEW: Accept existing items from parent component
     existingItems: {
       type: Array,
-      default: () => []
+      default: () => [],
     },
-     existingPreviewImages: {
-    type: Array,
-    default: () => []
+    existingPreviewImages: {
+      type: Array,
+      default: () => [],
+    },
+    existingVideoItems: {
+      type: Array,
+      default: () => [],
+    },
   },
-  existingVideoItems: {
-    type: Array,
-    default: () => []
-  }
-  },
-emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "media-updated"],
+  emits: [
+    "camera-error",
+    "camera-ready",
+    "items-updated",
+    "processing-state",
+    "media-updated",
+  ],
   data() {
     return {
       stream: null,
@@ -309,24 +314,24 @@ emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "me
         this.syncWithExistingItems(newItems);
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
-      existingPreviewImages: {
-    handler(newImages) {
-      this.previewImages = [...newImages];
-      this.updateAllDetectedItems();
+    existingPreviewImages: {
+      handler(newImages) {
+        this.previewImages = [...newImages];
+        this.updateAllDetectedItems();
+      },
+      immediate: true,
+      deep: true,
     },
-    immediate: true,
-    deep: true
-  },
-  existingVideoItems: {
-    handler(newVideos) {
-      this.videoItems = [...newVideos];
-      this.updateAllDetectedItems();
+    existingVideoItems: {
+      handler(newVideos) {
+        this.videoItems = [...newVideos];
+        this.updateAllDetectedItems();
+      },
+      immediate: true,
+      deep: true,
     },
-    immediate: true,
-    deep: true
-  }
   },
   mounted() {
     this.initCamera();
@@ -342,48 +347,50 @@ emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "me
         const imageItems = this.previewImages.flatMap((img) => img.labels);
         const videoItems = this.videoItems.flatMap((video) => video.labels);
         const localDetectedItems = [...imageItems, ...videoItems];
-        
+
         if (localDetectedItems.length === 0) {
           this.allDetectedItems = [];
         }
         return;
       }
-      
+
       // Extract just the ingredient names from existing items (remove emojis)
-      const existingItemNames = existingItems.map(item => {
+      const existingItemNames = existingItems.map((item) => {
         // If item has emoji, extract just the ingredient name
-        return item.split(' ')[0].toLowerCase();
+        return item.split(" ")[0].toLowerCase();
       });
-      
+
       // Get currently detected items
       const imageItems = this.previewImages.flatMap((img) => img.labels);
       const videoItems = this.videoItems.flatMap((video) => video.labels);
       const localDetectedItems = [...imageItems, ...videoItems];
-      
+
       // Filter out duplicates and combine
-      const newDetectedItems = localDetectedItems.filter(item => 
-        !existingItemNames.includes(item.toLowerCase())
+      const newDetectedItems = localDetectedItems.filter(
+        (item) => !existingItemNames.includes(item.toLowerCase())
       );
-      
+
       // Combine existing items with newly detected items
       this.allDetectedItems = [
         ...existingItems, // Keep original format from parent (with emojis)
-        ...newDetectedItems.filter((item, index, self) => 
-          self.indexOf(item) === index // Remove duplicates
-        ).map(item => {
-          // Add emojis to new detected items
-          const emoji = findEmoji(item);
-          return emoji ? `${item} ${emoji}` : item;
-        })
+        ...newDetectedItems
+          .filter(
+            (item, index, self) => self.indexOf(item) === index // Remove duplicates
+          )
+          .map((item) => {
+            // Add emojis to new detected items
+            const emoji = findEmoji(item);
+            return emoji ? `${item} ${emoji}` : item;
+          }),
       ];
     },
 
-      emitMediaUpdate() {
-    this.$emit("media-updated", {
-      previewImages: this.previewImages,
-      videoItems: this.videoItems
-    });
-  },
+    emitMediaUpdate() {
+      this.$emit("media-updated", {
+        previewImages: this.previewImages,
+        videoItems: this.videoItems,
+      });
+    },
 
     async initCamera() {
       this.debugInfo = "Initializing camera...";
@@ -750,72 +757,70 @@ emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "me
       this.$emit("processing-state", false);
     },
 
-    
- async processImageFiles(files) {
-    this.$emit("processing-state", true);
-    this.isProcessing = true;
-    this.processingMessage = "Processing images...";
+    async processImageFiles(files) {
+      this.$emit("processing-state", true);
+      this.isProcessing = true;
+      this.processingMessage = "Processing images...";
 
-    let initialDebugInfo = this.debugInfo;
+      let initialDebugInfo = this.debugInfo;
 
-    for (const file of files) {
-      try {
-        const formData = new FormData();
-        formData.append("image", file, file.name);
+      for (const file of files) {
+        try {
+          const formData = new FormData();
+          formData.append("image", file, file.name);
 
-        this.debugInfo = `Sending "${file.name}" to server...`;
+          this.debugInfo = `Sending "${file.name}" to server...`;
 
-        const response = await fetch(`${API_BASE}/detect`, {
-          method: "POST",
-          body: formData,
-        });
-        if (!response.ok)
-          throw new Error(`Detection failed for ${file.name}`);
+          const response = await fetch(`${API_BASE}/detect`, {
+            method: "POST",
+            body: formData,
+          });
+          if (!response.ok)
+            throw new Error(`Detection failed for ${file.name}`);
 
-        const result = await response.json();
-        const uniqueLabels = [...new Set(result.labels)];
+          const result = await response.json();
+          const uniqueLabels = [...new Set(result.labels)];
 
-        const previewURL = await this.readFileAsDataURL(file);
-        this.previewImages.push({
-          name: file.name,
-          url: previewURL,
-          labels: uniqueLabels,
-          size: file.size,
-        });
-      } catch (error) {
-        this.debugInfo = `Error: ${error.message}`;
-        console.error("Processing error:", error);
-        break;
+          const previewURL = await this.readFileAsDataURL(file);
+          this.previewImages.push({
+            name: file.name,
+            url: previewURL,
+            labels: uniqueLabels,
+            size: file.size,
+          });
+        } catch (error) {
+          this.debugInfo = `Error: ${error.message}`;
+          console.error("Processing error:", error);
+          break;
+        }
       }
-    }
 
-    this.updateAllDetectedItems();
-    this.emitMediaUpdate(); // ADD THIS
-    this.debugInfo =
-      this.previewImages.length > 0
-        ? "Image processing complete."
-        : initialDebugInfo;
-    this.isProcessing = false;
-    this.processingMessage = "";
-    this.$emit("processing-state", false);
-  },
+      this.updateAllDetectedItems();
+      this.emitMediaUpdate(); // ADD THIS
+      this.debugInfo =
+        this.previewImages.length > 0
+          ? "Image processing complete."
+          : initialDebugInfo;
+      this.isProcessing = false;
+      this.processingMessage = "";
+      this.$emit("processing-state", false);
+    },
 
-  // UPDATE addVideoToQueue method - add emitMediaUpdate() at the end:
-  async addVideoToQueue(videoFile, posterDataUrl) {
-    const previewURL = await this.readFileAsDataURL(videoFile);
-    this.videoItems.push({
-      name: videoFile.name,
-      url: previewURL,
-      poster: posterDataUrl,
-      size: videoFile.size,
-      status: "processing",
-      labels: [],
-      extractedFrames: 0,
-      file: videoFile,
-    });
-    this.emitMediaUpdate(); // ADD THIS
-  },
-  
+    // UPDATE addVideoToQueue method - add emitMediaUpdate() at the end:
+    async addVideoToQueue(videoFile, posterDataUrl) {
+      const previewURL = await this.readFileAsDataURL(videoFile);
+      this.videoItems.push({
+        name: videoFile.name,
+        url: previewURL,
+        poster: posterDataUrl,
+        size: videoFile.size,
+        status: "processing",
+        labels: [],
+        extractedFrames: 0,
+        file: videoFile,
+      });
+      this.emitMediaUpdate(); // ADD THIS
+    },
 
     // Get video status text
     getVideoStatusText(video) {
@@ -861,51 +866,32 @@ emits: ["camera-error", "camera-ready", "items-updated", "processing-state", "me
     },
 
     // Methods for managing the preview grids
-     deleteImage(index) {
-    this.previewImages.splice(index, 1);
-    this.updateAllDetectedItems();
-    this.emitMediaUpdate(); // ADD THIS
-  },
+    deleteImage(index) {
+      this.previewImages.splice(index, 1);
+      this.updateAllDetectedItems();
+      this.emitMediaUpdate();
+    },
 
-     deleteVideo(index) {
-    this.videoItems.splice(index, 1);
-    this.updateAllDetectedItems(); 
-    this.emitMediaUpdate(); // ADD THIS
-  },
+    deleteVideo(index) {
+      this.videoItems.splice(index, 1);
+      this.updateAllDetectedItems();
+      this.emitMediaUpdate();
+    },
 
-    // UPDATED: New method that syncs with parent state
+    // Method that syncs with parent state
     updateAllDetectedItems() {
-      const imageItems = this.previewImages.flatMap((img) => img.labels);
-      const videoItems = this.videoItems.flatMap((video) => video.labels);
-      const localDetectedItems = [...imageItems, ...videoItems];
-      
-      // Get existing items from parent (extract just ingredient names)
-      const existingItemNames = this.existingItems.map(item => 
-        item.split(' ')[0].toLowerCase()
-      );
-      
-      // Filter out items that already exist in parent
-      const newDetectedItems = localDetectedItems.filter(item => 
-        !existingItemNames.includes(item.toLowerCase())
-      );
-      
-      // Remove duplicates from new items and add emojis
-      const uniqueNewItems = newDetectedItems.filter((item, index, self) => 
-        self.indexOf(item) === index
-      ).map(item => {
-        const emoji = findEmoji(item);
-        return emoji ? `${item} ${emoji}` : item;
-      });
-      
-      // Combine existing items (original format with emojis) with new detected items
-      const combinedItems = [
-        ...this.existingItems, // Keep original format from parent
-        ...uniqueNewItems      // Add new detected items with emojis
-      ];
-      
-      this.allDetectedItems = combinedItems;
-      
-      // Emit the complete updated list to parent
+      // Get all labels from all current images and videos
+      const imageLabels = this.previewImages.flatMap((img) => img.labels);
+      const videoLabels = this.videoItems.flatMap((video) => video.labels);
+
+      // Combine them into a single list and remove duplicates
+      const allLabels = [...imageLabels, ...videoLabels];
+      const uniqueLabels = [...new Set(allLabels)];
+
+      // Update the local state for display
+      this.allDetectedItems = uniqueLabels;
+
+      // Emit the complete, recalculated list to the parent component
       this.$emit("items-updated", this.allDetectedItems);
     },
 

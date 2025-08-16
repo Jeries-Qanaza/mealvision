@@ -27,6 +27,7 @@
           :key="suggestion"
           :class="{ active: index === activeIndex }"
           @click="selectSuggestion(suggestion)"
+          @mouseover="activeIndex = index"
           v-html="highlightMatch(suggestion)"
         ></li>
       </ul>
@@ -41,7 +42,9 @@
       >
         <span v-html="highlightMatch(item.text)"></span>
         <span v-if="item.emoji"> {{ item.emoji }} </span>
-        <button @click="removeFromHistory(index)" class="remove-button">×</button>
+        <button @click="removeFromHistory(index)" class="remove-button">
+          ×
+        </button>
       </div>
     </div>
   </div>
@@ -55,8 +58,8 @@ export default {
   props: {
     existingItems: {
       type: Array,
-      default: () => []
-    }
+      default: () => [],
+    },
   },
   data() {
     return {
@@ -65,7 +68,7 @@ export default {
       suggestions: [],
       showSuggestions: false,
       activeIndex: -1,
-      debounceTimer: null
+      debounceTimer: null,
     };
   },
   watch: {
@@ -74,7 +77,7 @@ export default {
         this.syncWithExistingItems(newItems);
       },
       immediate: true,
-      deep: true
+      deep: true,
     },
     showSuggestions(isShown) {
       if (isShown) {
@@ -82,14 +85,18 @@ export default {
       } else {
         document.removeEventListener("mousedown", this.handleClickOutside);
       }
-    }
+    },
   },
   methods: {
     // Sync history from parent
     syncWithExistingItems(existingItems) {
-      this.searchHistory = existingItems && existingItems.length
-        ? existingItems.map(term => ({ text: term, emoji: findEmoji(term) }))
-        : [];
+      this.searchHistory =
+        existingItems && existingItems.length
+          ? existingItems.map((term) => ({
+              text: term,
+              emoji: findEmoji(term),
+            }))
+          : [];
     },
 
     // Input handling & autocomplete
@@ -117,9 +124,16 @@ export default {
     },
 
     onEnter() {
+      // If a suggestion is actively highlighted (by mouse or arrows), select it
       if (this.activeIndex !== -1) {
         this.selectSuggestion(this.suggestions[this.activeIndex]);
-      } else {
+      }
+      // If no suggestion is highlighted, but the list is visible, select the first one
+      else if (this.showSuggestions && this.suggestions.length > 0) {
+        this.selectSuggestion(this.suggestions[0]);
+      }
+      // Otherwise (if the list is not visible), add what the user typed
+      else {
         this.addItemFromQuery();
       }
     },
@@ -136,7 +150,7 @@ export default {
       if (!term) return;
 
       const exists = this.searchHistory.some(
-        it => it.text.toLowerCase() === term.toLowerCase()
+        (it) => it.text.toLowerCase() === term.toLowerCase()
       );
       if (exists) {
         this.searchQuery = "";
@@ -148,7 +162,9 @@ export default {
       this.searchHistory.unshift({ text: term, emoji });
       this.$emit(
         "items-updated",
-        this.searchHistory.map(it => `${it.text}${it.emoji ? " " + it.emoji : ""}`)
+        this.searchHistory.map(
+          (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
+        )
       );
 
       this.searchQuery = "";
@@ -159,7 +175,9 @@ export default {
       this.searchHistory.splice(index, 1);
       this.$emit(
         "items-updated",
-        this.searchHistory.map(it => `${it.text}${it.emoji ? " " + it.emoji : ""}`)
+        this.searchHistory.map(
+          (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
+        )
       );
     },
 
@@ -178,13 +196,16 @@ export default {
     },
 
     handleClickOutside(event) {
-      if (this.$refs.searchWrapper && !this.$refs.searchWrapper.contains(event.target)) {
+      if (
+        this.$refs.searchWrapper &&
+        !this.$refs.searchWrapper.contains(event.target)
+      ) {
         this.showSuggestions = false;
       }
-    }
+    },
   },
   beforeUnmount() {
     document.removeEventListener("mousedown", this.handleClickOutside);
-  }
+  },
 };
 </script>

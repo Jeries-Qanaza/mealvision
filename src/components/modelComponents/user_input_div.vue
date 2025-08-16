@@ -74,34 +74,34 @@
 
     <div class="content">
       <!-- UPDATE your template section in user_input_div.vue -->
-        <div v-if="showScan" class="camera-placeholder">
-          <ModelCam
-              @camera-ready="cameraReady = true"
-              @camera-error="handleCameraError"
-              @items-updated="handleItemsUpdated"
-              @processing-state="handleProcessingState"
-              @media-updated="handleMediaUpdated"
-              :is-app-busy="isAppBusy"
-              :existing-items="addedItems"
-              :existing-preview-images="previewImages"
-              :existing-video-items="videoItems"
-          />
-          <div v-if="cameraError" class="camera-error">
-            <p>Camera Error: {{ cameraError }}</p>
-            <button @click="retryCamera" :disabled="isAppBusy">
-              Retry Camera
-            </button>
-          </div>
-          <div v-else-if="!cameraReady" class="camera-loading">
-            <p>Initializing camera...</p>
-          </div>
-        </div>
-
-      <ManualBox
-          v-if="showManual"
+      <div v-if="showScan" class="camera-placeholder">
+        <ModelCam
+          @camera-ready="cameraReady = true"
+          @camera-error="handleCameraError"
           @items-updated="handleItemsUpdated"
+          @processing-state="handleProcessingState"
+          @media-updated="handleMediaUpdated"
           :is-app-busy="isAppBusy"
           :existing-items="addedItems"
+          :existing-preview-images="previewImages"
+          :existing-video-items="videoItems"
+        />
+        <div v-if="cameraError" class="camera-error">
+          <p>Camera Error: {{ cameraError }}</p>
+          <button @click="retryCamera" :disabled="isAppBusy">
+            Retry Camera
+          </button>
+        </div>
+        <div v-else-if="!cameraReady" class="camera-loading">
+          <p>Initializing camera...</p>
+        </div>
+      </div>
+
+      <ManualBox
+        v-if="showManual"
+        @items-updated="handleItemsUpdated"
+        :is-app-busy="isAppBusy"
+        :existing-items="addedItems"
       />
     </div>
 
@@ -146,8 +146,8 @@ export default {
       cameraReady: false,
       cameraError: null,
       showFilter: false,
-      previewImages: [], 
-      videoItems: [],   
+      previewImages: [],
+      videoItems: [],
       dietOptions: [
         "Vegan 🌱",
         "Vegetarian 🥦",
@@ -168,10 +168,9 @@ export default {
     };
   },
   methods: {
-
     handleMediaUpdated(mediaData) {
-    this.previewImages = mediaData.previewImages || [];
-    this.videoItems = mediaData.videoItems || [];
+      this.previewImages = mediaData.previewImages || [];
+      this.videoItems = mediaData.videoItems || [];
     },
     // Method to handle processing state from child components
     handleProcessingState(isProcessing) {
@@ -185,11 +184,11 @@ export default {
       this.selectedDiets = [];
     },
     showCamera() {
-          this.showScan = true;
-          this.showManual = false;
-          this.cameraReady = false;
-          this.cameraError = null;
-          this.meals = [];
+      this.showScan = true;
+      this.showManual = false;
+      this.cameraReady = false;
+      this.cameraError = null;
+      this.meals = [];
     },
     showManualBox() {
       this.showManual = true;
@@ -207,10 +206,10 @@ export default {
 
       if (this.addedItems.length) {
         this.errorMessage = "";
+        console.info("Current ingredients list:", this.addedItems);
       } else {
         this.meals = [];
       }
-      console.info("Current ingredients list:", this.addedItems);
     },
     handleCameraError(error) {
       this.cameraError = error.message || "Failed to access camera";
