@@ -133,7 +133,12 @@
             <div class="item-info">
               <div class="item-name">{{ img.name }}</div>
 
-              <div class="item-labels">{{ img.labels.join(", ") }}</div>
+              <div v-if="img.labels.length > 0" class="item-labels">
+                {{ img.labels.join(", ") }}
+              </div>
+              <div v-else class="item-labels no-detection-message">
+                No items detected
+              </div>
             </div>
 
             <button
@@ -183,6 +188,13 @@
                 class="item-labels"
               >
                 {{ video.labels.join(", ") }}
+              </div>
+
+              <div
+                v-else-if="video.status === 'completed'"
+                class="item-labels no-detection-message"
+              >
+                No items detected
               </div>
             </div>
 
