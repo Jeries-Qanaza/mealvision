@@ -1,6 +1,6 @@
 <template>
-  <NavBar />
   <div class="home-container">
+    <NavBar />
     <div id="homeHeader">
       <div class="header-content">
         <h1 id="first-title">MealVision</h1>

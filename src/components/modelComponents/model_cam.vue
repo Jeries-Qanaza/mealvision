@@ -1,7 +1,5 @@
 <template>
   <div class="camera-container">
-    <h1>YOLO Detection</h1>
-
     <div class="camera-view">
       <video
         ref="videoElement"

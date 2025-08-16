@@ -63,9 +63,9 @@
       </div>
 
       
-      <div class="about-project">
+      <div class="About_Model">
         <div class="tech-carousel">
-          <h2 style="color: #174329;">Used Technologies</h2>
+          <u><h2 style="color: #174329;">Used Technologies</h2> </u>
           <div class="carousel-track">
             <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
             <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
@@ -104,6 +104,12 @@ export default {
 </script> 
  
 <style> 
+.About_Model
+{
+  margin-top: 5px;
+  background-color: orange;
+  border-radius: 60px;
+}
 .about-us-team
 {
   background-color: #174329;
@@ -126,6 +132,7 @@ export default {
   text-align: center; 
   margin-bottom: 3rem;
   max-width: 800px;
+ 
 } 
 
 .about-project h1 {
@@ -316,7 +323,7 @@ export default {
     align-items: center;
     gap: 10px;
     padding: 20px;
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.386);
     border-radius: 12px;
     transition: transform 0.3s ease;
     min-width: 120px;
