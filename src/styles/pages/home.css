@@ -19,7 +19,7 @@ body {
   background-position: center;
   background-attachment: fixed;
   height: 60vh;
-  min-height: 80vh;
+  min-height: 400px; /* Reduced from 80vh */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,6 +45,7 @@ body {
   z-index: 1;
   max-width: 800px;
   width: 80%;
+  padding: 20px; /* Added padding for mobile */
 }
 
 /* YOLO Section */
@@ -161,32 +162,121 @@ body {
   }
 }
 
+/* Improved mobile styles */
 @media (max-width: 768px) {
   #homeHeader {
-    height: 50vh;
+    height: 45vh; /* Reduced height */
+    min-height: 320px; /* Smaller minimum height */
+    background-attachment: scroll; /* Better performance on mobile */
   }
 
   .header-content {
-    padding: 30px;
-    width: 90%;
+    padding: 20px;
+    width: 95%;
   }
 
   .header-content h1 {
-    font-size: 2.8em;
+    font-size: 2.2em; /* Smaller font size */
+    margin-bottom: 10px;
   }
 
   .header-content p {
-    font-size: 1.3em;
+    font-size: 1.1em; /* Smaller subtitle */
+    margin-bottom: 20px;
   }
 
   .yolo-container h2 {
-    font-size: 2.2em;
-    margin-bottom: 40px;
+    font-size: 2em; /* Reduced size */
+    margin-bottom: 30px;
+  }
+
+  .yolo-section {
+    margin: 20px auto; /* Reduced margin */
+    padding: 0 15px; /* Add horizontal padding */
   }
 
   .feature {
     min-width: 100%;
-    max-width: 400px;
+    max-width: 100%;
+    margin-bottom: 20px;
+    padding: 25px 20px; /* Reduced padding */
+  }
+
+  .feature .icon {
+    font-size: 2.5em; /* Smaller icons */
+    margin-bottom: 15px;
+  }
+
+  .feature h4 {
+    font-size: 1.3em;
+  }
+
+  .feature p {
+    font-size: 1em;
+  }
+
+  .video-wrapper {
+    width: 95%;
+    margin: 20px auto;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  #homeHeader {
+    height: 40vh;
+    min-height: 280px;
+  }
+
+  #first-title {
+    font-size: 48px !important; /* Much smaller title */
+    line-height: 1.1;
+  }
+
+  .header-content h1 {
+    font-size: 1.8em;
+  }
+
+  .header-content p {
+    font-size: 1em;
+  }
+
+  .yolo-container h2 {
+    font-size: 1.8em;
+  }
+
+  .feature {
+    padding: 20px 15px;
+  }
+
+  .feature .icon {
+    font-size: 2.2em;
+  }
+
+  .feature h4 {
+    font-size: 1.2em;
+  }
+
+  .video-wrapper {
+    width: 98%;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .video-wrapper video {
+    width: 90%;
+    margin: 5%;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  #homeHeader {
+    height: 80vh;
+  }
+  
+  #first-title {
+    font-size: 60px !important;
   }
 }
 
