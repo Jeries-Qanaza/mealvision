@@ -461,6 +461,8 @@ def generate_meals():
         meal_data = json.loads(json_text)
 
         # --- Image generation ---
+        print("---------- CHECK HF CLIENT -----------")
+        print(hf_client, meal_data.get("meals"))
         if hf_client and meal_data.get("meals"):
             print("DEBUG: Entering image generation block.")
             with concurrent.futures.ThreadPoolExecutor() as executor:
