@@ -502,6 +502,15 @@
         box-shadow: 0 4px 25px rgba(255, 255, 255, 0.15);
     }
 
+    .glassy-preview {
+        width: 60%;
+    }
+
+    #labels
+    {
+      width: 60%;
+    }
+
     .camera-controls-bottom {
         padding: 20px 20px 35px;
     }
