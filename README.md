@@ -56,7 +56,6 @@ npm run lint
 python server.py
 ```
 
-
 <div>
   <h3>Used Technologies</h3>
   <img src="./src/assets/roboflowLogo.png" alt="Roboflow logo" width="80" height="80">
