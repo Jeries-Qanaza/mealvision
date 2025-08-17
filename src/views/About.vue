@@ -1,124 +1,116 @@
-<template> 
-  <NavBar style="background-color: #174329;"/>
-  <div class="about-us-container"> 
-    <!-- Upper part: About the project --> 
-    <div class="about-project"> 
-      <h1>MealVision</h1> 
-      <img src="@/assets/logo.png" alt="mealVision_logo" class="logo-image"> 
+<template>
+  <NavBar style="background-color: #174329;" />
+  <div class="about-us-container">
+    <div class="about-project">
+      <h1>MealVision</h1>
+      <img src="@/assets/logo.png" alt="mealVision_logo" class="logo-image">
       <p class="project-description">
-        This project aims to create a tool that can help people decide what to cook. 
-        By analyzing images of food ingredients, our model will identify what's in the 
-        picture and suggest potential meal ideas using an AI API. This will help users 
+        This project aims to create a tool that can help people decide what to cook.
+        By analyzing images of food ingredients, our model will identify what's in the
+        picture and suggest potential meal ideas using an AI API. This will help users
         save time and discover new recipes based on the ingredients they have on hand.
-      </p> 
-      <a target="_blank" href="https://universe.roboflow.com/food-updated/food3proj-pf2xc/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true"> 
+      </p>
+      <a target="_blank" href="https://universe.roboflow.com/food-updated/food3proj-pf2xc/browse?queryText=&pageSize=50&startingIndex=0&browseQuery=true">
         <p>Explore our dataset on Roboflow</p>
       </a>
-    </div> 
+    </div>
 
     <div class="about-us-team">
-      
-  
-    <!-- Lower part: Founders' introduction --> 
-    <!-- Lower part: Founders' introduction --> 
-<div class="founders-container"> 
-  <div class="section-title">
-    <h2 style="color: orange;">Our Team</h2>
-    <div class="title-underline"></div>
-  </div>
+      <div class="founders-container">
+        <div class="section-title">
+          <h2 style="color: orange;">Our Team</h2>
+          <div class="title-underline"></div>
+        </div>
 
-  <!-- Founder Card 1 -->
-  <div class="founder-card">
-    <div class="founder-info">
-      <h3>Jeries Qanaza</h3>
-      <p class="founder-title">Co-Founder @ MealVision</p>
-      <a href="https://www.linkedin.com/in/jeries-qanaza-36b14620a/" target="_blank" class="social-link"> 
-        <img class="linkedin-icon" src="@/assets/linkedinLogo.png" alt="LinkedIn"> 
-      </a>
-    </div>
-  </div>
-
-  <!-- Founder Card 2 -->
-  <div class="founder-card">
-    <div class="founder-info">
-      <h3>Yohai Abramovitz</h3>
-      <p class="founder-title">Co-Founder @ MealVision</p>
-      <a href="https://www.linkedin.com/in/yohaii/" target="_blank" class="social-link"> 
-        <img class="linkedin-icon" src="@/assets/linkedinLogo.png" alt="LinkedIn"> 
-      </a>
-    </div>
-  </div>
-</div>
-
-<!-- Supervisor section is now outside -->
-<div class="supervisor-section">
-  <div class="founder-card supervisor-card">
-    <div class="founder-info">
-      <h3>Salih Abu Shahin</h3>
-      <p class="founder-title">Project Supervisor</p>
-    </div>
-  </div>
-</div>
-
-      </div>
-
-      
-      <div class="About_Model">
-        <div class="tech-carousel">
-          <u><h2 style="color: #174329;">Used Technologies</h2> </u>
-          <div class="carousel-track">
-            <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
-            <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
-            <div class="tech-slide"> <img src="@/assets/vueJSlogo.png" alt="Vue.js"> </div>
-            <div class="tech-slide"> <img src="@/assets/Gemini.png" alt="Gemini"> </div>
-            <div class="tech-slide"> <img src="@/assets/stable_diffusion.png" alt="Stable Diffusion"> </div>
-            <div class="tech-slide"> <img src="@/assets/yolo.png" alt="YOLO"> </div>
-            <div class="tech-slide"> <img src="@/assets/oracle_cloud.png" alt="Oracle Cloud"> </div>
-            <div class="tech-slide"> <img src="@/assets/google_colab.jpg" alt="Google Colab"> </div>
+        <div class="founder-card">
+          <div class="founder-info">
+            <h3>Jeries Qanaza</h3>
+            <p class="founder-title">Co-Founder @ MealVision</p>
+            <a href="https://www.linkedin.com/in/jeries-qanaza-36b14620a/" target="_blank" class="social-link">
+              <img class="linkedin-icon" src="@/assets/linkedinLogo.png" alt="LinkedIn">
+            </a>
           </div>
         </div>
 
-
+        <div class="founder-card">
+          <div class="founder-info">
+            <h3>Yohai Abramovitz</h3>
+            <p class="founder-title">Co-Founder @ MealVision</p>
+            <a href="https://www.linkedin.com/in/yohaii/" target="_blank" class="social-link">
+              <img class="linkedin-icon" src="@/assets/linkedinLogo.png" alt="LinkedIn">
+            </a>
+          </div>
+        </div>
       </div>
 
+      <div class="supervisor-section">
+        <div class="founder-card supervisor-card">
+          <div class="founder-info">
+            <h3>Salih Abu Shahin</h3>
+            <p class="founder-title">Project Supervisor</p>
+          </div>
+        </div>
+      </div>
+    </div>
 
-  </div> 
-</template> 
- 
+    <div class="About_Model">
+      <div class="tech-carousel">
+        <u><h2 style="color: #174329;">Used Technologies</h2> </u>
+        <div class="carousel-track">
+          <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
+          <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
+          <div class="tech-slide"> <img src="@/assets/vueJSlogo.png" alt="Vue.js"> </div>
+          <div class="tech-slide"> <img src="@/assets/Gemini.png" alt="Gemini"> </div>
+          <div class="tech-slide"> <img src="@/assets/stable_diffusion.png" alt="Stable Diffusion"> </div>
+          <div class="tech-slide"> <img src="@/assets/yolo.png" alt="YOLO"> </div>
+          <div class="tech-slide"> <img src="@/assets/oracle_cloud.png" alt="Oracle Cloud"> </div>
+          <div class="tech-slide"> <img src="@/assets/google_colab.jpg" alt="Google Colab"> </div>
+          <div class="tech-slide"> <img src="@/assets/python.png" alt="Python"> </div>
+          <div class="tech-slide"> <img src="@/assets/roboflowLogo.png" alt="Roboflow"> </div>
+          <div class="tech-slide"> <img src="@/assets/vueJSlogo.png" alt="Vue.js"> </div>
+          <div class="tech-slide"> <img src="@/assets/Gemini.png" alt="Gemini"> </div>
+          <div class="tech-slide"> <img src="@/assets/stable_diffusion.png" alt="Stable Diffusion"> </div>
+          <div class="tech-slide"> <img src="@/assets/yolo.png" alt="YOLO"> </div>
+          <div class="tech-slide"> <img src="@/assets/oracle_cloud.png" alt="Oracle Cloud"> </div>
+          <div class="tech-slide"> <img src="@/assets/google_colab.jpg" alt="Google Colab"> </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <script>
 import NavBar from "../components/navbar/navbar.vue";
-
-export default { 
-  name: "AboutUs", 
-    components: {
+export default {
+  name: "AboutUs",
+  components: {
     NavBar,
   },
-  data() { 
-    return { 
-      name: "", 
-      email: "", 
-      message: "", 
-    }; 
-  } 
-} 
-</script> 
- 
-<style> 
-.About_Model
-{
-  margin-top: 5px;
+  data() {
+    return {
+      name: "",
+      email: "",
+      message: "",
+    };
+  },
+};
+</script>
+
+<style scoped>
+.About_Model {
+  margin-top: 50px;
   background-color: orange;
   border-radius: 60px;
 }
-.about-us-team
-{
+
+.about-us-team {
   background-color: #174329;
   border-radius: 60px;
 }
 
-.about-us-container { 
-  display: flex; 
-  flex-direction: column; 
+.about-us-container {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   padding: 2rem;
   max-width: 1200px;
@@ -126,14 +118,13 @@ export default {
   margin-top: 30px;
   color: #333;
   background-color: #ffffff;
-} 
+}
 
-.about-project { 
-  text-align: center; 
+.about-project {
+  text-align: center;
   margin-bottom: 3rem;
   max-width: 800px;
- 
-} 
+}
 
 .about-project h1 {
   font-size: 2.5rem;
@@ -185,17 +176,16 @@ export default {
   border-radius: 2px;
 }
 
-.founders-container { 
+.founders-container {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 2rem;
   width: 100%;
   margin-bottom: 1rem;
-
   border-radius: 10px;
   width: fit-content;
-  padding: 2rem; /* optional for spacing */
+  padding: 2rem;
 }
 
 .supervisor-section {
@@ -285,86 +275,89 @@ export default {
   border: 2px solid #c6d8a5;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .founders-container {
     flex-direction: column;
     align-items: center;
   }
-  
   .founder-card {
     width: 90%;
     max-width: 350px;
   }
 }
 
-
+/* Corrected Tech Carousel Styles */
 .tech-carousel {
-    width: 100%;
-    max-width: 800px;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(10px);
-    border-radius: 15px;
-    padding: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Removed fixed width, now it will fit its container */
+  max-width: 100vw;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .carousel-track {
-    display: flex;
-    animation: scroll 15s linear infinite;
-    gap: 30px;
+  display: flex;
+  gap: 30px;
+  animation: scroll 15s linear infinite;
+  flex-wrap: nowrap; /* Ensures items stay in a single row */
 }
 
 .tech-slide {
-    flex: 0 0 auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.386);
-    border-radius: 12px;
-    transition: transform 0.3s ease;
-    min-width: 120px;
-}
-
-.tech-slide:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.2);
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.386);
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+  min-width: 120px;
 }
 
 .tech-slide img {
-    width: 60px;
-    height: 60px;
-    object-fit: contain;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
 }
 
-
-@keyframes scroll {
-    0% {
-        transform: translateX(0);
-    }
-    100% {
-        transform: translateX(-50%);
-    }
+.tech-slide:hover {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.2);
 }
 
-/* Pause on hover */
 .tech-carousel:hover .carousel-track {
-    animation-play-state: paused;
+  animation-play-state: paused;
 }
 
-@media (max-width: 600px) {
-    .tech-slide {
-        min-width: 100px;
-        padding: 15px;
-    }
-    
-    .tech-slide img {
-        width: 45px;
-        height: 45px;
-    }
-  
+/* Corrected animation to use a seamless loop with duplicated items */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* This percentage is for duplicated items */
+  }
+}
+
+/* Consolidated Responsive Styles */
+@media (max-width: 768px) {
+  .tech-carousel {
+    padding: 10px;
+  }
+  .tech-slide {
+    min-width: 90px;
+    padding: 10px;
+  }
+  .tech-slide img {
+    width: 40px;
+    height: 40px;
+  }
+  .carousel-track {
+    gap: 10px;
+  }
 }
 </style>
