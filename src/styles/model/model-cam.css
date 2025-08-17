@@ -1,562 +1,522 @@
+/* General container for the entire UI */
 .camera-container {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  text-align: center;
-  box-sizing: border-box;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+    box-sizing: border-box;
 }
 
-@media (max-width: 768px) {
-  .camera-container {
-    padding: 20px 15px; /* Enhanced padding for better mobile spacing */
-  }
-}
-
-/* Glassy background effect for sections like previews */
+/* Glassy background effect for sections */
 .glassy-preview {
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  padding: 20px;
-  margin: 20px 0;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 20px;
+    margin: 20px 0;
 }
 
 /* Primary button style */
 .btn-primary {
-  background: #2196f3;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s;
+    background: #2196f3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.3s;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1976d2;
+    background: #1976d2;
 }
 
 .btn-primary:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-  opacity: 0.6;
+    background: #ccc;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
+/* Solid button style */
 .btn-solid {
-  background: #ff9800;
-  color: white;
+    background: #ff9800;
+    color: white;
 }
 
 /* General button styles for icons and text */
 .btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
 }
 
 .btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 .btn-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
 }
 
 .btn-text {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.2;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.2;
 }
 
 /* Loading animation for dots */
 .loading-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  height: 24px;
-  margin: 10px auto 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    height: 24px;
+    margin: 10px auto 0;
 }
 
 .dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #ff9800;
-  animation: dot-flash 1.2s infinite ease-in-out;
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #ff9800;
+    animation: dot-flash 1.2s infinite ease-in-out;
 }
 
-.dot:nth-child(2) { animation-delay: 0.2s; }
-.dot:nth-child(3) { animation-delay: 0.4s; }
+.dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
 
 @keyframes dot-flash {
-  0%, 80%, 100% { opacity: 0.2; transform: scale(1); }
-  40% { opacity: 1; transform: scale(1.4); }
+    0%, 80%, 100% {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1.4);
+    }
 }
 
 /* --- Camera View and Controls --- */
 
 /* Main camera display area */
 .camera-view {
-  position: relative;
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;
-  border-radius: 20px;
-  overflow: hidden;
-  background: #000;
-  aspect-ratio: 4/3;
+    position: relative;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 20px; /* Default border radius */
+    overflow: hidden;
+    background: #000;
+    aspect-ratio: 4/3;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Existing black shadow */
 }
 
 .camera-view video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .camera-view video.mirrored {
-  transform: scaleX(-1);
+    transform: scaleX(-1);
 }
 
 /* Overlay for camera buttons and controls */
 .camera-controls-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
 }
 
 .camera-controls-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 30px 30px;
-  pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 20px 30px 30px;
+    pointer-events: auto;
 }
 
 /* Main capture button */
 .camera-capture-btn {
-  width: 80px;
-  height: 80px;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  position: relative;
-  flex-shrink: 0;
+    width: 80px;
+    height: 80px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    position: relative;
+    flex-shrink: 0;
 }
 
 .capture-outer-ring {
-  position: absolute;
-  width: 80px;
-  height: 80px;
-  border: 4px solid #ff7043;
-  border-radius: 50%;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border: 4px solid #ff7043;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .camera-capture-btn.recording .capture-outer-ring {
-  border-color: #f44336;
+    border-color: #f44336;
 }
 
 .capture-inner {
-  width: 60px;
-  height: 60px;
-  background: white;
-  border-radius: 50%;
-  aspect-ratio: 1 / 1;
-  transition: all 0.3s ease;
-  position: relative;
-  z-index: 1;
-  border: none;
-  outline: none;
-  box-sizing: border-box;
+    width: 60px;
+    height: 60px;
+    background: white;
+    border-radius: 50%;
+    aspect-ratio: 1 / 1;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 1;
+    border: none;
+    outline: none;
+    box-sizing: border-box;
 }
 
 .camera-capture-btn.video-mode .capture-inner {
-  background: white;
+    background: white;
 }
 
 .camera-capture-btn.recording .capture-inner {
-  background: #f44336;
+    background: #f44336;
 }
 
 .recording-square {
-  border-radius: 8px !important;
-  width: 30px !important;
-  height: 30px !important;
+    border-radius: 8px !important;
+    width: 30px !important;
+    height: 30px !important;
 }
 
 /* Other control buttons (mode, switch) */
 .camera-mode-btn,
 .camera-switch-btn {
-  width: 50px;
-  height: 50px;
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(10px);
-  color: white;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-  flex-shrink: 0;
+    width: 50px;
+    height: 50px;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(10px);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+    flex-shrink: 0;
 }
 
 .camera-mode-btn.active {
-  background: rgba(255, 112, 67, 0.3);
-  border-color: #ff7043;
+    background: rgba(255, 112, 67, 0.3);
+    border-color: #ff7043;
 }
 
 .mode-text {
-  font-size: 8px;
-  font-weight: bold;
-  margin-top: 2px;
-  text-align: center;
-  line-height: 1;
+    font-size: 8px;
+    font-weight: bold;
+    margin-top: 2px;
+    text-align: center;
+    line-height: 1;
 }
 
 /* --- Photo and Video Grids --- */
-
 .content-section {
-  margin-bottom: 20px;
+    margin-bottom: 20px;
 }
 
 .section-title {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 15px;
-  color: #ffffff;
-  text-align: center;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #ffffff;
+    text-align: center;
 }
 
 .image-grid,
 .video-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 10px;
-  margin-bottom: 15px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 15px;
 }
 
 .thumb,
 .video-thumb {
-  position: relative;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .thumb img,
 .video-preview {
-  width: 100%;
-  height: 100px;
-  object-fit: cover;
-  background: #f0f0f0;
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    background: #f0f0f0;
 }
 
 .item-info {
-  padding: 8px;
-  font-size: 0.8em;
+    padding: 8px;
+    font-size: 0.8em;
 }
 
 .item-name {
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #333;
-  word-break: break-word;
+    font-weight: bold;
+    margin-bottom: 4px;
+    color: #333;
+    word-break: break-word;
 }
 
 .item-status {
-  margin-bottom: 4px;
-  font-weight: 500;
+    margin-bottom: 4px;
+    font-weight: 500;
 }
 
 /* Status colors */
-.item-status.pending { color: #ff9800; }
-.item-status.processing { color: #2196f3; }
-.item-status.completed { color: #4caf50; }
-.item-status.error { color: #f44336; }
+.item-status.pending {
+    color: #ff9800;
+}
+
+.item-status.processing {
+    color: #2196f3;
+}
+
+.item-status.completed {
+    color: #4caf50;
+}
+
+.item-status.error {
+    color: #f44336;
+}
 
 .frame-count {
-  font-size: 0.75em;
-  color: #666;
-  margin-bottom: 4px;
+    font-size: 0.75em;
+    color: #666;
+    margin-bottom: 4px;
 }
 
 .item-labels {
-  color: #666;
-  font-style: italic;
-  word-break: break-word;
+    color: #666;
+    font-style: italic;
+    word-break: break-word;
 }
 
 .limit-note {
-  font-size: 0.9em;
-  color: #666;
-  margin-top: 15px;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 5px;
-  text-align: center;
+    font-size: 0.9em;
+    color: #666;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+    text-align: center;
 }
 
 .processing-text {
-  margin-top: 10px;
-  font-size: 14px;
-  color: #666;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #666;
 }
 
 #labels {
-  margin-top: 20px;
-  padding: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  font-weight: 500;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-weight: 500;
 }
 
 .debug-info {
-  margin-top: 15px;
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 5px;
-  font-family: monospace;
-  font-size: 12px;
-  text-align: left;
+    margin-top: 15px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 5px;
+    font-family: monospace;
+    font-size: 12px;
+    text-align: left;
 }
 
 /* Delete buttons for previews */
 .delete-btn-modern {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  width: 22px;
-  height: 22px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  backdrop-filter: blur(4px);
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(4px);
 }
 
 .delete-btn-modern:hover {
-  background: rgba(244, 67, 54, 0.8);
-  transform: scale(1.05);
+    background: rgba(244, 67, 54, 0.8);
+    transform: scale(1.05);
 }
 
 .delete-x {
-  font-weight: bold;
-  font-size: 12px;
-  line-height: 1;
+    font-weight: bold;
+    font-size: 12px;
+    line-height: 1;
 }
 
 /* --- Upload Zone --- */
-
 .controls {
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  gap: 15px;
-  margin: 15px auto;
-  max-width: 640px;
-  flex-wrap: nowrap;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    gap: 15px;
+    margin: 15px auto;
+    max-width: 640px;
+    flex-wrap: nowrap;
 }
 
 .upload-zone-layout {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  position: relative;
-  text-align: center;
-  min-height: 70px;
-  border-style: dashed;
-  border-width: 2px;
-  border-color: transparent;
-  border-radius: 10px;
-  transition: all 0.2s ease;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+    text-align: center;
+    min-height: 70px;
+    border-style: dashed;
+    border-width: 2px;
+    border-color: transparent;
+    border-radius: 10px;
+    transition: all 0.2s ease;
 }
 
 .upload-zone-layout:hover {
-  cursor: pointer;
-  background-color: rgba(255, 255, 255, 0.1);
-  border-color: #ff7043;
+    cursor: pointer;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: #ff7043;
 }
 
 .upload-zone-layout.drag-over {
-  background-color: #ff6b35;
-  border-color: #ff4500;
-  transform: scale(1.02);
+    background-color: #ff6b35;
+    border-color: #ff4500;
+    transform: scale(1.02);
 }
 
 .drag-text {
-  font-size: 10px;
-  opacity: 0.8;
-  font-weight: normal;
-  line-height: 1;
+    font-size: 10px;
+    opacity: 0.8;
+    font-weight: normal;
+    line-height: 1;
 }
 
 .file-input {
-  display: none;
+    display: none;
 }
 
 /* --- Responsive Adjustments (Final, with mobile fixes) --- */
 
-@media (max-width: 768px) {
-  .camera-controls-bottom {
-    padding: 20px 20px 35px; /* Increased padding to separate buttons from video */
-  }
-  .camera-view {
-   
-    aspect-ratio: 3/4;
-    max-width: 90%;
-  }
-  .camera-capture-btn {
-    width: 75px;
-    height: 75px;
-  }
-  .capture-outer-ring {
-    width: 75px;
-    height: 75px;
-  }
-  .capture-inner {
-    width: 55px;
-    height: 55px;
-  }
-  .recording-square {
-    width: 25px !important;
-    height: 25px !important;
-  }
-  .camera-mode-btn,
-  .camera-switch-btn {
-    width: 50px;
-    height: 50px;
-  }
-  .mode-text {
-    font-size: 9px;
-  }
-  .controls {
-    gap: 12px;
-    margin-top: 20px; /* More space above the control buttons */
-  }
-  .btn {
-    padding: 14px 18px;
-    font-size: 15px;
-  }
-  .upload-zone-layout {
-    min-height: 80px; /* Increased min-height for better tap target */
-  }
-}
-
+/* Mobile-first adjustments for small phones (e.g., iPhone 5, Galaxy S series) */
 @media (max-width: 480px) {
-  .camera-controls-bottom {
-    padding: 15px 15px 30px;
-  }
-  .camera-capture-btn {
-    width: 70px;
-    height: 70px;
-  }
-  .capture-outer-ring {
-    width: 70px;
-    height: 70px;
-    border-width: 3px;
-  }
-  .capture-inner {
-    width: 50px;
-    height: 50px;
-  }
-  .recording-square {
-    width: 20px !important;
-    height: 20px !important;
-  }
-  .camera-mode-btn,
-  .camera-switch-btn {
-    width: 45px;
-    height: 45px;
-  }
-  .camera-mode-btn svg,
-  .camera-switch-btn svg {
-    width: 14px;
-    height: 14px;
-  }
-  .mode-text {
-    font-size: 8px;
-  }
-  .controls {
-    gap: 10px;
-    margin-top: 15px;
-  }
-  .btn {
-    padding: 12px 16px;
-    font-size: 14px;
-  }
-  .drag-text {
-    font-size: 8px;
-  }
-  .upload-zone-layout {
-    min-height: 70px;
-  }
+    .camera-container {
+        padding: 10px;
+    }
+
+    .camera-view {
+        /* WIDER AND LONGER FOR MOBILE */
+        aspect-ratio: 9/16;
+        width: 100%;
+        max-width: none;
+        border-radius: 10px;
+        /* White shadow for mobile */
+        box-shadow: 0 4px 20px rgba(255, 255, 255, 0.1);
+    }
+
+    .camera-controls-bottom {
+        padding: 15px 15px 30px;
+        justify-content: space-between;
+    }
+
+    .camera-capture-btn, .capture-outer-ring {
+        width: 65px;
+        height: 65px;
+    }
+
+    .capture-inner {
+        width: 45px;
+        height: 45px;
+    }
+
+    .camera-mode-btn, .camera-switch-btn {
+        width: 45px;
+        height: 45px;
+    }
 }
 
-@media (orientation: landscape) and (max-height: 500px) {
-  .camera-container {
-    padding: 10px;
-  }
-  .camera-view video {
-    max-height: 180px;
-  }
-  .camera-controls-bottom {
-    padding: 10px 15px;
-  }
-  .controls {
-    margin: 10px auto;
-  }
-  .btn {
-    padding: 10px 14px;
-    font-size: 13px;
-  }
-  .upload-zone-layout {
-    min-height: 60px;
-  }
-}
+/* Tablet and larger phone adjustments */
+@media (min-width: 481px) and (max-width: 768px) {
+    .camera-view {
+        /* LONGER FOR TABLET */
+        aspect-ratio: 3/4;
+        width: 90%;
+        max-width: none;
+        border-radius: 15px;
+        /* White shadow for tablet */
+        box-shadow: 0 4px 25px rgba(255, 255, 255, 0.15);
+    }
 
-@media (hover: none) and (pointer: coarse) {
-  .camera-capture-btn:active:not(:disabled),
-  .camera-mode-btn:active:not(:disabled),
-  .camera-switch-btn:active:not(:disabled) {
-    transform: scale(0.95);
-  }
+    .camera-controls-bottom {
+        padding: 20px 20px 35px;
+    }
+
+    .camera-capture-btn, .capture-outer-ring {
+        width: 75px;
+        height: 75px;
+    }
+
+    .capture-inner {
+        width: 55px;
+        height: 55px;
+    }
+
+    .camera-mode-btn, .camera-switch-btn {
+        width: 50px;
+        height: 50px;
+    }
 }
