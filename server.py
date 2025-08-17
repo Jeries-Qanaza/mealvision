@@ -68,7 +68,7 @@ except Exception as e:
     raise RuntimeError(f"Gemini API key validation failed: {e}") from e
 
 # --- Hugging Face Setup ---
-HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+################# HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN") #######################
 
 hf_client = None
 
