@@ -1,6 +1,10 @@
 # ==============================================================================
 # Imports
 # ==============================================================================
+# Apply gevent monkey patching at the very top to prevent conflicts with libraries like torch
+from gevent import monkey
+monkey.patch_all()
+
 import json
 import subprocess
 from flask import Flask, request, jsonify
