@@ -439,6 +439,10 @@
   .camera-controls-bottom {
     padding: 20px 20px 35px; /* Increased padding to separate buttons from video */
   }
+  .camera-view {
+   
+    aspect-ratio: 3/4;
+  }
   .camera-capture-btn {
     width: 75px;
     height: 75px;
