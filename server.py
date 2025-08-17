@@ -24,6 +24,8 @@ from dotenv import load_dotenv
 import time
 import traceback
 from huggingface_hub import InferenceClient
+from huggingface_hub import HfApi, InferenceClient
+from huggingface_hub.utils import HfHubHTTPError
 import concurrent.futures
 from google.api_core.exceptions import ResourceExhausted
 
@@ -67,24 +69,26 @@ except Exception as e:
 
 # --- Hugging Face Setup ---
 HUGGING_FACE_TOKEN = os.getenv("HUGGING_FACE_TOKEN")
+
 hf_client = None
 
 if HUGGING_FACE_TOKEN:
-    try:
-        # Initialize the client first
-        hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
-        
-        # Validate the token
-        hf_client.whoami() 
-        
-        print("INFO: Hugging Face client initialized and validated successfully.")
-    except Exception as e:
-        # Reset the client to None and print a warning
-        hf_client = None
-        print(f"WARNING: Hugging Face token is invalid. Image generation will be disabled. Error: {e}")
+  try:
+    # 1. Validate the token using HfApi
+    HfApi().whoami(token=HUGGING_FACE_TOKEN)
+    # 2. If validation is successful, initialize the InferenceClient
+    hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
+    print("INFO: Hugging Face token validated successfully. Client initialized.")
+  except HfHubHTTPError as e:
+    # Catch authentication errors 
+    hf_client = None
+    print(f"WARNING: Hugging Face token is invalid. Image generation will be disabled. Error: {e}")
+  except Exception as e:
+    # Catch other potential errors during initialization
+    hf_client = None
+    print(f"WARNING: Could not initialize Hugging Face client. Image generation will be disabled. Error: {e}")
 else:
-    print("WARNING: Hugging Face token not found. Image generation will be disabled.")
-
+  print("WARNING: Hugging Face token not found. Image generation will be disabled.")
 
 # --- Email Setup ---
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
