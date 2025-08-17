@@ -1,10 +1,6 @@
 # ==============================================================================
 # Imports
 # ==============================================================================
-# Apply gevent monkey patching at the very top to prevent conflicts with libraries like torch
-from gevent import monkey
-monkey.patch_all()
-
 import json
 import subprocess
 from flask import Flask, request, jsonify
@@ -74,9 +70,9 @@ hf_client = None
 
 if HUGGING_FACE_TOKEN:
   try:
-    # 1. Validate the token using HfApi
+    # Validate the token using HfApi
     HfApi().whoami(token=HUGGING_FACE_TOKEN)
-    # 2. If validation is successful, initialize the InferenceClient
+    # If validation is successful, initialize the InferenceClient
     hf_client = InferenceClient(token=HUGGING_FACE_TOKEN)
     print("INFO: Hugging Face token validated successfully. Client initialized.")
   except HfHubHTTPError as e:
