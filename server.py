@@ -23,8 +23,7 @@ from huggingface_hub import InferenceClient
 from huggingface_hub import HfApi, InferenceClient
 from huggingface_hub.utils import HfHubHTTPError
 import concurrent.futures
-from google.api_core.exceptions import ResourceExhausted
-
+from google.api_core.exceptions import ResourceExhausted, ServiceUnavailable
 # ==============================================================================
 # Initial Setup
 # ==============================================================================
@@ -60,7 +59,7 @@ try:
     print("INFO: Gemini client initialized and validated successfully.")
 except Exception as e:
     # If this fails, the key is likely invalid or there's a connection issue.
-    print("ERROR: Failed to validate Gemini API key. The server will not start!")
+    print("Error: Failed to validate Gemini API key. The server will not start!")
     raise RuntimeError(f"Gemini API key validation failed: {e}") from e
 
 # --- Hugging Face Setup ---
@@ -78,13 +77,13 @@ if HUGGING_FACE_TOKEN:
   except HfHubHTTPError as e:
     # Catch authentication errors 
     hf_client = None
-    print(f"WARNING: Hugging Face token is invalid. Image generation will be disabled. Error: {e}")
+    print(f"Warning: Hugging Face token is invalid. Image generation will be disabled. Error: {e}")
   except Exception as e:
     # Catch other potential errors during initialization
     hf_client = None
-    print(f"WARNING: Could not initialize Hugging Face client. Image generation will be disabled. Error: {e}")
+    print(f"Warning: Could not initialize Hugging Face client. Image generation will be disabled. Error: {e}")
 else:
-  print("WARNING: Hugging Face token not found. Image generation will be disabled.")
+  print("Warning: Hugging Face token not found. Image generation will be disabled.")
 
 # --- Email Setup ---
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -219,7 +218,7 @@ def generate_meal_image(meal):
         # Return the meal name and the generated image string
         return meal_name, img_str
     except Exception as img_e:
-        print(f"ERROR generating image for {meal.get('mealName')}: {img_e}.")
+        print(f"Error generating image for {meal.get('mealName')}: {img_e}.")
         # Return None on failure
         return meal.get("mealName"), None
     
@@ -336,7 +335,7 @@ def detect():
         return jsonify({"labels": list(set(labels))})  # Return unique labels
 
     except Exception as e:
-        print(f"ERROR in /detect: {e}.")
+        print(f"Error in /detect: {e}.")
         traceback.print_exc()
         return jsonify({"Error": "An error occurred during image detection."}), 500
 
@@ -368,7 +367,7 @@ def process_video():
             subprocess.run(['ffmpeg', '-i', video_path, '-vf', 'fps=1', frames_output_pattern], check=True, capture_output=True, text=True)
             subprocess.run(['ffmpeg', '-i', video_path, '-ss', '00:00:01.000', '-vframes', '1', thumbnail_path], check=True, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
-            print(f"FFmpeg ERROR: {e.stderr}.")
+            print(f"FFmpeg Error: {e.stderr}.")
             return jsonify({"Error": "Failed to process video with FFmpeg."}), 500
 
         model = get_yolo_model()
@@ -461,8 +460,6 @@ def generate_meals():
         meal_data = json.loads(json_text)
 
         # --- Image generation ---
-        print("---------- CHECK HF CLIENT -----------")
-        print(hf_client, meal_data.get("meals"))
         if hf_client and meal_data.get("meals"):
             print("DEBUG: Entering image generation block.")
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -472,10 +469,8 @@ def generate_meals():
                     meal_name, img_str = future.result()
                     if img_str:
                         image_map[meal_name] = img_str
-                
                 for meal in meal_data["meals"]:
                     meal["image"] = image_map.get(meal.get("mealName"))
-
             print("--- Finished parallel image generation ---")
         else:
             print("DEBUG: Skipping image generation.")
@@ -488,29 +483,25 @@ def generate_meals():
         print(f"--- TOTAL GENERATE-MEALS TIME: {t_total_end - t_total_start:.2f} seconds ---")
         return jsonify({"meals_res": meal_data.get("meals", [])})
 
+    # Catches 429 Rate Limit errors
+    except ResourceExhausted as e:
+        print(f"RATE LIMIT EXCEEDED for Gemini API: {e}.")
+        user_message = "Too many requests were made in a short time. Please wait a minute and try again."
+        return jsonify({"Error": user_message}), 429
+    
+    # Catches 503 Service Unavailable errors from Google API
+    except ServiceUnavailable as e:
+        print(f"Gemini API is unavailable (503): {e}.")
+        user_message = "The AI model is temporarily unavailable due to high traffic. Please try again later."
+        return jsonify({"Error": user_message}), 503
+
+    # Catches all other unexpected errors   
     except Exception as e:
-        # CATCH ALL errors, then inspect the error message to decide the response
-        error_message_str = str(e).lower()
         print(f"ERROR in /generate-meals: {e}.")
         traceback.print_exc()
+        user_message = "An unexpected error occurred. Please try again later."
+        return jsonify({"error": user_message}), 500
 
-        # Check for keywords related to quota/rate limit errors
-        if "rate limit" in error_message_str or "resource has been exhausted" in error_message_str or "too many requests" in error_message_str:
-            user_message = "You have exceeded the daily request limit for the AI model. Please try again tomorrow."
-            print("QUOTA/RATE LIMIT EXCEEDED for Gemini API.")
-            return jsonify({"error": user_message}), 429
-        
-        # Check for JSON decoding error specifically
-        elif "json" in error_message_str or isinstance(e, json.JSONDecodeError):
-            user_message = "The AI model returned an invalid response format. Please try again."
-            print("ERROR: Failed to decode JSON from Gemini response.")
-            return jsonify({"error": user_message}), 500
-
-        # For all other errors, return a generic server error
-        else:
-            user_message = "An unexpected error occurred while generating meals."
-            return jsonify({"error": user_message}), 500
-       
 # Emails 
 @app.route('/send-email', methods=['POST'])
 def send_email():
@@ -531,7 +522,7 @@ def send_email():
         mail.send(msg)
         return jsonify({"message": "Email sent successfully"}), 200
     except Exception as e:
-        print(f"ERROR sending email: {e}.")
+        print(f"Error sending email: {e}.")
         traceback.print_exc()
         return jsonify({"Error": "An error occurred while sending the email."}), 500
 
