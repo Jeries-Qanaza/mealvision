@@ -14,7 +14,9 @@
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 20px;
-    margin: 20px 0;
+    margin: 20px auto; /* Changed from '20px 0' to '20px auto' for centering */
+    max-width: 600px; /* Add max-width to prevent it from getting too wide */
+    width: 95%; /* Responsive width */
 }
 
 /* Primary button style */
@@ -352,11 +354,13 @@
 }
 
 #labels {
-    margin-top: 20px;
+    margin: 20px auto;
     padding: 15px;
     background: rgba(255, 255, 255, 0.1);
     border-radius: 10px;
     font-weight: 500;
+    max-width: 600px; /* Add max-width constraint */
+    width: 95%; /* Responsive width */
 }
 
 .debug-info {
@@ -366,7 +370,7 @@
     border-radius: 5px;
     font-family: monospace;
     font-size: 12px;
-    text-align:center;
+    text-align: center;
 }
 
 /* Delete buttons for previews */
@@ -488,6 +492,18 @@
         width: 45px;
         height: 45px;
     }
+
+    .glassy-preview {
+        width: 100%; /* Full width on mobile */
+        max-width: none;
+        margin: 20px 0;
+    }
+
+    #labels {
+        width: 100%; /* Full width on mobile */
+        max-width: none;
+        margin: 20px 0;
+    }
 }
 
 /* Tablet and larger phone adjustments */
@@ -500,15 +516,6 @@
         border-radius: 15px;
         /* White shadow for tablet */
         box-shadow: 0 4px 25px rgba(255, 255, 255, 0.15);
-    }
-
-    .glassy-preview {
-        width: 60%;
-    }
-
-    #labels
-    {
-      width: 60%;
     }
 
     .camera-controls-bottom {
@@ -528,5 +535,28 @@
     .camera-mode-btn, .camera-switch-btn {
         width: 50px;
         height: 50px;
+    }
+
+    .glassy-preview {
+        width: 80%; /* Constrained width on tablet */
+        max-width: 500px;
+    }
+
+    #labels {
+        width: 80%; /* Constrained width on tablet */
+        max-width: 500px;
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 769px) {
+    .glassy-preview {
+        width: 70%; /* Even more constrained on desktop */
+        max-width: 600px;
+    }
+
+    #labels {
+        width: 70%; /* Even more constrained on desktop */
+        max-width: 600px;
     }
 }
