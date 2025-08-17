@@ -1,11 +1,6 @@
 <template>
   <div id="app">
-
-        
-      <router-view/>
-      
-    
-
+    <router-view />
 
     <div id="myfooter">
       <AppFooter />
@@ -14,7 +9,6 @@
 </template>
 
 <script>
-
 import AppFooter from "./components/AppFooter.vue";
 export default {
   name: "App",

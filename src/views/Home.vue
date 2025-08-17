@@ -1,17 +1,15 @@
 <template>
-  <div class="home-container">
+  <div class="home-container page-container">
     <NavBar />
     <div id="homeHeader">
       <div class="header-content">
         <h1 id="first-title">MealVision</h1>
         <h3>Welcome to the future of food recognition.</h3>
-        <img width="30%" src="@/assets/logo.png" alt="mealvision logo"/>
+        <img width="30%" src="@/assets/logo.png" alt="mealvision logo" />
       </div>
     </div>
 
-
-    
- <!-- Top Wave Clip -->
+    <!-- Top Wave Clip -->
     <svg width="0" height="0">
       <defs>
         <clipPath id="wavePath" clipPathUnits="objectBoundingBox">
@@ -48,9 +46,7 @@
         </div>
       </div>
     </div>
-    
   </div>
-
 </template>
 
 <script>

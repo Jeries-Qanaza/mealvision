@@ -1,6 +1,6 @@
 <template>
-  <NavBar style="background-color: #174329;"/>
-  <div class="manual-container">
+  <NavBar style="background-color: #174329" />
+  <div class="manual-container page-container">
     <UserInputDiv />
     <ManualBox />
   </div>
@@ -14,7 +14,7 @@ export default {
   name: "Our_Model",
   components: {
     UserInputDiv,
-    NavBar
+    NavBar,
   },
 };
 </script>

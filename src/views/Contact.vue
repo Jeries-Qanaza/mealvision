@@ -1,6 +1,6 @@
 <template>
-  <NavBar style="background-color: #174329;"/>
-  <div class="contact-us-container">
+  <NavBar style="background-color: #174329" />
+  <div class="contact-us-container page-container">
     <div class="contact-us-form">
       <h2 class="heading-gradient">Contact Us</h2>
       <form @submit.prevent="handleSubmit">
@@ -11,7 +11,12 @@
           <input type="email" v-model="email" placeholder="Email" required />
         </div>
         <div class="form-group">
-          <textarea v-model="message" placeholder="Message" rows="4" required></textarea>
+          <textarea
+            v-model="message"
+            placeholder="Message"
+            rows="4"
+            required
+          ></textarea>
         </div>
         <button
           type="submit"
@@ -19,7 +24,7 @@
           :class="{ loading: loading }"
           :disabled="loading"
         >
-          {{ loading ? 'Sending...' : 'Send Message' }}
+          {{ loading ? "Sending..." : "Send Message" }}
         </button>
       </form>
     </div>
@@ -27,11 +32,16 @@
       <img
         src="@/assets/contact.jpg"
         alt="Contact Image"
-        style="max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px #719920;"
+        style="
+          max-width: 100%;
+          max-height: 300px;
+          object-fit: cover;
+          border-radius: 12px;
+          box-shadow: 0 8px 20px #719920;
+        "
       />
     </div>
     <div class="ipad-air-spacer"></div>
-
   </div>
 </template>
 
@@ -53,10 +63,10 @@ export default {
   methods: {
     handleSubmit() {
       this.loading = true;
-      fetch('https://mealvision.onrender.com/send-email', {
-        method: 'POST',
+      fetch("https://mealvision.onrender.com/send-email", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           name: this.name,
@@ -65,24 +75,24 @@ export default {
         }),
       })
         .then((response) => {
-          if (!response.ok) throw new Error('Failed to send email');
+          if (!response.ok) throw new Error("Failed to send email");
           return response.json();
         })
         .then((data) => {
-          alert('Message Sent! We will contact you shortly.');
-          this.name = this.email = this.message = '';
-          console.log('Success:', data);
+          alert("Message Sent! We will contact you shortly.");
+          this.name = this.email = this.message = "";
+          console.log("Success:", data);
         })
         .catch((error) => {
-          console.error('Error:', error);
-          alert('Something went wrong. Please try again later.');
+          console.error("Error:", error);
+          alert("Something went wrong. Please try again later.");
         })
         .finally(() => {
           this.loading = false;
         });
     },
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
@@ -246,8 +256,11 @@ textarea {
 }
 
 @keyframes dots {
-  0%, 80%, 100% {
-    box-shadow: 12px 0 rgba(255, 255, 255, 0.3), -12px 0 rgba(255, 255, 255, 0.3);
+  0%,
+  80%,
+  100% {
+    box-shadow: 12px 0 rgba(255, 255, 255, 0.3),
+      -12px 0 rgba(255, 255, 255, 0.3);
   }
   40% {
     box-shadow: 12px 0 white, -12px 0 white;

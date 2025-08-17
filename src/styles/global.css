@@ -9,10 +9,15 @@
 @import "./model/model-cam.css";
 @import "./model/user-input-div.css";
 
+.page-container {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
   /* This background color will fill the entire viewport */
   background-color: #f0f0f0; /* Use a consistent dark background color */
   color: #f0f0f0; /* Light text for contrast */

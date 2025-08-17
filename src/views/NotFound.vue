@@ -1,5 +1,5 @@
 <template>
-  <div class="not-found">
+  <div class="not-found page-container">
     <div class="content">
       <h1>404 - Page Not Found</h1>
       <p>Oops! The page you're looking for doesn't exist.</p>
