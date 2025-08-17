@@ -196,6 +196,12 @@ body {
     font-size: 1.5em;
   }
 
+  .video-wrapper video
+  {
+    width: 80%;
+    height: auto; /* Maintain aspect ratio */
+  }
+
   .yolo-container h2 {
     font-size: 2em;
   }
@@ -206,7 +212,7 @@ body {
   }
 
   .feature {
-    width: 100%;
+    width: 20%;
     max-width: 400px; /* Keep features from being too wide on tablets */
     margin-bottom: 20px;
   }

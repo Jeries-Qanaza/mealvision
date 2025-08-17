@@ -18,13 +18,12 @@
   top: -100px; /* move out of view */
 }
 
-
 .navbar-links {
   list-style: none;
   display: flex;
   gap: 1rem;
   margin-left: 2rem;
-  flex-grow: 1;;
+  flex-grow: 1;
 }
 
 .navbar-links li {
@@ -53,8 +52,8 @@
   border: none;
   cursor: pointer;
   padding: 10px;
-  margin-left: auto;
   outline: none;
+  /* removed margin-left:auto so it won't force to the right */
 }
 
 .hamburger-box {
@@ -121,7 +120,8 @@
   flex-direction: column;
   position: absolute;
   top: 70px;
-  right: 20px;
+  left: 20px;  /* changed from right: 20px */
+  right: auto; /* prevent conflicting positioning */
   background: #174329;
   padding: 1rem;
   border-radius: 10px;
@@ -173,6 +173,7 @@
 
   .navbar-toggle {
     display: block;
+    margin-right: auto; /* push hamburger to the left */
   }
 
   .navbar {
