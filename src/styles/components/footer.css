@@ -1,11 +1,39 @@
+/*
+ * Body and Main Content Container
+ * These rules are crucial for the sticky footer effect.
+ */
+html, body {
+  height: 100%; /* Ensure both html and body take up the full viewport height */
+  margin: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh; /* Make body at least as tall as the viewport */
+}
+
+/*
+ * Main Content Area
+ * This div will grow to fill space, pushing the footer down.
+ * All your page content (except the footer) should be inside this container.
+ */
+.main-content {
+  flex-grow: 1; /* This is the magic rule */
+}
+
+/*
+ * Footer
+ * No position: fixed is needed. It will naturally be at the bottom.
+ */
 .footer {
   background: linear-gradient(to bottom, white, #174329);
   color: white;
   padding: 20px;
   text-align: center;
-  width: 100vw; /* Use viewport width to cover the entire screen */
+  width: 100vw;
   box-sizing: border-box;
-  margin: 0; /* Remove any default margin */
+  margin-top: auto; /* Pushes the footer to the bottom */
 }
 
 .footer-content {
@@ -13,10 +41,7 @@
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  width: 100%; /* Ensure content spans full footer width */
-  max-width: none; /* Remove previous max-width */
-  margin: 0; /* Remove default margin */
-  padding: 0; /* Optional: remove padding if you want content flush */
+  width: 100%;
 }
 
 .footer-content > div {
@@ -50,12 +75,10 @@
 /* Responsive Styles */
 @media (max-width: 768px) {
   .footer-content {
-    flex-direction: column; /* Stack items vertically on smaller screens */
-    text-align: center; /* Center text for smaller screens */
+    flex-direction: column;
+    text-align: center;
   }
-
   .footer-content > div {
-    margin-bottom: 20px; /* Adjust margin for smaller screens */
+    margin-bottom: 20px;
   }
 }
-
