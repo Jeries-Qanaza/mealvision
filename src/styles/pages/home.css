@@ -1,16 +1,16 @@
 /* General page setup */
 body {
   margin: 0;
-  background-color: #1a1a2e; /* A dark background to match the style */
+  background-color: #1a1a2e;
 }
 
-/* Main container with padding to create side margins */
+/* Main container */
 .home-container {
   position: relative;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow-x: hidden; /* Prevents horizontal scrolling */
+  overflow-x: hidden;
 }
 
 /* Header Section */
@@ -42,9 +42,8 @@ body {
 .header-content {
   text-align: center;
   color: #fff;
-  animation: fadeIn 1s ease-in-out;
   z-index: 1;
-  padding: 0 20px; /* Consistent side padding */
+  padding: 0 20px;
 }
 
 #first-title {
@@ -70,10 +69,11 @@ body {
 .video-wrapper {
   display: flex;
   margin: 40px auto;
-  padding: 0 20px; /* Same side padding for content */
+  padding: 0 20px;
   max-width: 1000px;
   background: linear-gradient(to right, #191b3100, #174329);
   border-radius: 20px;
+  transition: transform 0.4s ease;
 }
 
 .video-wrapper h1 {
@@ -86,18 +86,17 @@ body {
 }
 
 .video-wrapper video {
-  width: 100%; /* Now takes full width of its parent */
+  width: 100%;
   border-radius: 20px;
   object-fit: cover;
   border: 5px solid #ffffff;
   box-shadow: 0 0 25px #ffffff;
-  transition: transform 0.4s ease;
   margin: 4%;
 }
 
 /* YOLO Section */
 .yolo-section {
-  padding: 50px 20px; /* Added side padding */
+  padding: 50px 20px;
   text-align: center;
 }
 
@@ -122,10 +121,10 @@ body {
 }
 
 .feature {
-  flex: 1;
-  min-width: 280px;
+  flex: 1 1 0;       /* allow grow and shrink */
+  min-width: 150px;   /* small enough for iPad Air */
   max-width: 320px;
-  padding: 30px 30px;
+  padding: 30px 20px;
   border-radius: 15px;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -161,6 +160,34 @@ body {
   line-height: 1.6;
 }
 
+/* Phones ≤600px - stack features vertically */
+@media (max-width: 600px) {
+  .yolo-features {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .feature {
+    width: 90%;
+    margin-bottom: 20px;
+  }
+}
+
+/* Tablets 601px–991px - shrink features to fit in one row (iPad Air) */
+@media (min-width: 601px) and (max-width: 991px) {
+  .yolo-features {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+
+  .feature {
+    flex: 1 1 0;   /* allow shrinking */
+    min-width: 0;  /* can shrink smaller */
+    margin: 10px;
+  }
+}
+
 /* Animations */
 @keyframes fadeIn {
   from {
@@ -170,68 +197,5 @@ body {
   to {
     opacity: 1;
     transform: scale(1);
-  }
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  #homeHeader {
-    height: 30vh;
-    min-height: 300px;
-    background-attachment: scroll;
-    width: 120%;
-    left: -10px;
-  }
-
-  .header-content h1 {
-    font-size: 2.2em;
-    margin-bottom: 10px;
-  }
-
-  .header-content h3 {
-    font-size: 1.1em;
-  }
-
-  .video-wrapper h1 {
-    font-size: 1.5em;
-  }
-
-  .video-wrapper video
-  {
-    width: 80%;
-    height: auto; /* Maintain aspect ratio */
-  }
-
-  .yolo-container h2 {
-    font-size: 2em;
-  }
-
-  .yolo-features {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .feature {
-    width: 20%;
-    max-width: 400px; /* Keep features from being too wide on tablets */
-    margin-bottom: 20px;
-    padding: 10px 10px;
-  }
-}
-
-@media (max-width: 480px) {
-  #homeHeader {
-    height: 40vh;
-    min-height: 250px;
-  }
-
-  #first-title {
-    font-size: 48px;
-  }
-}
-
-@media (max-width: 320px) {
-  #first-title {
-    font-size: 36px;
   }
 }
