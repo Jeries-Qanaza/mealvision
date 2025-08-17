@@ -68,9 +68,12 @@ body {
 
 /* Video Section */
 .video-wrapper {
+  display: flex;
   margin: 40px auto;
   padding: 0 20px; /* Same side padding for content */
   max-width: 1000px;
+  background: linear-gradient(to right, #191b3100, #174329);
+  border-radius: 20px;
 }
 
 .video-wrapper h1 {
@@ -89,6 +92,7 @@ body {
   border: 5px solid #ffffff;
   box-shadow: 0 0 25px #ffffff;
   transition: transform 0.4s ease;
+  margin: 4%;
 }
 
 /* YOLO Section */

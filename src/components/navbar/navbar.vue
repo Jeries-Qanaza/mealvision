@@ -1,6 +1,5 @@
 <template>
 <nav class="navbar" :class="{ 'hidden-navbar': !visible }">
-  <div class="brand">MealVision</div>
   <ul class="navbar-links" v-show="!showMobileMenu">
     <li><router-link class="nav_li" to="/">Home</router-link></li>
     <li><router-link class="nav_li" to="/about">About</router-link></li>
