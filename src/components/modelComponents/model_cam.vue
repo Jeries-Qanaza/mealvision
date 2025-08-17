@@ -484,32 +484,33 @@ export default {
       }
 
       try {
-        this.debugInfo = "Step 1: Preparing to send video...";
+        console.log("Step 1: Preparing to send recorded video...");
         const formData = new FormData();
         formData.append("video", videoFile, videoFile.name);
 
-        this.debugInfo = "Step 2: Sending request to /process-video...";
+        console.log("Step 2: Sending request to /process-video...");
         const response = await fetch(`${API_BASE}/process-video`, {
           method: "POST",
           body: formData,
         });
-        this.debugInfo = `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`;
+        console.log(
+          `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`
+        );
 
         if (!response.ok) {
           const errorText = await response.text();
-          this.debugInfo += `\nError Body: ${errorText}`;
+          // The full error details are now only in the console for the developer
+          console.error(`Error Body: ${errorText}`);
           throw new Error(`Server returned status ${response.status}`);
         }
 
-        this.debugInfo = "Step 4: Trying to parse response as JSON...";
+        console.log("Step 4: Trying to parse response as JSON...");
         const result = await response.json();
-        this.debugInfo =
-          "Step 5: JSON parsed successfully! Processing result...";
+        console.log("Step 5: JSON parsed successfully! Processing result...");
 
+        // Add video thumbnail
         const uniqueLabels = [...new Set(result.labels)];
-
-        // Add video thumbnail to the UI for visual feedback
-        await this.addVideoToQueue(videoFile);
+        await this.addVideoToQueue(videoFile, result.thumbnail);
         const videoIndex = this.videoItems.findIndex(
           (v) => v.name === videoFile.name
         );
@@ -519,18 +520,31 @@ export default {
         }
         this.updateAllDetectedItems();
       } catch (error) {
-        // Display the full error on the screen for debugging
-        this.debugInfo = `CRITICAL ERROR:\nName: ${error.name}\nMessage: ${error.message}\n\nLast Status:\n${this.debugInfo}`;
+        // The full technical error is logged to the console for debugging
         console.error("Recorded video processing error:", error);
+
+        // A user-friendly message
+        this.debugInfo = `An error occurred while processing the video. Please try again.`;
         await this.addVideoToQueue(videoFile);
         const videoIndex = this.videoItems.findIndex(
           (v) => v.name === videoFile.name
         );
         if (videoIndex !== -1) this.videoItems[videoIndex].status = "error";
       } finally {
-        this.isProcessing = false;
-        this.processingMessage = "";
-        this.$emit("processing-state", false);
+        // Wait for the DOM to update with the new video item first,
+        // and only then hide the loader. This prevents the UI lag.
+        this.$nextTick(() => {
+          this.isProcessing = false;
+          this.processingMessage = "";
+          this.$emit("processing-state", false);
+          // If there was an error, the message will now be visible
+          // and we can clear it after a delay.
+          if (this.debugInfo && this.debugInfo.startsWith("An error")) {
+            setTimeout(() => {
+              this.debugInfo = null;
+            }, 5000); // Clear the error message after 5 seconds
+          }
+        });
       }
     },
     // Add switch camera method
@@ -619,8 +633,10 @@ export default {
       this.isProcessing = true;
 
       const filesToProcess = [];
-      let limitReached = false; // Create a local running total, starting with the size of already uploaded items
-      let runningTotalSize = this.currentTotalSize; // This loop will collect files one by one until the size limit is reached
+      // Create a local running total, starting with the size of already uploaded items
+      let limitReached = false;
+      // This loop will collect files one by one until the size limit is reached
+      let runningTotalSize = this.currentTotalSize;
 
       for (const file of files) {
         const isDuplicateImage = this.previewImages.some(
@@ -633,12 +649,12 @@ export default {
           console.warn(`Skipping duplicate file: ${file.name}`);
           continue;
         }
+
         // Check if adding the current file would exceed the limit
         if (runningTotalSize + file.size > this.MAX_TOTAL_SIZE) {
           limitReached = true; // Stop iterating, we have all the files we can fit
           break;
         }
-
         // If the file fits, add it to our list for processing and update the local running total
         filesToProcess.push(file);
         runningTotalSize += file.size;
@@ -651,6 +667,7 @@ export default {
           `Some files were not uploaded because the ${maxMB}MB total size limit was reached.`
         );
       }
+
       // Process only the files that fit within the limit
       const imageFiles = filesToProcess.filter((f) =>
         f.type.startsWith("image/")
@@ -664,27 +681,34 @@ export default {
         this.processingMessage = "Processing images...";
         await this.processImageFiles(imageFiles);
       }
-
       // --- Process Videos (Server-Side ) ---
       for (const videoFile of videoFiles) {
         this.processingMessage = `Uploading and processing video: ${videoFile.name}...`;
-
         try {
+          console.log("Step 1: Preparing to send uploaded video...");
           const formData = new FormData();
           formData.append("video", videoFile, videoFile.name);
 
+          console.log("Step 2: Sending request to /process-video...");
           const response = await fetch(`${API_BASE}/process-video`, {
             method: "POST",
             body: formData,
           });
 
+          console.log(
+            `Step 3: Received response from server. Status: ${response.status} ${response.statusText}. OK: ${response.ok}`
+          );
           if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || "Server processing failed");
+            const errorText = await response.text();
+            console.error(`Error Body: ${errorText}`);
+            throw new Error(`Server returned status ${response.status}`);
           }
 
+          console.log("Step 4: Trying to parse response as JSON...");
           const result = await response.json();
-          const uniqueLabels = [...new Set(result.labels)]; // Add video thumbnail to the UI for visual feedback
+          console.log("Step 5: JSON parsed successfully! Processing result...");
+
+          const uniqueLabels = [...new Set(result.labels)]; // Add video thumbnail
 
           await this.addVideoToQueue(videoFile, result.thumbnail);
           const videoIndex = this.videoItems.findIndex(
@@ -697,8 +721,8 @@ export default {
 
           this.updateAllDetectedItems();
         } catch (error) {
-          this.debugInfo = `Error processing video ${videoFile.name}: ${error.message}`;
-          console.error("Video processing error:", error); // add the video to the UI with an error state
+          console.error("Video processing error:", error);
+          this.debugInfo = `An error occurred while processing the video. Please try again.`;
           await this.addVideoToQueue(videoFile);
           const videoIndex = this.videoItems.findIndex(
             (v) => v.name === videoFile.name
@@ -707,9 +731,16 @@ export default {
         }
       }
       // --- Final Cleanup ---
-      this.isProcessing = false;
-      this.processingMessage = "";
-      this.$emit("processing-state", false);
+      this.$nextTick(() => {
+        this.isProcessing = false;
+        this.processingMessage = "";
+        this.$emit("processing-state", false);
+        if (this.debugInfo && this.debugInfo.startsWith("An error")) {
+          setTimeout(() => {
+            this.debugInfo = null;
+          }, 5000); // Clear the error message after 5 seconds
+        }
+      });
     },
 
     async processImageFiles(files) {
@@ -751,7 +782,7 @@ export default {
       }
 
       this.updateAllDetectedItems();
-      this.emitMediaUpdate(); // ADD THIS
+      this.emitMediaUpdate();
       this.debugInfo =
         this.previewImages.length > 0
           ? "Image processing complete."
@@ -761,7 +792,6 @@ export default {
       this.$emit("processing-state", false);
     },
 
-    // UPDATE addVideoToQueue method - add emitMediaUpdate() at the end:
     async addVideoToQueue(videoFile, posterDataUrl) {
       const previewURL = await this.readFileAsDataURL(videoFile);
       this.videoItems.push({
@@ -774,7 +804,7 @@ export default {
         extractedFrames: 0,
         file: videoFile,
       });
-      this.emitMediaUpdate(); // ADD THIS
+      this.emitMediaUpdate();
     },
 
     // Get video status text
