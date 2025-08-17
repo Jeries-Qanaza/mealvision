@@ -30,6 +30,8 @@
         style="max-width: 100%; max-height: 300px; object-fit: cover; border-radius: 12px; box-shadow: 0 8px 20px #719920;"
       />
     </div>
+    <div class="ipad-air-spacer"></div>
+
   </div>
 </template>
 

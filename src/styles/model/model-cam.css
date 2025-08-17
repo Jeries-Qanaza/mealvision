@@ -1,6 +1,7 @@
 /* General container for the entire UI */
 .camera-container {
     max-width: 800px;
+    min-width: 130%;
     margin: 0 auto;
     padding: 20px;
     text-align: center;
@@ -365,7 +366,7 @@
     border-radius: 5px;
     font-family: monospace;
     font-size: 12px;
-    text-align: left;
+    text-align:center;
 }
 
 /* Delete buttons for previews */
