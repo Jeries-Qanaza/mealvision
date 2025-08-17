@@ -9,27 +9,31 @@
 @import "./model/model-cam.css";
 @import "./model/user-input-div.css";
 
+html {
+  overflow-x: hidden;
+}
+
 body {
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    /* This background color will fill the entire viewport */
-    background-color: #f0f0f0; /* Use a consistent dark background color */
-    color: #f0f0f0; /* Light text for contrast */
-    font-family: Arial, sans-serif;
-    text-align: center;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  /* This background color will fill the entire viewport */
+  background-color: #f0f0f0; /* Use a consistent dark background color */
+  color: #f0f0f0; /* Light text for contrast */
+  font-family: Arial, sans-serif;
+  text-align: center;
 }
 
 #app {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    color: #3d5926;
-    /* Remove the background color from #app to allow the body background to show */
-    background-color: transparent;
-    min-height: 100vh;
-    margin: 0;
-    /* Remove padding from #app to ensure content is flush to the sides */
-    padding: 0; 
+  font-family: Arial, sans-serif;
+  text-align: center;
+  color: #3d5926;
+  /* Remove the background color from #app to allow the body background to show */
+  background-color: transparent;
+  min-height: 100vh;
+  margin: 0;
+  /* Remove padding from #app to ensure content is flush to the sides */
+  padding: 0;
 }
 
 /* links/buttons use theme color */
@@ -63,22 +67,19 @@ button:hover {
   background-color: darkorange;
 }
 
-
-
 /* Responsive Styles */
 @media (max-width: 768px) {
-    body {
-        font-size: 14px;
-    }
+  body {
+    font-size: 14px;
+  }
 
-    /* Remove the padding on #app specifically for mobile devices */
-    #app {
-        padding: 0;
-    }
+  /* Remove the padding on #app specifically for mobile devices */
+  #app {
+    padding: 0;
+  }
 
-    /* Add padding to the content within each page to create inner margins */
-    .home-container {
-        padding: 0 10px; /* Example: add padding to a specific page's container */
-    }
+  /* Add padding to the content within each page to create inner margins */
+  .home-container {
+    padding: 0 10px; /* Example: add padding to a specific page's container */
+  }
 }
-
