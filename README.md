@@ -2,7 +2,8 @@
   <h1> MealVision </h1>
   <a href="https://mealvision.vercel.app/" target="_blank">
     <img src="./public/favicon.ico" alt="MealVision Logo" width="80" height="80">
-    <h5>Visit Site</h5>
+    <h5> Visit Site </h5>
+    <span> Visit Site </span> 
   </a>
 </div>
 
