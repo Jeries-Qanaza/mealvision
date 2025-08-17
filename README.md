@@ -1,12 +1,13 @@
 <div align="center">
-  <h1>MealVision</h1>
-  <a href="https://mealvision.vercel.app/" 
-     target="_blank" 
-     style="display:inline-block; position:relative; z-index:999; text-decoration:none; color:inherit;">
-    <img src="./public/favicon.ico" alt="MealVision Logo" width="80" height="80"><br>
-    <h5 style="margin:0;">Visit Site</h5>
-  </a>
+
+# MealVision
+
+[![MealVision Logo](./public/favicon.ico)](https://mealvision.vercel.app/)
+
+[**Visit Site**](https://mealvision.vercel.app/)
+
 </div>
+
 
 
 
