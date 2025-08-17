@@ -9,10 +9,6 @@
 @import "./model/model-cam.css";
 @import "./model/user-input-div.css";
 
-html {
-  overflow-x: hidden;
-}
-
 body {
   margin: 0;
   padding: 0;
