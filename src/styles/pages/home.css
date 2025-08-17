@@ -117,7 +117,7 @@ body {
 .yolo-features {
   display: flex;
   justify-content: center;
-  gap: 30px;
+  gap: 2%;
   flex-wrap: wrap;
 }
 
@@ -125,7 +125,7 @@ body {
   flex: 1;
   min-width: 280px;
   max-width: 320px;
-  padding: 35px 30px;
+  padding: 30px 30px;
   border-radius: 15px;
   transition: all 0.3s ease;
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -215,6 +215,7 @@ body {
     width: 20%;
     max-width: 400px; /* Keep features from being too wide on tablets */
     margin-bottom: 20px;
+    padding: 10px 10px;
   }
 }
 
