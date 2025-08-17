@@ -442,6 +442,7 @@
   .camera-view {
    
     aspect-ratio: 3/4;
+    max-width: 90%;
   }
   .camera-capture-btn {
     width: 75px;
