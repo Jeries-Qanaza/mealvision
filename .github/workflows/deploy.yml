@@ -2,7 +2,7 @@ name: Deploy to Oracle VM
 
 on:
   push:
-    branches: [ main ]         
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -19,8 +19,17 @@ jobs:
         username: ubuntu
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
+          # Go to the project directory
           cd ~/mealvision
-          git pull origin main
+
+          # Perform a full reset of the repository to match the remote branch
+          git fetch origin
+          git reset --hard origin/main
+          git clean -df
+
+          # Activate the virtual environment and install dependencies
           source venv/bin/activate
           pip install -r requirements.txt --quiet
+          
+          # Restart the service
           sudo systemctl restart mealvision
