@@ -107,7 +107,7 @@ def get_yolo_model():
     global yolo_model
     if yolo_model is None:
         print("Loading YOLO model for the first time...")
-        yolo_model = YOLO("./src/assets/best8s.pt")
+        yolo_model = YOLO("./src/assets/best.pt")
         print("YOLO model loaded successfully.")
     return yolo_model
 
@@ -310,7 +310,7 @@ def detect():
         model = get_yolo_model()
         t_model_got = time.time()
         print(f"DEBUG: Getting YOLO model took {t_model_got - t_image_loaded:.2f} seconds")
-
+        
         # --- Use mkstemp for Windows-safe temporary file ---
         fd, temp_name = tempfile.mkstemp(suffix=".jpg")
         os.close(fd)  # Close OS handle immediately
