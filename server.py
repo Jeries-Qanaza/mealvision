@@ -23,7 +23,6 @@ import gc
 from dotenv import load_dotenv
 import time
 import traceback
-from huggingface_hub import InferenceClient
 from huggingface_hub import HfApi, InferenceClient
 from huggingface_hub.utils import HfHubHTTPError
 import concurrent.futures
@@ -341,18 +340,18 @@ def detect():
     except Exception as e:
         print(f"Error in /detect: {e}.")
         traceback.print_exc()
-        return jsonify({"Error": "An error occurred during image detection."}), 500
+        return jsonify({"error": "An error occurred during image detection."}), 500
 
 # Processing videos
 @app.route("/process-video", methods=["POST"])
 def process_video():
     """Receives a video, extracts frames, resizes them, detects items, and returns labels AND a thumbnail."""
     if 'video' not in request.files:
-        return jsonify({"Error": "No video file provided"}), 400
+        return jsonify({"error": "No video file provided"}), 400
     
     video_file = request.files['video']
     if video_file.filename == '':
-        return jsonify({"Error": "No file selected"}), 400
+        return jsonify({"error": "No file selected"}), 400
 
     t_start = time.time()
     print("\n--- Received new request for /process-video ---")
@@ -372,7 +371,7 @@ def process_video():
             subprocess.run(['ffmpeg', '-i', video_path, '-ss', '00:00:01.000', '-vframes', '1', thumbnail_path], check=True, capture_output=True, text=True)
         except subprocess.CalledProcessError as e:
             print(f"FFmpeg Error: {e.stderr}.")
-            return jsonify({"Error": "Failed to process video with FFmpeg."}), 500
+            return jsonify({"error": "Failed to process video with FFmpeg."}), 500
 
         model = get_yolo_model()
         all_detected_labels = set()
@@ -423,7 +422,7 @@ def generate_meals():
 
         data = request.json
         if not data or not data.get("ingredients"):
-            return jsonify({"Error": "No ingredients provided."}), 400
+            return jsonify({"error": "No ingredients provided."}), 400
             
         ingredients_str = ", ".join(data.get("ingredients", []))
         dietary_preferences = data.get('dietary_preferences', '')
@@ -491,13 +490,13 @@ def generate_meals():
     except ResourceExhausted as e:
         print(f"RATE LIMIT EXCEEDED for Gemini API: {e}.")
         user_message = "Too many requests were made in a short time. Please wait a minute and try again."
-        return jsonify({"Error": user_message}), 429
+        return jsonify({"error": user_message}), 429
     
     # Catches 503 Service Unavailable errors from Google API
     except ServiceUnavailable as e:
         print(f"Gemini API is unavailable (503): {e}.")
         user_message = "The AI model is temporarily unavailable due to high traffic. Please try again later."
-        return jsonify({"Error": user_message}), 503
+        return jsonify({"error": user_message}), 503
 
     # Catches all other unexpected errors   
     except Exception as e:
@@ -517,7 +516,7 @@ def send_email():
         message = data.get('message')
 
         if not all([name, email, message]):
-            return jsonify({"Error": "Missing form data"}), 400
+            return jsonify({"error": "Missing form data"}), 400
 
         msg = Message(subject=f"New Contact Message from {name}",
                       recipients=['je.yo.yvc@gmail.com'],
@@ -528,7 +527,7 @@ def send_email():
     except Exception as e:
         print(f"Error sending email: {e}.")
         traceback.print_exc()
-        return jsonify({"Error": "An error occurred while sending the email."}), 500
+        return jsonify({"error": "An error occurred while sending the email."}), 500
 
 # ==============================================================================
 # Main Execution
