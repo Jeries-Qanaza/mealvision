@@ -150,6 +150,7 @@ export default {
       const term = this.searchQuery.trim();
       if (!term) return;
 
+      // Check if item already exists
       const exists = this.searchHistory.some(
         (it) => it.text.toLowerCase() === term.toLowerCase()
       );
