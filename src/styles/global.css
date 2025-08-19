@@ -31,7 +31,7 @@ body {
   text-align: center;
   color: #3d5926;
   /* Remove the background color from #app to allow the body background to show */
-  background-color: transparent;
+  background-color: rgb(232, 232, 232);
   min-height: 100vh;
   margin: 0;
   /* Remove padding from #app to ensure content is flush to the sides */
@@ -86,22 +86,36 @@ button:hover {
   }
 }
 
+/* Chrome, Edge, Safari scrollbar */
+::-webkit-scrollbar {
+  width: 12px;  /* vertical scrollbar width */
+  height: 12px; /* horizontal scrollbar height */
+}
 
-    /* Chrome, Edge, Safari scrollbar */
-    ::-webkit-scrollbar {
-      width: 12px;  /* vertical scrollbar width */
-      height: 12px; /* horizontal scrollbar height */
-    }
+::-webkit-scrollbar-track {
+  background: #f0f0f0; /* scrollbar track color */
+}
 
-    ::-webkit-scrollbar-track {
-      background: #f0f0f0; /* scrollbar track color */
-    }
+::-webkit-scrollbar-thumb {
+  background: #174329; /* scrollbar thumb color */
+  border-radius: 6px;
+}
 
-    ::-webkit-scrollbar-thumb {
-      background: #174329; /* scrollbar thumb color */
-      border-radius: 6px;
-    }
+::-webkit-scrollbar-thumb:hover {
+  background: #174329; /* thumb color when hovered */
+}
 
-    ::-webkit-scrollbar-thumb:hover {
-      background: #174329; /* thumb color when hovered */
-    }
+/* Additional mobile support for scrollbars */
+@supports (-webkit-touch-callout: none) {
+  /* iOS Safari specific */
+  ::-webkit-scrollbar {
+    -webkit-appearance: none;
+  }
+}
+
+/* Force scrollbar visibility on mobile browsers that support it */
+@media (max-width: 768px) {
+  html {
+    overflow-y: scroll;
+  }
+}
