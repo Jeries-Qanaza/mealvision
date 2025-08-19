@@ -1,5 +1,6 @@
 <template>
   <NavBar style="background-color: #174329" />
+  <br />
   <div class="contact-us-container page-container">
     <div class="contact-us-form">
       <h2 class="heading-gradient">Contact Us</h2>

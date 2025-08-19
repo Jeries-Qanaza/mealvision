@@ -223,7 +223,7 @@
     </div>
 
     <div v-if="totalIngredients.length > 0" id="labels">
-      <u>Total Ingredients:</u> <br />
+      <u>Total Ingredients:</u> <br /><br />
       <span>{{ totalIngredients.join(", ") }}</span>
     </div>
 
