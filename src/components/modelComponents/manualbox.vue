@@ -40,8 +40,8 @@
         v-for="(item, index) in searchHistory"
         :key="index"
       >
-        <span v-html="highlightMatch(item.text)"></span>
-        <span v-if="item.emoji"> {{ item.emoji }} </span>
+        <span v-html="highlightMatch(item)"></span>
+        <span v-if="findEmoji(item)"> {{ findEmoji(item) }} </span>
         <button @click="removeFromHistory(index)" class="remove-button">
           ×
         </button>
@@ -65,7 +65,7 @@ export default {
   data() {
     return {
       searchQuery: "",
-      searchHistory: [], // store objects {text, emoji}
+      searchHistory: [], // store only plain text
       suggestions: [],
       showSuggestions: false,
       activeIndex: -1,
@@ -89,15 +89,11 @@ export default {
     },
   },
   methods: {
-    // Sync history from parent
+    // Sync history from parent (store only plain text)
     syncWithExistingItems(existingItems) {
-      this.searchHistory =
-        existingItems && existingItems.length
-          ? existingItems.map((term) => ({
-              text: term,
-              emoji: findEmoji(term),
-            }))
-          : [];
+      this.searchHistory = existingItems && existingItems.length
+        ? existingItems.map(term => term.trim())
+        : [];
     },
 
     // Input handling & autocomplete
@@ -125,16 +121,11 @@ export default {
     },
 
     onEnter() {
-      // If a suggestion is actively highlighted (by mouse or arrows), select it
       if (this.activeIndex !== -1) {
         this.selectSuggestion(this.suggestions[this.activeIndex]);
-      }
-      // If no suggestion is highlighted, but the list is visible, select the first one
-      else if (this.showSuggestions && this.suggestions.length > 0) {
+      } else if (this.showSuggestions && this.suggestions.length > 0) {
         this.selectSuggestion(this.suggestions[0]);
-      }
-      // Otherwise (if the list is not visible), add what the user typed
-      else {
+      } else {
         this.addItemFromQuery();
       }
     },
@@ -145,13 +136,14 @@ export default {
       this.addItemFromQuery();
     },
 
-    // Add to history
+    // Add to history (store plain text only)
     addItemFromQuery() {
       const term = this.searchQuery.trim();
       if (!term) return;
 
+      // Normalize duplicate check
       const exists = this.searchHistory.some(
-        (it) => it.text.toLowerCase() === term.toLowerCase()
+        it => it.toLowerCase() === term.toLowerCase()
       );
       if (exists) {
         this.searchQuery = "";
@@ -159,14 +151,9 @@ export default {
         return;
       }
 
-      const emoji = findEmoji(term);
-      this.searchHistory.unshift({ text: term, emoji });
-      this.$emit(
-        "manual-items-updated",
-        this.searchHistory.map(
-          (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
-        )
-      );
+      // Add plain text only
+      this.searchHistory.unshift(term);
+      this.$emit("manual-items-updated", [...this.searchHistory]);
 
       this.searchQuery = "";
       this.showSuggestions = false;
@@ -174,12 +161,7 @@ export default {
 
     removeFromHistory(index) {
       this.searchHistory.splice(index, 1);
-      this.$emit(
-        "manual-items-updated",
-        this.searchHistory.map(
-          (it) => `${it.text}${it.emoji ? " " + it.emoji : ""}`
-        )
-      );
+      this.$emit("manual-items-updated", [...this.searchHistory]);
     },
 
     // Highlight query match in text
@@ -203,6 +185,11 @@ export default {
       ) {
         this.showSuggestions = false;
       }
+    },
+
+    // Expose emoji helper for template
+    findEmoji(term) {
+      return findEmoji(term);
     },
   },
   beforeUnmount() {
