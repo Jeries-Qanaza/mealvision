@@ -47,6 +47,7 @@
 </template>
 
 <script>
+const API_BASE = process.env.VUE_APP_API_BASE; 
 import NavBar from "../components/navbar/navbar.vue";
 export default {
   name: "ContactUs",
@@ -64,7 +65,7 @@ export default {
   methods: {
     handleSubmit() {
       this.loading = true;
-      fetch("https://mealvision.onrender.com/send-email", {
+      fetch(`${API_BASE}/send-email`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
