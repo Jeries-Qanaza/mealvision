@@ -235,11 +235,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative; /* Added for camera-error positioning */
 }
-.camera-error,
-.camera-loading {
+
+.camera-error {
+  position: absolute; /* Change to absolute positioning */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  transform: translate(-50%, -50%); /* Adjust to center */
   text-align: center;
   padding: 20px;
+  z-index: 3000; /* Ensure it overlays above other elements */
+  background-color: rgb(161, 161, 161);
+  border-radius: 8px;
+  color: white;
 }
 .camera-error button {
   margin-top: 10px;
@@ -249,6 +258,11 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
+}
+
+.camera-loading {
+  text-align: center;
+  padding: 20px;
 }
 
 .choice-buttons {
