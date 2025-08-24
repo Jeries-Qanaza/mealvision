@@ -372,6 +372,8 @@
     font-family: monospace;
     font-size: 12px;
     text-align: center;
+    width: fit-content;
+    display: inline-block;
 }
 
 /* Delete buttons for previews */
