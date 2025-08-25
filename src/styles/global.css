@@ -10,6 +10,12 @@
 @import "./model/user-input-div.css";
 
 /* Prevent horizontal scrolling */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #app {
