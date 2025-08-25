@@ -170,10 +170,9 @@
 
 .modal-close {
   position: absolute;
+  padding: 5px 10px;
   top: 8px;
   right: 8px;
-  width: 24px;
-  height: 24px;
   border: none;
   background: transparent;
   font-size: 20px;
