@@ -27,7 +27,7 @@ body {
  * No position: fixed is needed. It will naturally be at the bottom.
  */
 .footer {
-  background: linear-gradient(to bottom, white, #174329);
+  background: linear-gradient(to bottom, #e8e8e8, #174329);
   color: white;
   padding: 20px;
   text-align: center;

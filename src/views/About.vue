@@ -152,7 +152,6 @@ export default {
 .About_Model {
   margin-top: 50px;
   background-color: orange;
-  border-radius: 60px;
 }
 
 .about-us-team {
@@ -169,7 +168,7 @@ export default {
   margin: 0 auto;
   margin-top: 30px;
   color: #333;
-  background-color: #ffffff;
+  background-color: #e8e8e8;
 }
 
 .about-project {
@@ -352,6 +351,7 @@ export default {
 
 .carousel-track {
   display: flex;
+  border-radius: 15px;
   gap: 30px;
   animation: scroll 15s linear infinite;
   flex-wrap: nowrap; /* Ensures items stay in a single row */
